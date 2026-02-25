@@ -39,7 +39,9 @@ export type Placement = {
   width: number
   height: number
   rotated: boolean
+  isLiner: boolean
   isBundle: boolean
+  panelType: PanelBlueprint['type']
 }
 
 export type SolverResult = {
@@ -51,7 +53,6 @@ export type SolverResult = {
   bundleSavings: number
   linerAreaSqft: number
   linerExtraCost: number
-  doubleBottomExtraCost: number
   solverTimestamp: string
 }
 
@@ -63,8 +64,6 @@ export type SolverOptions = {
 }
 
 const LINER_HEIGHT_PERCENT = 0.5
-const LINER_EXTRA_LABOR_PER_SQFT = 4.25
-const DOUBLE_BOTTOM_LABOR = 120
 const BUNDLE_SHARED_EDGE_SAVINGS_PER_INCH = 0.4
 
 export const DEFAULT_SHEET_INVENTORY: SheetInventoryRow[] = [
@@ -138,7 +137,7 @@ type PanelBlueprint = {
   name: string
   width: number
   height: number
-  type: 'bottom' | 'long' | 'short' | 'liner'
+  type: 'floor' | 'long' | 'short' | 'liner' | 'shelf'
   isLiner: boolean
 }
 
@@ -245,14 +244,14 @@ export function runPlanterSolver({
     return (total += usage.areaUsedSqft * usage.costPerSqft)
   }, 0)
 
-  const baseFabricationCost = breakdowns.reduce((total, row) => total + row.price, 0)
+  const fabricationRows = breakdowns.filter((row) => row.category !== 'Liner')
+  const baseFabricationCost = fabricationRows.reduce((total, row) => total + row.price, 0)
   const linerAreaSqft = panels
     .filter((panel) => panel.isLiner)
     .reduce((total, panel) => total + panel.width * panel.height, 0) / 144
-  const linerExtraCost = linerAreaSqft * LINER_EXTRA_LABOR_PER_SQFT
-  const doubleBottomExtraCost = planterInput.doubleBottomEnabled ? DOUBLE_BOTTOM_LABOR : 0
-  const totalFabricationCost =
-    totalMaterialCost + baseFabricationCost + linerExtraCost + doubleBottomExtraCost
+  const linerRow = breakdowns.find((row) => row.category === 'Liner')
+  const linerExtraCost = linerRow?.price ?? 0
+  const totalFabricationCost = totalMaterialCost + baseFabricationCost + linerExtraCost
 
   return {
     placements,
@@ -263,7 +262,6 @@ export function runPlanterSolver({
     bundleSavings,
     linerAreaSqft,
     linerExtraCost,
-    doubleBottomExtraCost,
     solverTimestamp: new Date().toISOString(),
   }
 }
@@ -273,15 +271,18 @@ function buildPanels(
   input: PlanterInput,
   linerHeightPercent: number,
 ): PanelBlueprint[] {
-  const panels: PanelBlueprint[] = [
-    {
-      id: 'panel-bottom',
-      name: 'Bottom',
+  const panels: PanelBlueprint[] = []
+  if (input.floorEnabled) {
+    panels.push({
+      id: 'panel-floor',
+      name: 'Floor',
       width: fabrication.width,
       height: fabrication.length,
-      type: 'bottom',
+      type: 'floor',
       isLiner: false,
-    },
+    })
+  }
+  panels.push(
     {
       id: 'panel-long-a',
       name: 'Long A',
@@ -314,15 +315,15 @@ function buildPanels(
       type: 'short',
       isLiner: false,
     },
-  ]
+  )
 
-  if (input.doubleBottomEnabled) {
+  if (input.shelfEnabled) {
     panels.push({
-      id: 'panel-bottom-2',
-      name: 'Bottom 2',
+      id: 'panel-shelf',
+      name: 'Shelf',
       width: fabrication.width,
       height: fabrication.length,
-      type: 'bottom',
+      type: 'shelf',
       isLiner: false,
     })
   }
@@ -339,7 +340,7 @@ function buildPanels(
           name: 'Liner Bottom',
           width: linerWidth,
           height: linerLength,
-          type: 'bottom',
+          type: 'liner',
           isLiner: true,
         },
         {
@@ -400,10 +401,10 @@ function buildCandidates(
 
   const bundles: Candidate[] = []
   const adjacency: Array<{ anchor: string; partner: string; label: string; sharedEdge: number }> = [
-    { anchor: 'panel-bottom', partner: 'panel-long-a', label: 'Bottom + Long A', sharedEdge: dims.length },
-    { anchor: 'panel-bottom', partner: 'panel-long-b', label: 'Bottom + Long B', sharedEdge: dims.length },
-    { anchor: 'panel-bottom', partner: 'panel-short-a', label: 'Bottom + Short A', sharedEdge: dims.width },
-    { anchor: 'panel-bottom', partner: 'panel-short-b', label: 'Bottom + Short B', sharedEdge: dims.width },
+    { anchor: 'panel-floor', partner: 'panel-long-a', label: 'Floor + Long A', sharedEdge: dims.length },
+    { anchor: 'panel-floor', partner: 'panel-long-b', label: 'Floor + Long B', sharedEdge: dims.length },
+    { anchor: 'panel-floor', partner: 'panel-short-a', label: 'Floor + Short A', sharedEdge: dims.width },
+    { anchor: 'panel-floor', partner: 'panel-short-b', label: 'Floor + Short B', sharedEdge: dims.width },
   ]
 
   for (const { anchor, partner, label, sharedEdge } of adjacency) {
@@ -537,6 +538,8 @@ function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placemen
         rowId: sheet.rowId,
         rotated: placement.rotated,
         isBundle: false,
+        isLiner: panel.isLiner,
+        panelType: panel.type,
       },
     ]
   }
@@ -550,17 +553,19 @@ function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placemen
     if (!first) continue
 
     const simulatedPlacements = [...sheet.placements]
-    const firstPlacement: Placement = {
-      ...first,
-      id: `${candidate.id}-${panelA.id}`,
-      candidateId: candidate.id,
-      panelId: panelA.id,
-      name: panelA.name,
-      sheetInstanceId: sheet.id,
-      rowId: sheet.rowId,
-      rotated: orientationA.rotated,
-      isBundle: true,
-    }
+      const firstPlacement: Placement = {
+        ...first,
+        id: `${candidate.id}-${panelA.id}`,
+        candidateId: candidate.id,
+        panelId: panelA.id,
+        name: panelA.name,
+        sheetInstanceId: sheet.id,
+        rowId: sheet.rowId,
+        rotated: orientationA.rotated,
+        isBundle: true,
+        isLiner: panelA.isLiner,
+        panelType: panelA.type,
+      }
 
     for (const orientationB of panelBOrientations) {
       const second = findPlacementOnSheet(
@@ -585,6 +590,8 @@ function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placemen
         rowId: sheet.rowId,
         rotated: orientationB.rotated,
         isBundle: true,
+        isLiner: panelB.isLiner,
+        panelType: panelB.type,
       }
 
       return [firstPlacement, secondPlacement]

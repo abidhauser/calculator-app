@@ -9,7 +9,8 @@ export type PlanterInput = {
   linerDepth: number
   linerThickness: number
   weightPlateEnabled: boolean
-  doubleBottomEnabled: boolean
+  floorEnabled: boolean
+  shelfEnabled: boolean
 }
 
 export type CostThreshold = {
