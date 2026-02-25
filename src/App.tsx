@@ -737,7 +737,7 @@ function App() {
         type: 'success',
         message: `Solver locked the lowest total fabrication cost (${formatCurrencyValue(
           result.totalFabricationCost,
-        )}) by preferring the cheapest sheets and bundling savings (${formatCurrencyValue(result.bundleSavings)}).`,
+        )}) by preferring the cheapest sheets.`,
       })
       console.log('Solver result', result)
     } catch (error) {

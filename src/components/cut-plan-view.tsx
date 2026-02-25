@@ -50,19 +50,12 @@ const PANEL_PALETTE: Record<string, PaletteEntry> = {
   },
 }
 
-const BUNDLE_STYLE: PaletteEntry = {
-  background: 'rgba(251, 191, 36, 0.35)',
-  border: 'rgba(217, 119, 6, 0.85)',
-  text: '#92400e',
-}
-
 const LEGEND_GROUPS = [
   { label: 'Floor', group: 'floor' },
   { label: 'Shelf', group: 'shelf' },
   { label: 'Long side', group: 'long' },
   { label: 'Short side', group: 'short' },
   { label: 'Liner', group: 'liner' },
-  { label: 'Bundle savings', group: 'bundle' },
 ]
 
 const formatSheetDimensions = (width: number, height: number) =>
@@ -100,9 +93,6 @@ const getPanelGroup = (placement: Placement) => {
 }
 
 const getPlacementStyle = (placement: Placement): PaletteEntry => {
-  if (placement.isBundle) {
-    return BUNDLE_STYLE
-  }
   const group = getPanelGroup(placement)
   return PANEL_PALETTE[group] ?? PANEL_PALETTE.other
 }
@@ -136,8 +126,7 @@ export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanView
       <CardHeader>
         <CardTitle>Cut plan</CardTitle>
         <CardDescription>
-          Each sheet card shows how panels stack, highlights bundle savings, and ties the layout back to the lowest
-          material cost.
+          Each sheet card shows how panels stack and ties the layout back to the lowest material cost.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -231,41 +220,39 @@ export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanView
                   </div>
                 </div>
               </div>
-              <div className="grid gap-2 text-[0.7rem] text-muted-foreground">
-                {sortedPlacements.map((placement) => {
-                  const placementStyle = getPlacementStyle(placement)
-                  return (
-                    <div
-                      key={`${placement.id}-detail`}
-                      className="flex items-center justify-between rounded-xl border border-border/30 bg-background/60 px-3 py-1 text-[0.7rem]"
-                    >
-                      <span className="flex items-center gap-2 font-semibold text-foreground">
-                        <span
-                          className="h-2 w-6 rounded-full border"
-                          style={{
-                            backgroundColor: placementStyle.background,
-                            borderColor: placementStyle.border,
-                          }}
-                        />
-                        {placement.name}
-                        {placement.isLiner && <span className="text-[0.55rem] text-muted-foreground">(liner)</span>}
-                        {placement.panelType === 'shelf' && <span className="text-[0.55rem] text-muted-foreground">(shelf)</span>}
-                        {placement.isBundle && <span className="text-[0.55rem] text-muted-foreground">(bundle)</span>}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {placement.width.toFixed(1)}" × {placement.height.toFixed(1)}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
+              <div className="grid gap-2 text-[0.7rem] text-muted-foreground max-w-2xl">
+                    {sortedPlacements.map((placement) => {
+                      const placementStyle = getPlacementStyle(placement)
+                      return (
+                        <div
+                          key={`${placement.id}-detail`}
+                          className="rounded-xl border border-border/30 bg-background/60 px-3 py-1 text-[0.7rem]"
+                        >
+                          <span className="flex flex-wrap items-center gap-2 font-semibold text-foreground">
+                            <span
+                              className="h-2 w-6 rounded-full border"
+                              style={{
+                                backgroundColor: placementStyle.background,
+                                borderColor: placementStyle.border,
+                              }}
+                            />
+                            {placement.name}
+                            {placement.isLiner && <span className="text-[0.55rem] text-muted-foreground">(liner)</span>}
+                            {placement.panelType === 'shelf' && <span className="text-[0.55rem] text-muted-foreground">(shelf)</span>}
+                            <span className="text-xs text-muted-foreground">
+                              {placement.width.toFixed(1)}" × {placement.height.toFixed(1)}
+                            </span>
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
             </div>
           )
         })}
         <div className="flex flex-wrap gap-3 text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground">
           {LEGEND_GROUPS.map((entry) => {
-            const palette =
-              entry.group === 'bundle' ? BUNDLE_STYLE : PANEL_PALETTE[entry.group] ?? PANEL_PALETTE.other
+            const palette = PANEL_PALETTE[entry.group] ?? PANEL_PALETTE.other
             return (
               <div key={entry.label} className="flex items-center gap-2">
                 <span
