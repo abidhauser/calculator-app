@@ -28,6 +28,13 @@ import {
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { CostBreakdownPreview, CostThreshold, PlanterInput } from './types'
+import {
+  DEFAULT_SHEET_INVENTORY,
+  buildFabricationDimensions,
+  runPlanterSolver,
+  type SheetInventoryRow,
+  type SolverResult,
+} from './lib/planterSolver'
 
 type Category =
   | 'Weld'
@@ -128,6 +135,23 @@ const categoryList: Category[] = [
   'Weight Plate',
 ]
 
+const generateSheetId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `sheet-${crypto.randomUUID()}`
+  }
+  return `sheet-${Math.random().toString(36).slice(2, 8)}`
+}
+
+const createSheetRow = (overrides?: Partial<SheetInventoryRow>): SheetInventoryRow => ({
+  id: overrides?.id ?? generateSheetId(),
+  name: overrides?.name ?? 'Custom sheet',
+  width: overrides?.width ?? 48,
+  height: overrides?.height ?? 96,
+  costPerSqft: overrides?.costPerSqft ?? 5,
+  quantity: overrides?.quantity ?? 1,
+  limitQuantity: overrides?.limitQuantity ?? true,
+})
+
 const LOCAL_STORAGE_KEY = 'planterCostThresholds-v1'
 
 const cloneThresholds = (source?: Partial<Record<Category, CostThreshold>>) =>
@@ -177,6 +201,11 @@ function App() {
   const [breakdowns, setBreakdowns] = useState<CostBreakdownPreview[]>([])
   const [calculationError, setCalculationError] = useState<string | null>(null)
   const [isCalculated, setIsCalculated] = useState(false)
+  const [solverResult, setSolverResult] = useState<SolverResult | null>(null)
+  const [sheetInventory, setSheetInventory] = useState<SheetInventoryRow[]>(() =>
+    DEFAULT_SHEET_INVENTORY.map((row) => ({ ...row })),
+  )
+  const [sheetMode, setSheetMode] = useState<'auto' | 'manual'>('manual')
 
   const hasThresholdErrors = useMemo(
     () => Object.values(thresholdErrors).some((message) => Boolean(message)),
@@ -246,8 +275,53 @@ function App() {
     }))
   }
 
+  const handleSheetNameChange = (rowId: string, value: string) => {
+    setSheetInventory((prev) => prev.map((row) => (row.id === rowId ? { ...row, name: value } : row)))
+  }
+
+  const handleSheetDimensionChange = (rowId: string, field: 'width' | 'height', value: number) => {
+    if (Number.isNaN(value)) return
+    setSheetInventory((prev) =>
+      prev.map((row) => (row.id === rowId ? { ...row, [field]: Math.max(0, value) } : row)),
+    )
+  }
+
+
+  const handleSheetCostChange = (rowId: string, value: number) => {
+    setSheetInventory((prev) =>
+      prev.map((row) =>
+        row.id === rowId ? { ...row, costPerSqft: Number.isNaN(value) ? row.costPerSqft : value } : row,
+      ),
+    )
+  }
+
+  const handleSheetQuantityChange = (rowId: string, value: number) => {
+    setSheetInventory((prev) =>
+      prev.map((row) => {
+        if (row.id !== rowId) return row
+        if (Number.isNaN(value)) return row
+        return { ...row, quantity: Math.max(0, Math.floor(value)) }
+      }),
+    )
+  }
+
+  const handleSheetLimitToggle = (rowId: string, restricted: boolean) => {
+    setSheetInventory((prev) =>
+      prev.map((row) => (row.id === rowId ? { ...row, limitQuantity: restricted } : row)),
+    )
+  }
+
+  const handleAddSheetRow = () => {
+    setSheetInventory((prev) => [...prev, createSheetRow()])
+  }
+
+  const handleRemoveSheetRow = (rowId: string) => {
+    setSheetInventory((prev) => prev.filter((row) => row.id !== rowId))
+  }
+
   const handleCalculate = () => {
     setCalculationError(null)
+    setSolverResult(null)
     const validationMessage = validatePlanterInput(planterInput)
     if (validationMessage) {
       setCalculationError(validationMessage)
@@ -260,10 +334,8 @@ function App() {
       return
     }
 
-    const fabricationLength = planterInput.length + planterInput.lip
-    const fabricationWidth = planterInput.width + planterInput.lip
-    const fabricationHeight = planterInput.height + planterInput.lip
-    const volume = fabricationLength * fabricationWidth * fabricationHeight
+    const dims = buildFabricationDimensions(planterInput)
+    const volume = dims.length * dims.width * dims.height
 
     const breakdownResults: CostBreakdownPreview[] = categoryList.map((category) => {
       if (category === 'Weight Plate' && !planterInput.weightPlateEnabled) {
@@ -274,10 +346,35 @@ function App() {
       return { category, tierUsed: tier, price }
     })
 
-    setFabricationDims({ length: fabricationLength, width: fabricationWidth, height: fabricationHeight })
+    setFabricationDims(dims)
     setFabricationVolume(volume)
     setBreakdowns(breakdownResults)
     setIsCalculated(true)
+  }
+
+  const handleGenerate = () => {
+    if (!isCalculated) {
+      return
+    }
+
+    setCalculationError(null)
+    try {
+      const result = runPlanterSolver({
+        planterInput,
+        fabricationDims,
+        breakdowns,
+        options: {
+          inventory: sheetInventory,
+          mode: sheetMode,
+          manualRowOrder: sheetInventory.map((row) => row.id),
+        },
+      })
+      setSolverResult(result)
+      console.log('Solver result', result)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown solver failure.'
+      setCalculationError(`Solver failure: ${message}`)
+    }
   }
 
   const handlePriceOverride = (category: Category, value: number) => {
@@ -514,10 +611,15 @@ function App() {
               <CardContent className="space-y-4">
                 <div className="flex flex-wrap gap-3">
                   <Button onClick={handleCalculate}>Calculate</Button>
-                  <Button variant="outline" disabled={!isCalculated}>
+                  <Button variant="outline" disabled={!isCalculated} onClick={handleGenerate}>
                     Generate
                   </Button>
                 </div>
+                {solverResult && (
+                  <p className="text-sm text-muted-foreground">
+                    Solver placed {solverResult.placements.length} panels across {solverResult.sheetUsages.length} sheet instances; total fabrication cost ${solverResult.totalFabricationCost.toFixed(2)}.
+                  </p>
+                )}
                 {calculationError && (
                   <p className="text-sm text-destructive">{calculationError}</p>
                 )}
@@ -688,6 +790,125 @@ function App() {
                 <p className="text-sm text-muted-foreground">
                   Settings persist locally and are reused on every visit.
                 </p>
+              </CardContent>
+            </Card>
+            <Card className="space-y-4">
+              <CardHeader>
+                <CardTitle>Sheet inventory</CardTitle>
+                <CardDescription>
+                  Solver only considers the rows below (per the dimensions/cost values) and can place multiple copies of the same sheet up to the listed quantity.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="grid gap-3 sm:grid-cols-2 sm:items-end">
+                  <div className="space-y-1">
+                    <Label htmlFor="sheet-mode">Sheet selection mode</Label>
+                    <Select value={sheetMode} onValueChange={(value) => setSheetMode(value as 'auto' | 'manual')}>
+                      <SelectTrigger id="sheet-mode" className="w-full">
+                        <SelectValue placeholder="Mode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manual">Manual (use these sheets only)</SelectItem>
+                        <SelectItem value="auto">Auto (solver may reorder)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Manual mode restricts the solver to this list and honors each quantity; auto mode will still prefer the cheapest configured rows.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  {sheetInventory.map((row) => (
+                    <div
+                      key={row.id}
+                      className="grid gap-3 text-sm md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end"
+                    >
+                      <div className="space-y-1">
+                        <Label htmlFor={`${row.id}-name`}>Sheet name</Label>
+                        <Input
+                          id={`${row.id}-name`}
+                          type="text"
+                          value={row.name}
+                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                            handleSheetNameChange(row.id, event.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${row.id}-width`}>Width (in)</Label>
+                        <Input
+                          id={`${row.id}-width`}
+                          type="number"
+                          min="0"
+                          step="0.25"
+                          value={row.width}
+                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                            handleSheetDimensionChange(row.id, 'width', Number(event.target.value))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${row.id}-height`}>Height (in)</Label>
+                        <Input
+                          id={`${row.id}-height`}
+                          type="number"
+                          min="0"
+                          step="0.25"
+                          value={row.height}
+                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                            handleSheetDimensionChange(row.id, 'height', Number(event.target.value))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${row.id}-cost`}>Cost / sqft</Label>
+                        <Input
+                          id={`${row.id}-cost`}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={row.costPerSqft}
+                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                            handleSheetCostChange(row.id, Number(event.target.value))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`${row.id}-quantity`} className="flex items-center gap-2">
+                          Quantity available
+                          <Checkbox
+                            id={`${row.id}-limit`}
+                            checked={row.limitQuantity}
+                            onCheckedChange={(value: boolean | 'indeterminate') =>
+                              handleSheetLimitToggle(row.id, Boolean(value))
+                            }
+                          />
+                          <span className="text-xs font-semibold">Enforce quantity</span>
+                        </Label>
+                        <Input
+                          id={`${row.id}-quantity`}
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={row.quantity}
+                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                            handleSheetQuantityChange(row.id, Number(event.target.value))
+                          }
+                        />
+                      </div>
+                      <div className="flex items-end justify-end">
+                        <Button variant="ghost" size="sm" onClick={() => handleRemoveSheetRow(row.id)}>
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <Button variant="secondary" size="sm" onClick={handleAddSheetRow}>
+                    Add sheet
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
