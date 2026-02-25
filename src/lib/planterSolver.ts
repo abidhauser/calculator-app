@@ -405,6 +405,8 @@ function buildCandidates(
     { anchor: 'panel-floor', partner: 'panel-long-b', label: 'Floor + Long B', sharedEdge: dims.length },
     { anchor: 'panel-floor', partner: 'panel-short-a', label: 'Floor + Short A', sharedEdge: dims.width },
     { anchor: 'panel-floor', partner: 'panel-short-b', label: 'Floor + Short B', sharedEdge: dims.width },
+    { anchor: 'panel-long-a', partner: 'panel-short-a', label: 'L-cut (Long A + Short A)', sharedEdge: dims.height },
+    { anchor: 'panel-long-b', partner: 'panel-short-b', label: 'L-cut (Long B + Short B)', sharedEdge: dims.height },
   ]
 
   for (const { anchor, partner, label, sharedEdge } of adjacency) {

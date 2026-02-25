@@ -28,6 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import type { CostBreakdownPreview, CostThreshold, PlanterInput } from './types'
 import {
   DEFAULT_SHEET_INVENTORY,
@@ -285,6 +286,7 @@ function App() {
     DEFAULT_SHEET_INVENTORY.map((row) => ({ ...row })),
   )
   const [sheetMode, setSheetMode] = useState<'auto' | 'manual'>('manual')
+  const [customSalePrice, setCustomSalePrice] = useState('')
 
   const hasThresholdErrors = useMemo(
     () => Object.values(thresholdErrors).some((message) => Boolean(message)),
@@ -415,6 +417,45 @@ function App() {
   const estimatedSalePrice =
     totalFabricationCost > 0 ? totalFabricationCost / (1 - saleMarginFraction) : totalFabricationCost
   const profit = estimatedSalePrice - totalFabricationCost
+
+  const parsedCustomSalePrice = Number(customSalePrice)
+  const hasCustomSalePrice =
+    Number.isFinite(parsedCustomSalePrice) && parsedCustomSalePrice > 0
+  const salePriceForMargin = hasCustomSalePrice ? parsedCustomSalePrice : estimatedSalePrice
+  const userSaleMarginPct =
+    salePriceForMargin > 0
+      ? ((salePriceForMargin - totalFabricationCost) / salePriceForMargin) * 100
+      : 0
+  const salePriceDelta = hasCustomSalePrice ? parsedCustomSalePrice - estimatedSalePrice : 0
+  const salePriceDeltaColorClass = hasCustomSalePrice
+    ? salePriceDelta > 0
+      ? 'text-emerald-500'
+      : salePriceDelta < 0
+        ? 'text-destructive'
+        : 'text-muted-foreground'
+    : 'text-muted-foreground'
+  const salePriceDeltaCopy = hasCustomSalePrice
+    ? salePriceDelta === 0
+      ? 'Sale price matches the estimate.'
+      : `Sale price is ${salePriceDelta > 0 ? 'above' : 'below'} the estimate by ${formatCurrencyValue(
+          Math.abs(salePriceDelta),
+        )}.`
+    : 'Enter a sale price to compare against the estimate.'
+  const salePriceDeltaIcon = hasCustomSalePrice ? (
+    salePriceDelta > 0 ? (
+      <ArrowUpRight className="h-4 w-4 text-emerald-500" aria-hidden />
+    ) : salePriceDelta < 0 ? (
+      <ArrowDownRight className="h-4 w-4 text-destructive" aria-hidden />
+    ) : (
+      <span className="text-muted-foreground">—</span>
+    )
+  ) : (
+    <span className="text-muted-foreground">—</span>
+  )
+  const salePriceMarginDisplay = hasCustomSalePrice ? formatPercentValue(userSaleMarginPct) : '—'
+  const salePriceMarginNote = hasCustomSalePrice
+    ? 'Margin computed from the entered sale price.'
+    : 'Enter a sale price to compute the resulting margin.'
 
   const detailRows = useMemo(
     () =>
@@ -806,6 +847,18 @@ function App() {
                       />
                     </div>
                     <div className="space-y-1">
+                      <Label htmlFor="salePrice">Sale price</Label>
+                      <Input
+                        id="salePrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={customSalePrice}
+                        placeholder={estimatedSalePrice > 0 ? formatCurrencyValue(estimatedSalePrice) : undefined}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => setCustomSalePrice(event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
                       <Label htmlFor="thickness">Thickness</Label>
                       <Select
                         value={String(planterInput.thickness)}
@@ -867,12 +920,11 @@ function App() {
                           handleCheckbox('floorEnabled', Boolean(value))
                         }
                       />
-                      <div>
-                        <Label htmlFor="floor" className="text-sm font-semibold text-foreground">
-                          Floor panel (optional)
-                        </Label>
-                        <p className="text-[0.65rem] text-muted-foreground">Can be toggled off if not needed.</p>
-                      </div>
+                        <div>
+                          <Label htmlFor="floor" className="text-sm font-semibold text-foreground">
+                            Floor panel
+                          </Label>
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <Checkbox
@@ -1135,12 +1187,22 @@ function App() {
                     <p className="text-xl font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Material and liner material costs come directly from the sheets where the panels land (usage area × sheet price).
-                </p>
-                <div className="rounded-xl border border-border/70 bg-muted/20 p-3 text-sm text-muted-foreground">
-                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner material cost</p>
-                  <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(linerMaterialCost)}</p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Sale price margin</p>
+                    <p className="text-xl font-semibold text-foreground">{salePriceMarginDisplay}</p>
+                    <p className="text-xs text-muted-foreground">{salePriceMarginNote}</p>
+                  </div>
+                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Sale price vs estimate</p>
+                    <div className="flex items-center gap-2">
+                      {salePriceDeltaIcon}
+                      <p className={`text-lg font-semibold ${salePriceDeltaColorClass}`}>
+                        {formatCurrencyValue(Math.abs(salePriceDelta))}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{salePriceDeltaCopy}</p>
+                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground">Sale price = total fabrication cost / (1 - margin %)</p>
               </CardContent>
@@ -1269,96 +1331,103 @@ function App() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground md:grid-cols-[repeat(6,minmax(0,1fr))]">
-                  <span className="font-semibold text-foreground">Category</span>
-                  <span>Low threshold</span>
-                  <span>Low price</span>
-                  <span>Medium threshold</span>
-                  <span>Medium price</span>
-                  <span>High price</span>
-                </div>
-                <div className="space-y-4">
-                  {categoryList.map((category) => {
-                    const error = thresholdErrors[category]
-                    return (
-                      <div
-                        key={category}
-                        className="grid gap-3 text-sm md:grid-cols-6 md:items-end"
-                      >
-                        <span className="font-semibold text-foreground">{category}</span>
-                        <div className="space-y-1">
-                          <Label htmlFor={`${category}-lowThreshold`}>Low threshold</Label>
-                          <Input
-                            id={`${category}-lowThreshold`}
-                            type="number"
-                            min="0"
-                            step="100"
-                            value={thresholds[category].lowThreshold}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                              handleThresholdChange(category, 'lowThreshold', Number(event.target.value))
-                            }
-                          />
+                <CardContent className="space-y-6">
+                  <div className="grid gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground sm:grid-cols-3 text-center">
+                    <span>Low</span>
+                    <span>Medium</span>
+                    <span>High</span>
+                  </div>
+                  <div className="space-y-4">
+                    {categoryList.map((category) => {
+                      const error = thresholdErrors[category]
+                      return (
+                        <div
+                          key={category}
+                          className="space-y-3 rounded-2xl border border-border/50 bg-muted/20 p-4"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="font-semibold text-foreground">{category}</span>
+                            {error && (
+                              <p className="text-xs text-destructive">{error}</p>
+                            )}
+                          </div>
+                          <div className="grid gap-3 text-sm sm:grid-cols-3">
+                            <div className="space-y-1">
+                              <Label htmlFor={`${category}-lowThreshold`}>Threshold</Label>
+                              <Input
+                                id={`${category}-lowThreshold`}
+                                type="number"
+                                min="0"
+                                step="100"
+                                value={thresholds[category].lowThreshold}
+                                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                  handleThresholdChange(category, 'lowThreshold', Number(event.target.value))
+                                }
+                              />
+                              <Label htmlFor={`${category}-lowPrice`}>Price</Label>
+                              <Input
+                                id={`${category}-lowPrice`}
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={thresholds[category].lowPrice}
+                                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                  handleThresholdChange(category, 'lowPrice', Number(event.target.value))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`${category}-mediumThreshold`}>Threshold</Label>
+                              <Input
+                                id={`${category}-mediumThreshold`}
+                                type="number"
+                                min="0"
+                                step="100"
+                                value={thresholds[category].mediumThreshold}
+                                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                  handleThresholdChange(category, 'mediumThreshold', Number(event.target.value))
+                                }
+                              />
+                              <Label htmlFor={`${category}-mediumPrice`}>Price</Label>
+                              <Input
+                                id={`${category}-mediumPrice`}
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={thresholds[category].mediumPrice}
+                                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                  handleThresholdChange(category, 'mediumPrice', Number(event.target.value))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`${category}-highThreshold`}>Threshold</Label>
+                              <Input
+                                id={`${category}-highThreshold`}
+                                type="text"
+                                inputMode="none"
+                                value="Automatic"
+                                readOnly
+                                className="cursor-not-allowed bg-muted/30"
+                                aria-label={`${category} high threshold is automatic`}
+                              />
+                              <Label htmlFor={`${category}-highPrice`}>Price</Label>
+                              <Input
+                                id={`${category}-highPrice`}
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={thresholds[category].highPrice}
+                                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                  handleThresholdChange(category, 'highPrice', Number(event.target.value))
+                                }
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <Label htmlFor={`${category}-lowPrice`}>Low price</Label>
-                          <Input
-                            id={`${category}-lowPrice`}
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={thresholds[category].lowPrice}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                              handleThresholdChange(category, 'lowPrice', Number(event.target.value))
-                            }
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label htmlFor={`${category}-mediumThreshold`}>Medium threshold</Label>
-                          <Input
-                            id={`${category}-mediumThreshold`}
-                            type="number"
-                            min="0"
-                            step="100"
-                            value={thresholds[category].mediumThreshold}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                              handleThresholdChange(category, 'mediumThreshold', Number(event.target.value))
-                            }
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label htmlFor={`${category}-mediumPrice`}>Medium price</Label>
-                          <Input
-                            id={`${category}-mediumPrice`}
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={thresholds[category].mediumPrice}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                              handleThresholdChange(category, 'mediumPrice', Number(event.target.value))
-                            }
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label htmlFor={`${category}-highPrice`}>High price</Label>
-                          <Input
-                            id={`${category}-highPrice`}
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={thresholds[category].highPrice}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                              handleThresholdChange(category, 'highPrice', Number(event.target.value))
-                            }
-                          />
-                        </div>
-                        {error && (
-                          <p className="md:col-span-6 text-xs text-destructive">{error}</p>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
+                      )
+                    })}
+                  </div>
                 <p className="text-sm text-muted-foreground">
                   Settings persist locally and are reused on every visit.
                 </p>
