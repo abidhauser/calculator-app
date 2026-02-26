@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import CutPlanView from '@/components/cut-plan-view'
@@ -282,6 +282,95 @@ const parseNumberInput = (rawValue: string) => {
 
 const displayNumberInput = (value: number) => (Number.isFinite(value) ? value : '')
 
+const escapeCsvCell = (value: string) => {
+  if (/[",\n\r]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`
+  }
+  return value
+}
+
+const serializeCsv = (rows: string[][]) =>
+  rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(',')).join('\n')
+
+const parseCsv = (source: string) => {
+  const rows: string[][] = []
+  let row: string[] = []
+  let cell = ''
+  let index = 0
+  let inQuotes = false
+
+  while (index < source.length) {
+    const char = source[index]
+
+    if (inQuotes) {
+      if (char === '"') {
+        const next = source[index + 1]
+        if (next === '"') {
+          cell += '"'
+          index += 2
+          continue
+        }
+        inQuotes = false
+        index += 1
+        continue
+      }
+      cell += char
+      index += 1
+      continue
+    }
+
+    if (char === '"') {
+      inQuotes = true
+      index += 1
+      continue
+    }
+    if (char === ',') {
+      row.push(cell)
+      cell = ''
+      index += 1
+      continue
+    }
+    if (char === '\n') {
+      row.push(cell)
+      rows.push(row)
+      row = []
+      cell = ''
+      index += 1
+      continue
+    }
+    if (char === '\r') {
+      index += 1
+      continue
+    }
+
+    cell += char
+    index += 1
+  }
+
+  if (inQuotes) {
+    return { rows: [], error: 'CSV contains an unmatched quote.' }
+  }
+
+  if (cell.length > 0 || row.length > 0) {
+    row.push(cell)
+    rows.push(row)
+  }
+
+  return { rows, error: null as string | null }
+}
+
+const parseBooleanCell = (rawValue: string) => {
+  const value = rawValue.trim().toLowerCase()
+  if (value === 'true' || value === '1' || value === 'yes') return true
+  if (value === 'false' || value === '0' || value === 'no') return false
+  return null
+}
+
+const parseNumberCell = (rawValue: string) => {
+  const value = Number(rawValue)
+  return Number.isFinite(value) ? value : null
+}
+
 function App() {
   const [planterInput, setPlanterInput] = useState<PlanterInput>(() => ({ ...defaultPlanterInput }))
   const [thresholds, setThresholds] = useState<Record<Category, CostThreshold>>(() => cloneThresholds())
@@ -301,6 +390,8 @@ function App() {
   )
   const [sheetMode, setSheetMode] = useState<'auto' | 'manual'>('manual')
   const [customSalePrice, setCustomSalePrice] = useState('')
+  const [settingsBanner, setSettingsBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const settingsImportInputRef = useRef<HTMLInputElement | null>(null)
 
   const hasThresholdErrors = useMemo(
     () => Object.values(thresholdErrors).some((message) => Boolean(message)),
@@ -733,6 +824,200 @@ function App() {
         limitQuantity: enforce,
       })),
     )
+  }
+
+  const handleExportSettingsCsv = () => {
+    const rows: string[][] = [
+      [
+        'section',
+        'key',
+        'low threshold',
+        'low price',
+        'medium threshold',
+        'medium price',
+        'high threshold',
+        'high price',
+      ],
+      ['meta', 'version', '1', '', '', '', '', ''],
+      ['sheetMode', 'mode', sheetMode, '', '', '', '', ''],
+    ]
+
+    categoryList.forEach((category) => {
+      const threshold = thresholds[category]
+      rows.push([
+        'threshold',
+        category,
+        String(threshold.lowThreshold),
+        String(threshold.lowPrice),
+        String(threshold.mediumThreshold),
+        String(threshold.mediumPrice),
+        'Automatic',
+        String(threshold.highPrice),
+      ])
+    })
+
+    rows.push([
+      'sheetHeader',
+      'name',
+      'width (in)',
+      'height (in)',
+      'cost / sqft',
+      'quantity',
+      'enforce quantity',
+      '',
+    ])
+
+    sheetInventory.forEach((row) => {
+      rows.push([
+        'sheet',
+        row.name,
+        String(row.width),
+        String(row.height),
+        String(row.costPerSqft),
+        String(row.quantity),
+        String(row.limitQuantity),
+        '',
+      ])
+    })
+
+    const csv = serializeCsv(rows)
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+    anchor.href = url
+    anchor.download = `planter-settings-${timestamp}.csv`
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
+    URL.revokeObjectURL(url)
+    setSettingsBanner({ type: 'success', message: 'Settings CSV exported.' })
+  }
+
+  const handleImportSettingsCsv = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const parsed = parseCsv(text)
+      if (parsed.error) {
+        setSettingsBanner({ type: 'error', message: parsed.error })
+        return
+      }
+
+      const thresholdDraft: Partial<Record<Category, CostThreshold>> = {}
+      let importedSheetMode: 'auto' | 'manual' | null = null
+      const importedSheets: SheetInventoryRow[] = []
+
+      for (const rawRow of parsed.rows) {
+        if (!rawRow.length) continue
+        const row = rawRow.map((cell) => cell.trim())
+        if (row.every((cell) => cell === '')) continue
+
+        const section = row[0]?.toLowerCase()
+        if (section === 'section') continue
+        if (section === 'sheetheader') continue
+        if (!section) continue
+
+        if (section === 'sheetmode') {
+          const modeValue = row[2]?.toLowerCase()
+          if (modeValue === 'auto' || modeValue === 'manual') {
+            importedSheetMode = modeValue
+            continue
+          }
+          setSettingsBanner({ type: 'error', message: 'Invalid sheet mode in CSV. Expected "auto" or "manual".' })
+          return
+        }
+
+        if (section === 'threshold') {
+          const category = categoryList.find((item) => item.toLowerCase() === row[1]?.toLowerCase())
+          if (!category) {
+            setSettingsBanner({ type: 'error', message: `Unknown threshold category "${row[1] ?? ''}".` })
+            return
+          }
+
+          const lowThreshold = parseNumberCell(row[2] ?? '')
+          const lowPrice = parseNumberCell(row[3] ?? '')
+          const mediumThreshold = parseNumberCell(row[4] ?? '')
+          const mediumPrice = parseNumberCell(row[5] ?? '')
+          const highPrice = parseNumberCell(row[7] ?? '')
+          const numericValues = [lowThreshold, lowPrice, mediumThreshold, mediumPrice, highPrice]
+          if (numericValues.some((value) => value === null)) {
+            setSettingsBanner({ type: 'error', message: `Threshold values for "${category}" must be valid numbers.` })
+            return
+          }
+
+          thresholdDraft[category] = {
+            category,
+            lowThreshold: lowThreshold as number,
+            lowPrice: lowPrice as number,
+            mediumThreshold: mediumThreshold as number,
+            mediumPrice: mediumPrice as number,
+            highPrice: highPrice as number,
+          }
+          continue
+        }
+
+        if (section === 'sheet') {
+          const name = row[1] ?? ''
+          const width = parseNumberCell(row[2] ?? '')
+          const height = parseNumberCell(row[3] ?? '')
+          const costPerSqft = parseNumberCell(row[4] ?? '')
+          const quantityRaw = parseNumberCell(row[5] ?? '')
+          const limitQuantity = parseBooleanCell(row[6] ?? '')
+
+          if (!name) {
+            setSettingsBanner({ type: 'error', message: 'Sheet rows must include a name.' })
+            return
+          }
+          if ([width, height, costPerSqft, quantityRaw].some((value) => value === null)) {
+            setSettingsBanner({ type: 'error', message: `Sheet "${name}" has invalid numeric values.` })
+            return
+          }
+          if (limitQuantity === null) {
+            setSettingsBanner({
+              type: 'error',
+              message: `Sheet "${name}" has invalid limitQuantity. Use true/false.`,
+            })
+            return
+          }
+
+          importedSheets.push(
+            createSheetRow({
+              name,
+              width: Math.max(0, width as number),
+              height: Math.max(0, height as number),
+              costPerSqft: costPerSqft as number,
+              quantity: Math.max(0, Math.floor(quantityRaw as number)),
+              limitQuantity,
+            }),
+          )
+          continue
+        }
+      }
+
+      const hasAllThresholds = categoryList.every((category) => Boolean(thresholdDraft[category]))
+      if (!hasAllThresholds) {
+        setSettingsBanner({
+          type: 'error',
+          message: 'CSV is missing one or more threshold categories.',
+        })
+        return
+      }
+      if (!importedSheetMode) {
+        setSettingsBanner({ type: 'error', message: 'CSV is missing sheet mode.' })
+        return
+      }
+
+      setThresholds(cloneThresholds(thresholdDraft))
+      setSheetMode(importedSheetMode)
+      setSheetInventory(importedSheets.length ? importedSheets : [createSheetRow()])
+      setSettingsBanner({ type: 'success', message: 'Settings imported from CSV and applied to the form.' })
+    } catch {
+      setSettingsBanner({ type: 'error', message: 'Unable to read the selected CSV file.' })
+    }
   }
 
   const handleCalculate = () => {
@@ -1403,6 +1688,64 @@ function App() {
             </Card>
           </TabsContent>
           <TabsContent value="settings" className="space-y-6">
+            {settingsBanner && (
+              <Card
+                className={`border ${
+                  settingsBanner.type === 'success'
+                    ? 'border-emerald-400/70 bg-emerald-400/10'
+                    : 'border-destructive/70 bg-destructive/10'
+                }`}
+              >
+                <CardContent className="space-y-2">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                        {settingsBanner.type === 'success' ? 'Success' : 'Failure'}
+                      </p>
+                      <p
+                        className={`text-sm font-semibold ${
+                          settingsBanner.type === 'success' ? 'text-foreground' : 'text-destructive'
+                        }`}
+                      >
+                        {settingsBanner.message}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setSettingsBanner(null)}>
+                      Dismiss
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            <Card>
+              <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle>Settings import/export</CardTitle>
+                  <CardDescription>
+                    Import or export all settings on this tab, including thresholds and sheet inventory.
+                  </CardDescription>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    ref={settingsImportInputRef}
+                    type="file"
+                    accept=".csv,text/csv"
+                    className="hidden"
+                    onChange={handleImportSettingsCsv}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => settingsImportInputRef.current?.click()}
+                  >
+                    Import CSV
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleExportSettingsCsv}>
+                    Export CSV
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
             <Card className="space-y-4">
               <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
@@ -1644,28 +1987,33 @@ function App() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor={`${row.id}-quantity`} className="flex items-center gap-2">
-                          Quantity available
-                          <Checkbox
-                            id={`${row.id}-limit`}
-                            checked={row.limitQuantity}
-                            onCheckedChange={(value: boolean | 'indeterminate') =>
-                              handleSheetLimitToggle(row.id, Boolean(value))
-                            }
-                          />
-                          <span className="text-xs font-semibold">Enforce quantity</span>
-                        </Label>
-                        <Input
-                          id={`${row.id}-quantity`}
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={displayNumberInput(row.quantity)}
-                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleSheetQuantityChange(row.id, parseNumberInput(event.target.value))
-                          }
-                          onBlur={() => handleSheetQuantityBlur(row.id)}
-                        />
+                        <div className="grid grid-cols-[auto_auto] items-end gap-4">
+                          <div className="space-y-1">
+                            <Label htmlFor={`${row.id}-quantity`}>Quantity</Label>
+                            <Input
+                              id={`${row.id}-quantity`}
+                              type="number"
+                              min="0"
+                              step="1"
+                              className="w-28"
+                              value={displayNumberInput(row.quantity)}
+                              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                handleSheetQuantityChange(row.id, parseNumberInput(event.target.value))
+                              }
+                              onBlur={() => handleSheetQuantityBlur(row.id)}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label htmlFor={`${row.id}-limit`}>Enforce quantity</Label>
+                            <Checkbox
+                              id={`${row.id}-limit`}
+                              checked={row.limitQuantity}
+                              onCheckedChange={(value: boolean | 'indeterminate') =>
+                                handleSheetLimitToggle(row.id, Boolean(value))
+                              }
+                            />
+                          </div>
+                        </div>
                       </div>
                       <div className="flex items-end justify-end">
                         <Button variant="ghost" size="sm" onClick={() => handleRemoveSheetRow(row.id)}>
