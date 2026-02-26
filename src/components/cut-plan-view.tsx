@@ -65,7 +65,7 @@ const toDisplayDimension = (valueInInches: number, unit: 'in' | 'mm') =>
 const formatPanelLengthWidthDimensions = (width: number, height: number, unit: 'in' | 'mm') =>
   `${toDisplayDimension(width, unit).toFixed(1)} ${unit} × ${toDisplayDimension(height, unit).toFixed(1)} ${unit}`
 const formatDisplaySheetDimensions = (width: number, height: number, unit: 'in' | 'mm') =>
-  `${toDisplayDimension(width, unit).toFixed(2)} ${unit} Ã— ${toDisplayDimension(height, unit).toFixed(2)} ${unit}`
+  `${toDisplayDimension(width, unit).toFixed(2)} ${unit} × ${toDisplayDimension(height, unit).toFixed(2)} ${unit}`
 
 const formatPercent = (value: number) => `${value.toFixed(1)}%`
 
@@ -161,7 +161,7 @@ export default function CutPlanView({ sheetUsages, formatCurrency, measurementUn
                     <p className="text-xs text-muted-foreground">Instance {sheet.id}</p>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {sortedPlacements.length} panels Â· {formatDisplaySheetDimensions(sheet.width, sheet.height, measurementUnit)}
+                    {sortedPlacements.length} panels · {formatDisplaySheetDimensions(sheet.width, sheet.height, measurementUnit)}
                   </p>
                   <div className="grid gap-3 text-xs text-muted-foreground sm:grid-cols-3">
                     <div>
@@ -278,4 +278,5 @@ export default function CutPlanView({ sheetUsages, formatCurrency, measurementUn
     </Card>
   )
 }
+
 
