@@ -6,6 +6,12 @@ type LoginGateProps = {
 }
 
 const AUTH_KEY = 'calculator_app_authenticated'
+const APP_BASE = (() => {
+  const base = (import.meta.env.BASE_URL || '/').trim()
+  if (!base || base === '/') return ''
+  return base.endsWith('/') ? base.slice(0, -1) : base
+})()
+const APP_ROOT_PATH = APP_BASE ? `${APP_BASE}/` : '/'
 
 const LoginGate = ({ children }: LoginGateProps) => {
   const [password, setPassword] = useState('')
@@ -45,6 +51,12 @@ const LoginGate = ({ children }: LoginGateProps) => {
     setPassword('')
     setError('')
   }
+
+  useEffect(() => {
+    if (isAuthenticated) return
+    if (window.location.pathname === APP_ROOT_PATH) return
+    window.history.replaceState({}, '', APP_ROOT_PATH)
+  }, [isAuthenticated])
 
   if (isAuthenticated) {
     return (

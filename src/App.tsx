@@ -10,7 +10,8 @@ import {
 } from '@/components/ui/card'
 import TerracePlanterCalculator from '@/calculators/TerracePlanterCalculator'
 
-type Route = '/' | '/calculators/terrace-planter'
+const HUB_ROUTE = '/calculators' as const
+type Route = typeof HUB_ROUTE | '/calculators/terrace-planter'
 
 type CalculatorMeta = {
   slug: Route
@@ -28,22 +29,36 @@ const CALCULATORS: CalculatorMeta[] = [
   },
 ]
 
-const normalizeHashRoute = (hash: string): Route | 'not-found' => {
-  const raw = hash.startsWith('#') ? hash.slice(1) : hash
-  const route = (raw || '/').trim().toLowerCase()
+const APP_BASE = (() => {
+  const base = (import.meta.env.BASE_URL || '/').trim()
+  if (!base || base === '/') return ''
+  return base.endsWith('/') ? base.slice(0, -1) : base
+})()
 
-  if (route === '/') return '/'
+const withBase = (route: Route) => {
+  const scopedRoute = route === HUB_ROUTE ? `${route}/` : route
+  if (!APP_BASE) return scopedRoute
+  return `${APP_BASE}${scopedRoute}`
+}
+
+const normalizePathRoute = (pathname: string): Route | 'not-found' => {
+  const scopedPathname =
+    APP_BASE && pathname.startsWith(APP_BASE) ? pathname.slice(APP_BASE.length) || '/' : pathname
+  const raw = (scopedPathname || '/').trim().toLowerCase()
+  const route = raw !== '/' && raw.endsWith('/') ? raw.slice(0, -1) : raw
+
+  if (route === '/' || route === HUB_ROUTE) return HUB_ROUTE
   if (route === '/calculators/terrace-planter') return '/calculators/terrace-planter'
 
   return 'not-found'
 }
 
 const navigateTo = (route: Route) => {
-  if (route === '/') {
-    window.location.hash = '/'
-    return
+  const targetPath = withBase(route)
+  if (window.location.pathname !== targetPath) {
+    window.history.pushState({}, '', targetPath)
   }
-  window.location.hash = route
+  window.dispatchEvent(new PopStateEvent('popstate'))
 }
 
 const CalculatorHub = () => {
@@ -93,34 +108,39 @@ const NotFound = () => (
         <CardDescription>The page you requested does not exist.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Button onClick={() => navigateTo('/')}>Back to calculator hub</Button>
+        <Button onClick={() => navigateTo(HUB_ROUTE)}>Back to calculator hub</Button>
       </CardContent>
     </Card>
   </div>
 )
 
 function App() {
-  const [hashRoute, setHashRoute] = useState<Route | 'not-found'>(() => normalizeHashRoute(window.location.hash))
+  const [pathRoute, setPathRoute] = useState<Route | 'not-found'>(() =>
+    normalizePathRoute(window.location.pathname),
+  )
 
   useEffect(() => {
-    const onHashChange = () => setHashRoute(normalizeHashRoute(window.location.hash))
-    window.addEventListener('hashchange', onHashChange)
-
-    if (!window.location.hash) {
-      navigateTo('/')
-    }
-
-    return () => window.removeEventListener('hashchange', onHashChange)
+    const onPopState = () => setPathRoute(normalizePathRoute(window.location.pathname))
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  if (hashRoute === '/calculators/terrace-planter') {
+  useEffect(() => {
+    if (pathRoute !== HUB_ROUTE) return
+    const hubPath = withBase(HUB_ROUTE)
+    if (window.location.pathname === hubPath) return
+    window.history.replaceState({}, '', hubPath)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }, [pathRoute])
+
+  if (pathRoute === '/calculators/terrace-planter') {
     return (
       <>
         <Button
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => navigateTo('/')}
+          onClick={() => navigateTo(HUB_ROUTE)}
           className="fixed left-4 top-4 z-[900] h-9"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
@@ -131,7 +151,7 @@ function App() {
     )
   }
 
-  if (hashRoute === '/') {
+  if (pathRoute === HUB_ROUTE) {
     return <CalculatorHub />
   }
 
