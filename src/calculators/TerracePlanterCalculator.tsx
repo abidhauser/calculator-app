@@ -817,15 +817,6 @@ function App() {
     setSheetInventory(DEFAULT_SHEET_INVENTORY.map((row) => ({ ...row })))
   }
 
-  const handleToggleEnforceQuantity = (enforce: boolean) => {
-    setSheetInventory((prev) =>
-      prev.map((row) => ({
-        ...row,
-        limitQuantity: enforce,
-      })),
-    )
-  }
-
   const handleExportSettingsCsv = () => {
     const rows: string[][] = [
       [
@@ -863,7 +854,7 @@ function App() {
       'height (in)',
       'cost / sqft',
       'quantity',
-      'enforce quantity',
+      'enforce',
       '',
     ])
 
@@ -1888,14 +1879,6 @@ function App() {
                   </CardDescription>
                 </div>
                 <div className="flex flex-col items-stretch gap-2 text-right sm:flex-row sm:items-center sm:gap-3">
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleToggleEnforceQuantity(true)}>
-                      Enforce all quantities
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleToggleEnforceQuantity(false)}>
-                      Allow unlimited
-                    </Button>
-                  </div>
                   <Button size="sm" variant="ghost" onClick={handleResetSheetInventory}>
                     Reset inventory
                   </Button>
@@ -1919,109 +1902,118 @@ function App() {
                     Manual mode restricts the solver to this list and honors each quantity; auto mode will still prefer the cheapest configured rows.
                   </p>
                 </div>
-                <div className="space-y-4">
-                  {sheetInventory.map((row) => (
-                    <div
-                      key={row.id}
-                      className="grid gap-3 text-sm md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end"
-                    >
-                      <div className="space-y-1">
-                        <Label htmlFor={`${row.id}-name`}>Sheet name</Label>
-                        <Input
-                          id={`${row.id}-name`}
-                          type="text"
-                          value={row.name}
-                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleSheetNameChange(row.id, event.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor={`${row.id}-width`}>Width (in)</Label>
-                        <Input
-                          id={`${row.id}-width`}
-                          type="number"
-                          min="0"
-                          step="0.25"
-                          value={displayNumberInput(row.width)}
-                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleSheetDimensionChange(
-                              row.id,
-                              'width',
-                              parseNumberInput(event.target.value),
-                            )
-                          }
-                          onBlur={() => handleSheetDimensionBlur(row.id, 'width')}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor={`${row.id}-height`}>Height (in)</Label>
-                        <Input
-                          id={`${row.id}-height`}
-                          type="number"
-                          min="0"
-                          step="0.25"
-                          value={displayNumberInput(row.height)}
-                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleSheetDimensionChange(
-                              row.id,
-                              'height',
-                              parseNumberInput(event.target.value),
-                            )
-                          }
-                          onBlur={() => handleSheetDimensionBlur(row.id, 'height')}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor={`${row.id}-cost`}>Cost / sqft</Label>
-                        <Input
-                          id={`${row.id}-cost`}
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={displayNumberInput(row.costPerSqft)}
-                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleSheetCostChange(row.id, parseNumberInput(event.target.value))
-                          }
-                          onBlur={() => handleSheetCostBlur(row.id)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="grid grid-cols-[auto_auto] items-end gap-4">
-                          <div className="space-y-1">
-                            <Label htmlFor={`${row.id}-quantity`}>Quantity</Label>
+                <div className="overflow-x-auto rounded-md border border-border">
+                  <Table className="min-w-[860px]">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-sm font-bold text-foreground">Sheet name</TableHead>
+                        <TableHead className="text-sm font-bold text-foreground">Width (in)</TableHead>
+                        <TableHead className="text-sm font-bold text-foreground">Height (in)</TableHead>
+                        <TableHead className="text-sm font-bold text-foreground">Cost / sqft</TableHead>
+                        <TableHead className="text-sm font-bold text-foreground">Quantity</TableHead>
+                        <TableHead className="w-[96px] text-sm font-bold text-foreground">Enforce</TableHead>
+                        <TableHead />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sheetInventory.map((row) => (
+                        <TableRow key={row.id}>
+                          <TableCell>
+                            <Input
+                              id={`${row.id}-name`}
+                              type="text"
+                              aria-label="Sheet name"
+                              value={row.name}
+                              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                handleSheetNameChange(row.id, event.target.value)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              id={`${row.id}-width`}
+                              type="number"
+                              aria-label="Width (in)"
+                              min="0"
+                              step="0.25"
+                              value={displayNumberInput(row.width)}
+                              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                handleSheetDimensionChange(
+                                  row.id,
+                                  'width',
+                                  parseNumberInput(event.target.value),
+                                )
+                              }
+                              onBlur={() => handleSheetDimensionBlur(row.id, 'width')}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              id={`${row.id}-height`}
+                              type="number"
+                              aria-label="Height (in)"
+                              min="0"
+                              step="0.25"
+                              value={displayNumberInput(row.height)}
+                              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                handleSheetDimensionChange(
+                                  row.id,
+                                  'height',
+                                  parseNumberInput(event.target.value),
+                                )
+                              }
+                              onBlur={() => handleSheetDimensionBlur(row.id, 'height')}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              id={`${row.id}-cost`}
+                              type="number"
+                              aria-label="Cost per square foot"
+                              min="0"
+                              step="0.01"
+                              value={displayNumberInput(row.costPerSqft)}
+                              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                handleSheetCostChange(row.id, parseNumberInput(event.target.value))
+                              }
+                              onBlur={() => handleSheetCostBlur(row.id)}
+                            />
+                          </TableCell>
+                          <TableCell>
                             <Input
                               id={`${row.id}-quantity`}
                               type="number"
+                              aria-label="Quantity"
                               min="0"
                               step="1"
-                              className="w-28"
                               value={displayNumberInput(row.quantity)}
                               onChange={(event: ChangeEvent<HTMLInputElement>) =>
                                 handleSheetQuantityChange(row.id, parseNumberInput(event.target.value))
                               }
                               onBlur={() => handleSheetQuantityBlur(row.id)}
                             />
-                          </div>
-                          <div className="space-y-1">
-                            <Label htmlFor={`${row.id}-limit`}>Enforce quantity</Label>
-                            <Checkbox
-                              id={`${row.id}-limit`}
-                              checked={row.limitQuantity}
-                              onCheckedChange={(value: boolean | 'indeterminate') =>
-                                handleSheetLimitToggle(row.id, Boolean(value))
-                              }
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-end justify-end">
-                        <Button variant="ghost" size="sm" onClick={() => handleRemoveSheetRow(row.id)}>
-                          Remove
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex h-9 items-center justify-start">
+                              <Checkbox
+                                id={`${row.id}-limit`}
+                                aria-label="Enforce quantity"
+                                checked={row.limitQuantity}
+                                onCheckedChange={(value: boolean | 'indeterminate') =>
+                                  handleSheetLimitToggle(row.id, Boolean(value))
+                                }
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" onClick={() => handleRemoveSheetRow(row.id)}>
+                              Remove
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
                 <div>
                   <Button variant="secondary" size="sm" onClick={handleAddSheetRow}>
