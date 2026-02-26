@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import CutPlanView from '@/components/cut-plan-view'
@@ -639,6 +639,27 @@ function App() {
           }
         }
 
+        if (category === 'Weight Plate') {
+          const breakdown = breakdownLookup['Weight Plate']
+          const tierUsed = planterInput.weightPlateEnabled
+            ? breakdown?.tierUsed ?? 'Awaiting calculation'
+            : 'Disabled'
+          const price = planterInput.weightPlateEnabled ? breakdown?.price ?? 0 : 0
+          const notes = breakdown
+            ? breakdown.tierUsed === 'Not Selected'
+              ? 'Weight plate is not selected yet.'
+              : 'Weight plate tier applied.'
+            : planterInput.weightPlateEnabled
+              ? 'Run calculation to assign tier.'
+              : 'Weight plate feature disabled.'
+          return {
+            category,
+            tierUsed,
+            price,
+            notes,
+          }
+        }
+
         const breakdown = breakdownLookup[category]
         const price = breakdown?.price ?? 0
         const tierUsed = breakdown?.tierUsed ?? '—'
@@ -658,6 +679,7 @@ function App() {
       breakdownLookup,
       linerBreakdown,
       planterInput.linerEnabled,
+      planterInput.weightPlateEnabled,
       planterInput.shelfEnabled,
       sheetSummaries,
       solverResult,
@@ -1169,7 +1191,24 @@ function App() {
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <header className="space-y-2">
           <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Fabrication cost engine</p>
-          <h1 className="text-3xl font-semibold text-foreground">Terrace Planter</h1>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-3xl font-semibold text-foreground">Terrace Planter</h1>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="measurementUnit-global">Units</Label>
+              <Select
+                value={measurementUnit}
+                onValueChange={(value: string) => setMeasurementUnit(value as MeasurementUnit)}
+              >
+                <SelectTrigger id="measurementUnit-global" className="w-[120px]">
+                  <SelectValue placeholder="Units" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="in">in</SelectItem>
+                  <SelectItem value="mm">mm</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </header>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'input' | 'results' | 'settings')} className="space-y-6">
@@ -1193,21 +1232,6 @@ function App() {
                   <CardDescription>Switch between inches and millimeters for dimensional inputs.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="measurementUnit">Units</Label>
-                    <Select
-                      value={measurementUnit}
-                      onValueChange={(value: string) => setMeasurementUnit(value as MeasurementUnit)}
-                    >
-                      <SelectTrigger id="measurementUnit" className="w-[120px]">
-                        <SelectValue placeholder="Units" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="in">in</SelectItem>
-                        <SelectItem value="mm">mm</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-1">
                       <Label htmlFor="length">Length ({unitLabel})</Label>
@@ -1494,16 +1518,18 @@ function App() {
                   <TableBody>
                     {categoryList.map((category) => {
                       const row = breakdowns.find((entry) => entry.category === category)
-                      const tierLabel = row?.tierUsed ?? '—'
-                      const price = row?.price ?? 0
                       const isWeightPlate = category === 'Weight Plate'
                       const isLinerCategory = category === 'Liner'
                       const isShelfCategory = category === 'Shelf'
-                      const priceDisabled =
-                        !isCalculated ||
+                      const isTierDisabled =
                         (isWeightPlate && !planterInput.weightPlateEnabled) ||
                         (isLinerCategory && !planterInput.linerEnabled) ||
                         (isShelfCategory && !planterInput.shelfEnabled)
+                      const tierLabel = isTierDisabled ? 'Disabled' : row?.tierUsed ?? '—'
+                      const price = row?.price ?? 0
+                      const priceDisabled =
+                        !isCalculated ||
+                        isTierDisabled
                       return (
                         <TableRow key={category}>
                           <TableCell className="font-semibold text-foreground">{category}</TableCell>
@@ -1531,46 +1557,47 @@ function App() {
           </TabsContent>
 
           <TabsContent value="results" className="space-y-6">
-            {resultBanner && (
-              <Card
-                className={`border ${
-                  resultBanner.type === 'success'
-                    ? 'border-emerald-400/70 bg-emerald-400/10'
-                    : 'border-destructive/70 bg-destructive/10'
-                }`}
-              >
-                <CardContent className="space-y-2">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
-                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                        {resultBanner.type === 'success' ? 'Success' : 'Failure'}
-                      </p>
-                      <p
-                        className={`text-sm font-semibold ${
-                          resultBanner.type === 'success' ? 'text-foreground' : 'text-destructive'
-                        }`}
-                      >
-                        {resultBanner.message}
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => setResultBanner(null)}>
-                      Dismiss
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <div className="space-y-6">
+                {resultBanner && (
+                  <Card
+                    className={`border ${
+                      resultBanner.type === 'success'
+                        ? 'border-emerald-400/70 bg-emerald-400/10'
+                        : 'border-destructive/70 bg-destructive/10'
+                    }`}
+                  >
+                    <CardContent className="space-y-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                            {resultBanner.type === 'success' ? 'Success' : 'Failure'}
+                          </p>
+                          <p
+                            className={`text-sm font-semibold ${
+                              resultBanner.type === 'success' ? 'text-foreground' : 'text-destructive'
+                            }`}
+                          >
+                            {resultBanner.message}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => setResultBanner(null)}>
+                          Dismiss
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-            <Card className="space-y-4">
-              <CardHeader>
-                <CardTitle>Results overview</CardTitle>
-                <CardDescription>
-                  Solver highlights the lowest total fabrication cost configuration while waste metrics remain
-                  visible but secondary.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <Card className="space-y-4">
+                  <CardHeader>
+                    <CardTitle>Results overview</CardTitle>
+                    <CardDescription>
+                      Solver highlights the lowest total fabrication cost configuration while waste metrics remain
+                      visible but secondary.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                     <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Total fabrication cost</p>
                     <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalFabricationCost)}</p>
@@ -1629,8 +1656,9 @@ function App() {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">Sale price = total fabrication cost / (1 - margin %)</p>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+            </div>
 
             <Card className="space-y-3">
               <CardHeader>
@@ -2049,3 +2077,5 @@ function App() {
 }
 
 export default App
+
+
