@@ -204,11 +204,6 @@ export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanView
                         >
                           <span className="font-semibold tracking-tight">{placement.name}</span>
                           <span className="text-[0.5rem]">{`${placement.width.toFixed(1)}" × ${placement.height.toFixed(1)}"`}</span>
-                          {placement.rotated && (
-                            <span className="text-[0.45rem] tracking-[0.4em]">
-                              Rotated
-                            </span>
-                          )}
                         </div>
                       )
                     })}

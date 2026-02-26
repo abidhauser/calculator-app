@@ -436,12 +436,7 @@ function buildCandidates(
       name: label,
       panels: [anchorPanel, partnerPanel],
       totalArea: areaSum,
-      longestSide: Math.max(
-        anchorPanel.width,
-        anchorPanel.height,
-        partnerPanel.width,
-        partnerPanel.height,
-      ),
+      longestSide: getBundleLongestSide(anchor, partner, anchorPanel, partnerPanel),
       costImpact: bundleImpact,
       bundleSavings: singleCosts - bundleImpact,
       isBundle: true,
@@ -451,11 +446,38 @@ function buildCandidates(
   return { singleCandidates: singles, bundleCandidates: bundles }
 }
 
+function getBundleLongestSide(
+  anchorId: string,
+  partnerId: string,
+  anchorPanel: PanelBlueprint,
+  partnerPanel: PanelBlueprint,
+) {
+  const candidateId = `bundle-${anchorId}-${partnerId}`
+  if (
+    candidateId === 'bundle-panel-long-a-panel-short-a' ||
+    candidateId === 'bundle-panel-long-b-panel-short-b'
+  ) {
+    return Math.max(anchorPanel.width + partnerPanel.width, anchorPanel.height)
+  }
+
+  return Math.max(anchorPanel.width, anchorPanel.height, partnerPanel.width, partnerPanel.height)
+}
+
 function compareCandidates(a: Candidate, b: Candidate) {
+  const aIsLCut = isLCutBundleCandidate(a.id)
+  const bIsLCut = isLCutBundleCandidate(b.id)
+  if (aIsLCut !== bIsLCut) return aIsLCut ? -1 : 1
   if (a.costImpact !== b.costImpact) return a.costImpact - b.costImpact
   if (a.totalArea !== b.totalArea) return a.totalArea - b.totalArea
   if (a.longestSide !== b.longestSide) return a.longestSide - b.longestSide
   return a.name.localeCompare(b.name)
+}
+
+function isLCutBundleCandidate(candidateId: string) {
+  return (
+    candidateId === 'bundle-panel-long-a-panel-short-a' ||
+    candidateId === 'bundle-panel-long-b-panel-short-b'
+  )
 }
 
 function buildOrderedSheetRows(inventory: SheetInventoryRow[], options?: SolverOptions) {
@@ -547,6 +569,56 @@ function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placemen
   }
 
   const [panelA, panelB] = candidate.panels
+  const lCutBundle = getLCutBundleLayout(candidate, panelA, panelB)
+  if (lCutBundle) {
+    for (const orientation of getOrientations(lCutBundle.totalLength, lCutBundle.height)) {
+      const anchor = findPlacementOnSheet(sheet, orientation.width, orientation.height)
+      if (!anchor) {
+        continue
+      }
+
+      const firstPlacement: Placement = {
+        x: anchor.x,
+        y: anchor.y,
+        width: orientation.rotated ? lCutBundle.height : lCutBundle.longLength,
+        height: orientation.rotated ? lCutBundle.longLength : lCutBundle.height,
+        rotated: orientation.rotated,
+        id: `${candidate.id}-${panelA.id}`,
+        candidateId: candidate.id,
+        panelId: panelA.id,
+        name: panelA.name,
+        sheetInstanceId: sheet.id,
+        rowId: sheet.rowId,
+        isBundle: true,
+        isLiner: panelA.isLiner,
+        panelType: panelA.type,
+      }
+
+      const secondPlacement: Placement = {
+        x: orientation.rotated ? anchor.x : anchor.x + lCutBundle.longLength,
+        y: orientation.rotated ? anchor.y + lCutBundle.longLength : anchor.y,
+        width: orientation.rotated ? lCutBundle.height : lCutBundle.shortWidth,
+        height: orientation.rotated ? lCutBundle.shortWidth : lCutBundle.height,
+        rotated: orientation.rotated,
+        id: `${candidate.id}-${panelB.id}`,
+        candidateId: candidate.id,
+        panelId: panelB.id,
+        name: panelB.name,
+        sheetInstanceId: sheet.id,
+        rowId: sheet.rowId,
+        isBundle: true,
+        isLiner: panelB.isLiner,
+        panelType: panelB.type,
+      }
+
+      if (!arePlacementsValidForSheet(sheet, [firstPlacement, secondPlacement])) {
+        continue
+      }
+
+      return [firstPlacement, secondPlacement]
+    }
+  }
+
   const panelAOrientations = getOrientations(panelA.width, panelA.height)
   const panelBOrientations = getOrientations(panelB.width, panelB.height)
 
@@ -596,11 +668,41 @@ function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placemen
         panelType: panelB.type,
       }
 
+      if (!arePlacementsValidForSheet(sheet, [firstPlacement, secondPlacement])) {
+        continue
+      }
+
       return [firstPlacement, secondPlacement]
     }
   }
 
   return null
+}
+
+function getLCutBundleLayout(candidate: Candidate, panelA: PanelBlueprint, panelB: PanelBlueprint) {
+  const lCutBundleIds = new Set([
+    'bundle-panel-long-a-panel-short-a',
+    'bundle-panel-long-b-panel-short-b',
+  ])
+
+  if (!lCutBundleIds.has(candidate.id)) {
+    return null
+  }
+
+  const [longPanel, shortPanel] = panelA.type === 'long' ? [panelA, panelB] : [panelB, panelA]
+  if (longPanel.type !== 'long' || shortPanel.type !== 'short') {
+    return null
+  }
+  if (longPanel.height !== shortPanel.height) {
+    return null
+  }
+
+  return {
+    totalLength: longPanel.width + shortPanel.width,
+    height: longPanel.height,
+    longLength: longPanel.width,
+    shortWidth: shortPanel.width,
+  }
 }
 
 function findPlacementOnSheet(
@@ -662,4 +764,51 @@ function rectanglesOverlap(
   oheight: number,
 ) {
   return !(x + width <= ox || ox + owidth <= x || y + height <= oy || oy + oheight <= y)
+}
+
+function arePlacementsValidForSheet(sheet: SheetInstance, placements: Placement[]) {
+  for (const placement of placements) {
+    if (!isPlacementInsideSheet(sheet, placement)) {
+      return false
+    }
+  }
+
+  for (let i = 0; i < placements.length; i += 1) {
+    for (let j = i + 1; j < placements.length; j += 1) {
+      const a = placements[i]
+      const b = placements[j]
+      if (rectanglesOverlap(a.x, a.y, a.width, a.height, b.x, b.y, b.width, b.height)) {
+        return false
+      }
+    }
+  }
+
+  for (const placement of placements) {
+    const overlapsExisting = sheet.placements.some((existing) =>
+      rectanglesOverlap(
+        placement.x,
+        placement.y,
+        placement.width,
+        placement.height,
+        existing.x,
+        existing.y,
+        existing.width,
+        existing.height,
+      ),
+    )
+    if (overlapsExisting) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function isPlacementInsideSheet(sheet: SheetInstance, placement: Placement) {
+  return (
+    placement.x >= 0 &&
+    placement.y >= 0 &&
+    placement.x + placement.width <= sheet.width &&
+    placement.y + placement.height <= sheet.height
+  )
 }
