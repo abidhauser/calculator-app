@@ -69,7 +69,7 @@ const CalculatorHub = () => {
           <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Calculator Hub</p>
           <h1 className="text-3xl font-semibold text-foreground md:text-4xl">Choose a calculator</h1>
           <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
-            Select the calculator you want to use. Additional tools can be added here as your website expands.
+            Select the calculator you want to use.
           </p>
         </header>
 

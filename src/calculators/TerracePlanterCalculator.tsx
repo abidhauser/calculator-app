@@ -1133,7 +1133,7 @@ function App() {
         </header>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'input' | 'results' | 'settings')} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 rounded-full border border-border bg-muted/60 p-1 text-sm font-medium text-muted-foreground">
+          <TabsList className="grid w-full grid-cols-3 rounded-full border border-border bg-muted/60 px-2 pt-1 pb-2 text-sm font-medium text-muted-foreground">
             <TabsTrigger value="input" className="text-foreground">
               Input
             </TabsTrigger>
