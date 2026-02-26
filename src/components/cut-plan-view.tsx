@@ -136,7 +136,6 @@ export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanView
           const displayHeight = sheet.height * scale
           const sheetAreaSqft = (sheet.width * sheet.height) / 144
           const usedSqft = sheet.areaUsedSqft
-          const unusedSqft = Math.max(sheetAreaSqft - usedSqft, 0)
           const utilizationPct = sheetAreaSqft ? (usedSqft / sheetAreaSqft) * 100 : 0
           const sheetCost = sheetAreaSqft * sheet.costPerSqft
 
@@ -170,10 +169,6 @@ export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanView
                       <p className="text-[0.6rem] uppercase tracking-[0.3em]">Utilization</p>
                       <p className="text-sm text-foreground">{formatPercent(utilizationPct)}</p>
                     </div>
-                  </div>
-                  <div className="grid gap-2 text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground sm:grid-cols-2">
-                    <p>Waste {unusedSqft.toFixed(2)} sq ft</p>
-                    <p>Sheet cost/sq ft {formatCurrency(sheet.costPerSqft)}</p>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center justify-center">
@@ -221,7 +216,7 @@ export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanView
                       return (
                         <div
                           key={`${placement.id}-detail`}
-                          className="rounded-xl border border-border/30 bg-background/60 px-3 py-1 text-[0.7rem]"
+                          className="inline-flex w-fit max-w-full rounded-xl border border-border/30 bg-background/60 px-3 py-1 text-[0.7rem]"
                         >
                           <span className="flex flex-wrap items-center gap-2 font-semibold text-foreground">
                             <span
