@@ -3,7 +3,6 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 export default defineConfig({
-  base: '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
@@ -12,4 +11,5 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
   ],
+  base: '/abidhauser.github.io/'
 })
