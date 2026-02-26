@@ -3,7 +3,7 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
-  "homepage": "https://abidhauser.github.io",
+  "homepage": "https://abidhauser.github.io/calculator-app",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

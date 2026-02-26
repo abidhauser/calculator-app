@@ -11,5 +11,5 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
   ],
-  base: '/abidhauser.github.io/'
+  base: '/calculator-app/'
 })
