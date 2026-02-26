@@ -1,4 +1,4 @@
-import type { Placement, SheetInstanceUsage } from '@/lib/planterSolver'
+﻿import type { Placement, SheetInstanceUsage } from '@/lib/planterSolver'
 import {
   Card,
   CardContent,
@@ -58,8 +58,14 @@ const LEGEND_GROUPS = [
   { label: 'Liner', group: 'liner' },
 ]
 
-const formatSheetDimensions = (width: number, height: number) =>
-  `${width.toFixed(2)}" × ${height.toFixed(2)}"`
+
+const INCH_TO_MM = 25.4
+const toDisplayDimension = (valueInInches: number, unit: 'in' | 'mm') =>
+  unit === 'mm' ? valueInInches * INCH_TO_MM : valueInInches
+const formatPanelLengthWidthDimensions = (width: number, height: number, unit: 'in' | 'mm') =>
+  `${toDisplayDimension(width, unit).toFixed(1)} ${unit} × ${toDisplayDimension(height, unit).toFixed(1)} ${unit}`
+const formatDisplaySheetDimensions = (width: number, height: number, unit: 'in' | 'mm') =>
+  `${toDisplayDimension(width, unit).toFixed(2)} ${unit} Ã— ${toDisplayDimension(height, unit).toFixed(2)} ${unit}`
 
 const formatPercent = (value: number) => `${value.toFixed(1)}%`
 
@@ -100,9 +106,10 @@ const getPlacementStyle = (placement: Placement): PaletteEntry => {
 type CutPlanViewProps = {
   sheetUsages: SheetInstanceUsage[]
   formatCurrency: (value: number) => string
+  measurementUnit: 'in' | 'mm'
 }
 
-export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanViewProps) {
+export default function CutPlanView({ sheetUsages, formatCurrency, measurementUnit }: CutPlanViewProps) {
   if (!sheetUsages.length) {
     return (
       <Card className="space-y-3">
@@ -154,7 +161,7 @@ export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanView
                     <p className="text-xs text-muted-foreground">Instance {sheet.id}</p>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {sortedPlacements.length} panels · {formatSheetDimensions(sheet.width, sheet.height)}
+                    {sortedPlacements.length} panels Â· {formatDisplaySheetDimensions(sheet.width, sheet.height, measurementUnit)}
                   </p>
                   <div className="grid gap-3 text-xs text-muted-foreground sm:grid-cols-3">
                     <div>
@@ -198,7 +205,13 @@ export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanView
                           }}
                         >
                           <span className="font-semibold tracking-tight">{placement.name}</span>
-                          <span className="text-[0.5rem]">{`${placement.width.toFixed(1)}" × ${placement.height.toFixed(1)}"`}</span>
+                          <span className="text-[0.5rem]">
+                            {formatPanelLengthWidthDimensions(
+                              placement.width,
+                              placement.height,
+                              measurementUnit,
+                            )}
+                          </span>
                         </div>
                       )
                     })}
@@ -230,7 +243,11 @@ export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanView
                             {placement.isLiner && <span className="text-[0.55rem] text-muted-foreground">(liner)</span>}
                             {placement.panelType === 'shelf' && <span className="text-[0.55rem] text-muted-foreground">(shelf)</span>}
                             <span className="text-xs text-muted-foreground">
-                              {placement.width.toFixed(1)}" × {placement.height.toFixed(1)}
+                              {formatPanelLengthWidthDimensions(
+                                placement.width,
+                                placement.height,
+                                measurementUnit,
+                              )}
                             </span>
                           </span>
                         </div>
@@ -261,3 +278,4 @@ export default function CutPlanView({ sheetUsages, formatCurrency }: CutPlanView
     </Card>
   )
 }
+

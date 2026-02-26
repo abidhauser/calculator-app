@@ -274,6 +274,15 @@ type NumericPlanterField = Exclude<
 >
 type BooleanPlanterField = 'linerEnabled' | 'weightPlateEnabled' | 'shelfEnabled' | 'floorEnabled'
 type ThresholdField = 'lowThreshold' | 'lowPrice' | 'mediumThreshold' | 'mediumPrice' | 'highPrice'
+type MeasurementUnit = 'in' | 'mm'
+
+const INCH_TO_MM = 25.4
+const DIMENSION_INPUT_FIELDS: NumericPlanterField[] = ['length', 'width', 'height', 'lip', 'linerDepth']
+
+const isDimensionInputField = (field: NumericPlanterField) => DIMENSION_INPUT_FIELDS.includes(field)
+
+const inchesToDisplay = (value: number, unit: MeasurementUnit) => (unit === 'mm' ? value * INCH_TO_MM : value)
+const displayToInches = (value: number, unit: MeasurementUnit) => (unit === 'mm' ? value / INCH_TO_MM : value)
 
 const parseNumberInput = (rawValue: string) => {
   if (rawValue.trim() === '') return Number.NaN
@@ -373,6 +382,7 @@ const parseNumberCell = (rawValue: string) => {
 
 function App() {
   const [planterInput, setPlanterInput] = useState<PlanterInput>(() => ({ ...defaultPlanterInput }))
+  const [measurementUnit, setMeasurementUnit] = useState<MeasurementUnit>('in')
   const [thresholds, setThresholds] = useState<Record<Category, CostThreshold>>(() => cloneThresholds())
   const [thresholdErrors, setThresholdErrors] = useState<Record<Category, string | undefined>>(
     {} as Record<Category, string | undefined>,
@@ -396,6 +406,14 @@ function App() {
     () => Object.values(thresholdErrors).some((message) => Boolean(message)),
     [thresholdErrors],
   )
+  const dimensionStep = measurementUnit === 'mm' ? '1' : '0.25'
+  const lipStep = measurementUnit === 'mm' ? '1' : '0.125'
+  const unitLabel = measurementUnit === 'mm' ? 'mm' : 'in'
+
+  const displayDimensionValue = (value: number) => displayNumberInput(inchesToDisplay(value, measurementUnit))
+
+  const formatDimension = (valueInInches: number, fractionDigits = 2) =>
+    `${inchesToDisplay(valueInInches, measurementUnit).toFixed(fractionDigits)} ${unitLabel}`
 
   const linerDimensions = useMemo(() => {
     if (!planterInput.linerEnabled) return null
@@ -696,7 +714,11 @@ function App() {
   }, [thresholds])
 
   const handleInputChange = (field: NumericPlanterField, value: number) => {
-    setPlanterInput((prev) => ({ ...prev, [field]: value }))
+    setPlanterInput((prev) => {
+      if (!Number.isFinite(value)) return { ...prev, [field]: Number.NaN }
+      if (!isDimensionInputField(field)) return { ...prev, [field]: value }
+      return { ...prev, [field]: Math.max(0, displayToInches(value, measurementUnit)) }
+    })
   }
 
   const handleInputBlur = (field: NumericPlanterField) => {
@@ -736,7 +758,8 @@ function App() {
     setSheetInventory((prev) =>
       prev.map((row) => {
         if (row.id !== rowId) return row
-        return { ...row, [field]: Number.isFinite(value) ? Math.max(0, value) : Number.NaN }
+        if (!Number.isFinite(value)) return { ...row, [field]: Number.NaN }
+        return { ...row, [field]: Math.max(0, displayToInches(value, measurementUnit)) }
       }),
     )
   }
@@ -840,11 +863,13 @@ function App() {
       ])
     })
 
+    rows.push(['sheetMode', 'unit', measurementUnit, '', '', '', '', ''])
+
     rows.push([
       'sheetHeader',
       'name',
-      'width (in)',
-      'height (in)',
+      `width (${unitLabel})`,
+      `height (${unitLabel})`,
       'cost / sqft',
       'quantity',
       'enforce',
@@ -855,8 +880,8 @@ function App() {
       rows.push([
         'sheet',
         row.name,
-        String(row.width),
-        String(row.height),
+        String(inchesToDisplay(row.width, measurementUnit)),
+        String(inchesToDisplay(row.height, measurementUnit)),
         String(row.costPerSqft),
         String(row.quantity),
         String(row.limitQuantity),
@@ -893,6 +918,7 @@ function App() {
 
       const thresholdDraft: Partial<Record<Category, CostThreshold>> = {}
       const importedSheets: SheetInventoryRow[] = []
+      let importedSheetUnit: MeasurementUnit = 'in'
 
       for (const rawRow of parsed.rows) {
         if (!rawRow.length) continue
@@ -905,6 +931,10 @@ function App() {
         if (!section) continue
 
         if (section === 'sheetmode') {
+          const parsedUnit = row[2]?.toLowerCase()
+          if (parsedUnit === 'in' || parsedUnit === 'mm') {
+            importedSheetUnit = parsedUnit
+          }
           continue
         }
 
@@ -964,8 +994,8 @@ function App() {
           importedSheets.push(
             createSheetRow({
               name,
-              width: Math.max(0, width as number),
-              height: Math.max(0, height as number),
+              width: Math.max(0, displayToInches(width as number, importedSheetUnit)),
+              height: Math.max(0, displayToInches(height as number, importedSheetUnit)),
               costPerSqft: costPerSqft as number,
               quantity: Math.max(0, Math.floor(quantityRaw as number)),
               limitQuantity,
@@ -985,6 +1015,7 @@ function App() {
       }
       setThresholds(cloneThresholds(thresholdDraft))
       setSheetInventory(importedSheets.length ? importedSheets : [createSheetRow()])
+      setMeasurementUnit(importedSheetUnit)
       setSettingsBanner({ type: 'success', message: 'Settings imported from CSV and applied to the form.' })
     } catch {
       setSettingsBanner({ type: 'error', message: 'Unable to read the selected CSV file.' })
@@ -1121,11 +1152,16 @@ function App() {
   }
 
   const fabricationSizeLabel = isCalculated
-    ? `${fabricationDims.length.toFixed(2)}" × ${fabricationDims.width.toFixed(2)}" × ${fabricationDims.height.toFixed(2)}"`
+    ? `${formatDimension(fabricationDims.length)} × ${formatDimension(fabricationDims.width)} × ${formatDimension(
+        fabricationDims.height,
+      )}`
     : '—'
 
   const formatVolume = fabricationVolume
-    ? fabricationVolume.toLocaleString(undefined, { maximumFractionDigits: 1 })
+    ? inchesToDisplay(
+        inchesToDisplay(inchesToDisplay(fabricationVolume, measurementUnit), measurementUnit),
+        measurementUnit,
+      ).toLocaleString(undefined, { maximumFractionDigits: 1 })
     : '—'
 
   return (
@@ -1154,18 +1190,33 @@ function App() {
               <Card className="space-y-4">
                 <CardHeader>
                   <CardTitle>Dimensions</CardTitle>
-                  <CardDescription>All measurements are in inches.</CardDescription>
+                  <CardDescription>Switch between inches and millimeters for dimensional inputs.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="measurementUnit">Units</Label>
+                    <Select
+                      value={measurementUnit}
+                      onValueChange={(value: string) => setMeasurementUnit(value as MeasurementUnit)}
+                    >
+                      <SelectTrigger id="measurementUnit" className="w-[120px]">
+                        <SelectValue placeholder="Units" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="in">in</SelectItem>
+                        <SelectItem value="mm">mm</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-1">
-                      <Label htmlFor="length">Length</Label>
+                      <Label htmlFor="length">Length ({unitLabel})</Label>
                       <Input
                         id="length"
                         type="number"
                         min="0"
-                        step="0.25"
-                        value={displayNumberInput(planterInput.length)}
+                        step={dimensionStep}
+                        value={displayDimensionValue(planterInput.length)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
                           handleInputChange('length', parseNumberInput(event.target.value))
                         }
@@ -1173,13 +1224,13 @@ function App() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="width">Width</Label>
+                      <Label htmlFor="width">Width ({unitLabel})</Label>
                       <Input
                         id="width"
                         type="number"
                         min="0"
-                        step="0.25"
-                        value={displayNumberInput(planterInput.width)}
+                        step={dimensionStep}
+                        value={displayDimensionValue(planterInput.width)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
                           handleInputChange('width', parseNumberInput(event.target.value))
                         }
@@ -1187,13 +1238,13 @@ function App() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="height">Height</Label>
+                      <Label htmlFor="height">Height ({unitLabel})</Label>
                       <Input
                         id="height"
                         type="number"
                         min="0"
-                        step="0.25"
-                        value={displayNumberInput(planterInput.height)}
+                        step={dimensionStep}
+                        value={displayDimensionValue(planterInput.height)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
                           handleInputChange('height', parseNumberInput(event.target.value))
                         }
@@ -1245,13 +1296,13 @@ function App() {
                       </Select>
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="lip">Lip (default 2 1/8")</Label>
+                      <Label htmlFor="lip">Lip ({unitLabel})</Label>
                       <Input
                         id="lip"
                         type="number"
                         min="0"
-                        step="0.125"
-                        value={displayNumberInput(planterInput.lip)}
+                        step={lipStep}
+                        value={displayDimensionValue(planterInput.lip)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
                           handleInputChange('lip', parseNumberInput(event.target.value))
                         }
@@ -1325,13 +1376,13 @@ function App() {
                     <div className="space-y-4">
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-1">
-                          <Label htmlFor="linerDepth">Liner Depth</Label>
+                          <Label htmlFor="linerDepth">Liner Depth ({unitLabel})</Label>
                           <Input
                             id="linerDepth"
                             type="number"
                             min="0"
-                            step="0.25"
-                            value={displayNumberInput(planterInput.linerDepth)}
+                            step={dimensionStep}
+                            value={displayDimensionValue(planterInput.linerDepth)}
                             onChange={(event: ChangeEvent<HTMLInputElement>) =>
                               handleInputChange('linerDepth', parseNumberInput(event.target.value))
                             }
@@ -1361,8 +1412,8 @@ function App() {
                       </div>
                       {linerDimensions && (
                         <p className="text-sm text-muted-foreground">
-                          Derived liner dims: {linerDimensions.length.toFixed(2)}" ×{' '}
-                          {linerDimensions.width.toFixed(2)}" × {linerDimensions.height.toFixed(2)}" (length × width ×
+                          Derived liner dims: {formatDimension(linerDimensions.length)} ×{' '}
+                          {formatDimension(linerDimensions.width)} × {formatDimension(linerDimensions.height)} (length × width ×
                           height). Height is half of the planter height for now.
                         </p>
                       )}
@@ -1418,7 +1469,7 @@ function App() {
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.3em]">Volume</p>
-                    <p className="text-base text-foreground">{formatVolume} in³</p>
+                    <p className="text-base text-foreground">{formatVolume} {unitLabel === 'mm' ? 'mm³' : 'in³'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -1447,10 +1498,12 @@ function App() {
                       const price = row?.price ?? 0
                       const isWeightPlate = category === 'Weight Plate'
                       const isLinerCategory = category === 'Liner'
+                      const isShelfCategory = category === 'Shelf'
                       const priceDisabled =
                         !isCalculated ||
                         (isWeightPlate && !planterInput.weightPlateEnabled) ||
-                        (isLinerCategory && !planterInput.linerEnabled)
+                        (isLinerCategory && !planterInput.linerEnabled) ||
+                        (isShelfCategory && !planterInput.shelfEnabled)
                       return (
                         <TableRow key={category}>
                           <TableCell className="font-semibold text-foreground">{category}</TableCell>
@@ -1651,7 +1704,11 @@ function App() {
               </CardContent>
             </Card>
 
-            <CutPlanView sheetUsages={solverResult?.sheetUsages ?? []} formatCurrency={formatCurrencyValue} />
+            <CutPlanView
+              sheetUsages={solverResult?.sheetUsages ?? []}
+              formatCurrency={formatCurrencyValue}
+              measurementUnit={measurementUnit}
+            />
 
           </TabsContent>
           <TabsContent value="settings" className="space-y-6">
@@ -1869,8 +1926,8 @@ function App() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="text-sm font-bold text-foreground">Sheet name</TableHead>
-                        <TableHead className="text-sm font-bold text-foreground">Width (in)</TableHead>
-                        <TableHead className="text-sm font-bold text-foreground">Height (in)</TableHead>
+                        <TableHead className="text-sm font-bold text-foreground">Width ({unitLabel})</TableHead>
+                        <TableHead className="text-sm font-bold text-foreground">Height ({unitLabel})</TableHead>
                         <TableHead className="text-sm font-bold text-foreground">Cost / sqft</TableHead>
                         <TableHead className="text-sm font-bold text-foreground">Quantity</TableHead>
                         <TableHead className="w-[96px] text-sm font-bold text-foreground">Enforce</TableHead>
@@ -1895,10 +1952,10 @@ function App() {
                             <Input
                               id={`${row.id}-width`}
                               type="number"
-                              aria-label="Width (in)"
+                              aria-label={`Width (${unitLabel})`}
                               min="0"
-                              step="0.25"
-                              value={displayNumberInput(row.width)}
+                              step={dimensionStep}
+                              value={displayDimensionValue(row.width)}
                               onChange={(event: ChangeEvent<HTMLInputElement>) =>
                                 handleSheetDimensionChange(
                                   row.id,
@@ -1913,10 +1970,10 @@ function App() {
                             <Input
                               id={`${row.id}-height`}
                               type="number"
-                              aria-label="Height (in)"
+                              aria-label={`Height (${unitLabel})`}
                               min="0"
-                              step="0.25"
-                              value={displayNumberInput(row.height)}
+                              step={dimensionStep}
+                              value={displayDimensionValue(row.height)}
                               onChange={(event: ChangeEvent<HTMLInputElement>) =>
                                 handleSheetDimensionChange(
                                   row.id,
