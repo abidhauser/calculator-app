@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 export default defineConfig({
-  base: '/my-project/',
+  base: '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
