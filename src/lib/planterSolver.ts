@@ -345,14 +345,6 @@ function buildPanels(
     if (linerLength > 0 && linerWidth > 0 && linerHeight > 0) {
       panels.push(
         {
-          id: 'panel-liner-bottom',
-          name: 'Liner Bottom',
-          width: linerWidth,
-          height: linerLength,
-          type: 'liner',
-          isLiner: true,
-        },
-        {
           id: 'panel-liner-long-a',
           name: 'Liner Long A',
           width: linerLength,
@@ -415,6 +407,16 @@ function buildCandidates(
     { anchor: 'panel-floor', partner: 'panel-short-b', label: 'Floor + Short B' },
     { anchor: 'panel-long-a', partner: 'panel-short-a', label: 'L-cut (Long A + Short A)' },
     { anchor: 'panel-long-b', partner: 'panel-short-b', label: 'L-cut (Long B + Short B)' },
+    {
+      anchor: 'panel-liner-long-a',
+      partner: 'panel-liner-short-a',
+      label: 'L-cut (Liner Long A + Liner Short A)',
+    },
+    {
+      anchor: 'panel-liner-long-b',
+      partner: 'panel-liner-short-b',
+      label: 'L-cut (Liner Long B + Liner Short B)',
+    },
   ]
 
   for (const { anchor, partner, label } of adjacency) {
@@ -451,7 +453,9 @@ function getBundleLongestSide(
   const candidateId = `bundle-${anchorId}-${partnerId}`
   if (
     candidateId === 'bundle-panel-long-a-panel-short-a' ||
-    candidateId === 'bundle-panel-long-b-panel-short-b'
+    candidateId === 'bundle-panel-long-b-panel-short-b' ||
+    candidateId === 'bundle-panel-liner-long-a-panel-liner-short-a' ||
+    candidateId === 'bundle-panel-liner-long-b-panel-liner-short-b'
   ) {
     return Math.max(anchorPanel.width + partnerPanel.width, anchorPanel.height)
   }
@@ -472,7 +476,9 @@ function compareCandidates(a: Candidate, b: Candidate) {
 function isLCutBundleCandidate(candidateId: string) {
   return (
     candidateId === 'bundle-panel-long-a-panel-short-a' ||
-    candidateId === 'bundle-panel-long-b-panel-short-b'
+    candidateId === 'bundle-panel-long-b-panel-short-b' ||
+    candidateId === 'bundle-panel-liner-long-a-panel-liner-short-a' ||
+    candidateId === 'bundle-panel-liner-long-b-panel-liner-short-b'
   )
 }
 
@@ -775,6 +781,8 @@ function getLCutBundleLayout(candidate: Candidate, panelA: PanelBlueprint, panel
   const lCutBundleIds = new Set([
     'bundle-panel-long-a-panel-short-a',
     'bundle-panel-long-b-panel-short-b',
+    'bundle-panel-liner-long-a-panel-liner-short-a',
+    'bundle-panel-liner-long-b-panel-liner-short-b',
   ])
 
   if (!lCutBundleIds.has(candidate.id)) {
