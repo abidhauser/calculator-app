@@ -503,20 +503,15 @@ function App() {
     }
     return total
   }, [linerSheetInstanceIds, sheetInstanceAreaCost])
-  const totalFabricationCost = solverResult?.totalFabricationCost ?? 0
-  const linerExtraCost = solverResult?.linerExtraCost ?? 0
-  const baseFabricationCoreCost = breakdowns
-    .filter((row) => row.category !== 'Weight Plate')
-    .reduce((total, row) => total + row.price, 0)
-  const weightPlateCost = breakdownLookup['Weight Plate']?.price ?? 0
-  const totalNonMaterialCost = totalFabricationCost - totalMaterialCost
-  const planterStructuralCost = totalMaterialCost + baseFabricationCoreCost
-  const linerStructuralCost = linerExtraCost
-  const addOnStructuralCost = weightPlateCost
-  const combinedStructuralTotal = planterStructuralCost + linerStructuralCost + addOnStructuralCost
-
   const linerBreakdown = breakdownLookup['Liner']
   const linerLaborCost = linerBreakdown?.price ?? 0
+  const breakdownTotal = breakdowns.reduce((total, row) => {
+    if (row.category === 'Liner' && !planterInput.linerEnabled) return total
+    if (row.category === 'Shelf' && !planterInput.shelfEnabled) return total
+    return total + row.price
+  }, 0)
+  const totalFabricationCost = totalMaterialCost + breakdownTotal
+  const totalNonMaterialCost = breakdownTotal
 
   const saleMarginFraction = Math.min(Math.max(planterInput.marginPct / 100, 0), 0.99)
   const estimatedSalePrice =
@@ -1080,10 +1075,20 @@ function App() {
         },
       })
       setSolverResult(result)
+      const generatedMaterialCost = result.sheetUsages.reduce(
+        (total, usage) => total + ((usage.width * usage.height) / 144) * usage.costPerSqft,
+        0,
+      )
+      const generatedBreakdownTotal = breakdowns.reduce((total, row) => {
+        if (row.category === 'Liner' && !planterInput.linerEnabled) return total
+        if (row.category === 'Shelf' && !planterInput.shelfEnabled) return total
+        return total + row.price
+      }, 0)
+      const generatedTotalFabricationCost = generatedMaterialCost + generatedBreakdownTotal
       setResultBanner({
         type: 'success',
         message: `Solver locked the lowest total fabrication cost (${formatCurrencyValue(
-          result.totalFabricationCost,
+          generatedTotalFabricationCost,
         )}) by preferring the cheapest sheets.`,
       })
       console.log('Solver result', result)
@@ -1391,7 +1396,7 @@ function App() {
                 </div>
                 {solverResult && (
                   <p className="text-sm text-muted-foreground">
-                    Solver placed {solverResult.placements.length} panels across {solverResult.sheetUsages.length} sheet instances; total fabrication cost ${solverResult.totalFabricationCost.toFixed(2)}.
+                    Solver placed {solverResult.placements.length} panels across {solverResult.sheetUsages.length} sheet instances; total fabrication cost ${totalFabricationCost.toFixed(2)}.
                   </p>
                 )}
                 {calculationError && (
@@ -1644,39 +1649,6 @@ function App() {
 
             <CutPlanView sheetUsages={solverResult?.sheetUsages ?? []} formatCurrency={formatCurrencyValue} />
 
-            <Card className="space-y-3">
-              <CardHeader>
-                <CardTitle>Structural cost summary</CardTitle>
-                <CardDescription>
-                  Split totals keep planter (material + core fabrication), liner, and add-ons obvious before the combined
-                  total.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Planter cost</p>
-                    <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(planterStructuralCost)}</p>
-                    <p className="text-xs text-muted-foreground">Material plus core fabrication categories.</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner cost</p>
-                    <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(linerStructuralCost)}</p>
-                    <p className="text-xs text-muted-foreground">Liner labor only.</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Add-on cost</p>
-                    <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(addOnStructuralCost)}</p>
-                    <p className="text-xs text-muted-foreground">Weight plate extras.</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Combined total</p>
-                    <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(combinedStructuralTotal)}</p>
-                    <p className="text-xs text-muted-foreground">Matches total fabrication cost.</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
           <TabsContent value="settings" className="space-y-6">
             {settingsBanner && (

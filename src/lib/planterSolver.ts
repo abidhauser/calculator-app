@@ -64,7 +64,6 @@ export type SolverOptions = {
 }
 
 const LINER_HEIGHT_PERCENT = 0.5
-const BUNDLE_SHARED_EDGE_SAVINGS_PER_INCH = 0.4
 
 export const DEFAULT_SHEET_INVENTORY: SheetInventoryRow[] = [
   {
@@ -192,7 +191,7 @@ export function runPlanterSolver({
 
   const panels = buildPanels(fabricationDims, planterInput, linerHeightPercent)
   const cheapestCostPerSqft = Math.min(...sheetRows.map((row) => row.costPerSqft))
-  const { singleCandidates, bundleCandidates } = buildCandidates(panels, fabricationDims, cheapestCostPerSqft)
+  const { singleCandidates, bundleCandidates } = buildCandidates(panels, cheapestCostPerSqft)
 
   const candidateQueue = [
     ...bundleCandidates.sort(compareCandidates),
@@ -384,7 +383,6 @@ function buildPanels(
 
 function buildCandidates(
   panels: PanelBlueprint[],
-  dims: FabricationDimensions,
   baseCostPerSqft: number,
 ): { singleCandidates: Candidate[]; bundleCandidates: Candidate[] } {
   const panelMap = new Map(panels.map((panel) => [panel.id, panel]))
@@ -400,16 +398,16 @@ function buildCandidates(
   }))
 
   const bundles: Candidate[] = []
-  const adjacency: Array<{ anchor: string; partner: string; label: string; sharedEdge: number }> = [
-    { anchor: 'panel-floor', partner: 'panel-long-a', label: 'Floor + Long A', sharedEdge: dims.length },
-    { anchor: 'panel-floor', partner: 'panel-long-b', label: 'Floor + Long B', sharedEdge: dims.length },
-    { anchor: 'panel-floor', partner: 'panel-short-a', label: 'Floor + Short A', sharedEdge: dims.width },
-    { anchor: 'panel-floor', partner: 'panel-short-b', label: 'Floor + Short B', sharedEdge: dims.width },
-    { anchor: 'panel-long-a', partner: 'panel-short-a', label: 'L-cut (Long A + Short A)', sharedEdge: dims.height },
-    { anchor: 'panel-long-b', partner: 'panel-short-b', label: 'L-cut (Long B + Short B)', sharedEdge: dims.height },
+  const adjacency: Array<{ anchor: string; partner: string; label: string }> = [
+    { anchor: 'panel-floor', partner: 'panel-long-a', label: 'Floor + Long A' },
+    { anchor: 'panel-floor', partner: 'panel-long-b', label: 'Floor + Long B' },
+    { anchor: 'panel-floor', partner: 'panel-short-a', label: 'Floor + Short A' },
+    { anchor: 'panel-floor', partner: 'panel-short-b', label: 'Floor + Short B' },
+    { anchor: 'panel-long-a', partner: 'panel-short-a', label: 'L-cut (Long A + Short A)' },
+    { anchor: 'panel-long-b', partner: 'panel-short-b', label: 'L-cut (Long B + Short B)' },
   ]
 
-  for (const { anchor, partner, label, sharedEdge } of adjacency) {
+  for (const { anchor, partner, label } of adjacency) {
     const anchorPanel = panelMap.get(anchor)
     const partnerPanel = panelMap.get(partner)
     if (!anchorPanel || !partnerPanel) {
@@ -417,19 +415,7 @@ function buildCandidates(
     }
 
     const areaSum = anchorPanel.width * anchorPanel.height + partnerPanel.width * partnerPanel.height
-    const baseImpact = (areaSum / 144) * baseCostPerSqft
-    const bundleDiscount =
-      ((sharedEdge * BUNDLE_SHARED_EDGE_SAVINGS_PER_INCH) / 144) * baseCostPerSqft
-    if (bundleDiscount <= 0) {
-      continue
-    }
-
-    const bundleImpact = Math.max(baseImpact - bundleDiscount, 0)
-    const singleCosts = ((anchorPanel.width * anchorPanel.height) / 144) * baseCostPerSqft +
-      ((partnerPanel.width * partnerPanel.height) / 144) * baseCostPerSqft
-    if (bundleImpact >= singleCosts) {
-      continue
-    }
+    const bundleImpact = (areaSum / 144) * baseCostPerSqft
 
     bundles.push({
       id: `bundle-${anchor}-${partner}`,
@@ -438,7 +424,7 @@ function buildCandidates(
       totalArea: areaSum,
       longestSide: getBundleLongestSide(anchor, partner, anchorPanel, partnerPanel),
       costImpact: bundleImpact,
-      bundleSavings: singleCosts - bundleImpact,
+      bundleSavings: 0,
       isBundle: true,
     })
   }
