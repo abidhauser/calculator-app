@@ -107,8 +107,6 @@ const formatPercentValue = (value: number) =>
 const thicknessOptions = [
   { label: '1/8" (0.125")', value: 0.125 },
   { label: '3/16" (0.1875")', value: 0.1875 },
-  { label: '1/4" (0.25")', value: 0.25 },
-  { label: '5/16" (0.3125")', value: 0.3125 },
 ]
 
 const defaultPlanterInput: PlanterInput = {
@@ -250,13 +248,22 @@ const determineTier = (volume: number, threshold: CostThreshold) => {
 }
 
 const validatePlanterInput = (input: PlanterInput) => {
+  if (!Number.isFinite(input.length)) return 'Length must be a valid number.'
   if (input.length <= 0) return 'Length must be greater than zero.'
+  if (!Number.isFinite(input.width)) return 'Width must be a valid number.'
   if (input.width <= 0) return 'Width must be greater than zero.'
+  if (!Number.isFinite(input.height)) return 'Height must be a valid number.'
   if (input.height <= 0) return 'Height must be greater than zero.'
+  if (!Number.isFinite(input.lip)) return 'Lip must be a valid number.'
   if (input.lip < 0) return 'Lip must be zero or greater.'
+  if (!Number.isFinite(input.marginPct)) return 'Margin % must be a valid number.'
   if (input.marginPct < 0) return 'Margin % must be zero or greater.'
+  if (!Number.isFinite(input.thickness)) return 'Thickness must be a valid number.'
   if (input.thickness <= 0) return 'Thickness must be greater than zero.'
+  if (input.linerEnabled && !Number.isFinite(input.linerDepth)) return 'Liner depth must be a valid number.'
   if (input.linerEnabled && input.linerDepth < 0) return 'Liner depth must be zero or greater.'
+  if (input.linerEnabled && !Number.isFinite(input.linerThickness))
+    return 'Liner thickness must be a valid number.'
   if (input.linerEnabled && input.linerThickness <= 0) return 'Liner thickness must be greater than zero.'
   return null
 }
@@ -267,6 +274,13 @@ type NumericPlanterField = Exclude<
 >
 type BooleanPlanterField = 'linerEnabled' | 'weightPlateEnabled' | 'shelfEnabled' | 'floorEnabled'
 type ThresholdField = 'lowThreshold' | 'lowPrice' | 'mediumThreshold' | 'mediumPrice' | 'highPrice'
+
+const parseNumberInput = (rawValue: string) => {
+  if (rawValue.trim() === '') return Number.NaN
+  return Number(rawValue)
+}
+
+const displayNumberInput = (value: number) => (Number.isFinite(value) ? value : '')
 
 function App() {
   const [planterInput, setPlanterInput] = useState<PlanterInput>(() => ({ ...defaultPlanterInput }))
@@ -579,7 +593,15 @@ function App() {
     const nextErrors: Record<Category, string | undefined> = {} as Record<Category, string | undefined>
     categoryList.forEach((category) => {
       const entry = thresholds[category]
-      if (entry.lowThreshold >= entry.mediumThreshold) {
+      if (
+        !Number.isFinite(entry.lowThreshold) ||
+        !Number.isFinite(entry.mediumThreshold) ||
+        !Number.isFinite(entry.lowPrice) ||
+        !Number.isFinite(entry.mediumPrice) ||
+        !Number.isFinite(entry.highPrice)
+      ) {
+        nextErrors[category] = 'All threshold and price values must be valid numbers.'
+      } else if (entry.lowThreshold >= entry.mediumThreshold) {
         nextErrors[category] = 'Low threshold must be smaller than the medium threshold.'
       } else {
         nextErrors[category] = undefined
@@ -590,6 +612,13 @@ function App() {
 
   const handleInputChange = (field: NumericPlanterField, value: number) => {
     setPlanterInput((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleInputBlur = (field: NumericPlanterField) => {
+    setPlanterInput((prev) => {
+      const currentValue = prev[field]
+      return Number.isFinite(currentValue) ? prev : { ...prev, [field]: 0 }
+    })
   }
 
   const handleCheckbox = (field: BooleanPlanterField, checked: boolean) => {
@@ -603,14 +632,36 @@ function App() {
     }))
   }
 
+  const handleThresholdBlur = (category: Category, field: ThresholdField) => {
+    setThresholds((prev) => {
+      const currentValue = prev[category][field]
+      if (Number.isFinite(currentValue)) return prev
+      return {
+        ...prev,
+        [category]: { ...prev[category], [field]: 0 },
+      }
+    })
+  }
+
   const handleSheetNameChange = (rowId: string, value: string) => {
     setSheetInventory((prev) => prev.map((row) => (row.id === rowId ? { ...row, name: value } : row)))
   }
 
   const handleSheetDimensionChange = (rowId: string, field: 'width' | 'height', value: number) => {
-    if (Number.isNaN(value)) return
     setSheetInventory((prev) =>
-      prev.map((row) => (row.id === rowId ? { ...row, [field]: Math.max(0, value) } : row)),
+      prev.map((row) => {
+        if (row.id !== rowId) return row
+        return { ...row, [field]: Number.isFinite(value) ? Math.max(0, value) : Number.NaN }
+      }),
+    )
+  }
+
+  const handleSheetDimensionBlur = (rowId: string, field: 'width' | 'height') => {
+    setSheetInventory((prev) =>
+      prev.map((row) => {
+        if (row.id !== rowId) return row
+        return Number.isFinite(row[field]) ? row : { ...row, [field]: 0 }
+      }),
     )
   }
 
@@ -618,8 +669,17 @@ function App() {
   const handleSheetCostChange = (rowId: string, value: number) => {
     setSheetInventory((prev) =>
       prev.map((row) =>
-        row.id === rowId ? { ...row, costPerSqft: Number.isNaN(value) ? row.costPerSqft : value } : row,
+        row.id === rowId ? { ...row, costPerSqft: Number.isFinite(value) ? value : Number.NaN } : row,
       ),
+    )
+  }
+
+  const handleSheetCostBlur = (rowId: string) => {
+    setSheetInventory((prev) =>
+      prev.map((row) => {
+        if (row.id !== rowId) return row
+        return Number.isFinite(row.costPerSqft) ? row : { ...row, costPerSqft: 0 }
+      }),
     )
   }
 
@@ -627,8 +687,19 @@ function App() {
     setSheetInventory((prev) =>
       prev.map((row) => {
         if (row.id !== rowId) return row
-        if (Number.isNaN(value)) return row
-        return { ...row, quantity: Math.max(0, Math.floor(value)) }
+        return {
+          ...row,
+          quantity: Number.isFinite(value) ? Math.max(0, Math.floor(value)) : Number.NaN,
+        }
+      }),
+    )
+  }
+
+  const handleSheetQuantityBlur = (rowId: string) => {
+    setSheetInventory((prev) =>
+      prev.map((row) => {
+        if (row.id !== rowId) return row
+        return Number.isFinite(row.quantity) ? row : { ...row, quantity: 0 }
       }),
     )
   }
@@ -752,7 +823,15 @@ function App() {
 
   const handlePriceOverride = (category: Category, value: number) => {
     setBreakdowns((prev) =>
-      prev.map((row) => (row.category === category ? { ...row, price: Number.isNaN(value) ? row.price : value } : row)),
+      prev.map((row) => (row.category === category ? { ...row, price: value } : row)),
+    )
+  }
+
+  const handlePriceOverrideBlur = (category: Category) => {
+    setBreakdowns((prev) =>
+      prev.map((row) =>
+        row.category === category && !Number.isFinite(row.price) ? { ...row, price: 0 } : row,
+      ),
     )
   }
 
@@ -801,10 +880,11 @@ function App() {
                         type="number"
                         min="0"
                         step="0.25"
-                        value={planterInput.length}
+                        value={displayNumberInput(planterInput.length)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                          handleInputChange('length', Number(event.target.value))
+                          handleInputChange('length', parseNumberInput(event.target.value))
                         }
+                        onBlur={() => handleInputBlur('length')}
                       />
                     </div>
                     <div className="space-y-1">
@@ -814,10 +894,11 @@ function App() {
                         type="number"
                         min="0"
                         step="0.25"
-                        value={planterInput.width}
+                        value={displayNumberInput(planterInput.width)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                          handleInputChange('width', Number(event.target.value))
+                          handleInputChange('width', parseNumberInput(event.target.value))
                         }
+                        onBlur={() => handleInputBlur('width')}
                       />
                     </div>
                     <div className="space-y-1">
@@ -827,10 +908,11 @@ function App() {
                         type="number"
                         min="0"
                         step="0.25"
-                        value={planterInput.height}
+                        value={displayNumberInput(planterInput.height)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                          handleInputChange('height', Number(event.target.value))
+                          handleInputChange('height', parseNumberInput(event.target.value))
                         }
+                        onBlur={() => handleInputBlur('height')}
                       />
                     </div>
                     <div className="space-y-1">
@@ -840,10 +922,11 @@ function App() {
                         type="number"
                         min="0"
                         step="1"
-                        value={planterInput.marginPct}
+                        value={displayNumberInput(planterInput.marginPct)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                          handleInputChange('marginPct', Number(event.target.value))
+                          handleInputChange('marginPct', parseNumberInput(event.target.value))
                         }
+                        onBlur={() => handleInputBlur('marginPct')}
                       />
                     </div>
                     <div className="space-y-1">
@@ -883,10 +966,11 @@ function App() {
                         type="number"
                         min="0"
                         step="0.125"
-                        value={planterInput.lip}
+                        value={displayNumberInput(planterInput.lip)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                          handleInputChange('lip', Number(event.target.value))
+                          handleInputChange('lip', parseNumberInput(event.target.value))
                         }
+                        onBlur={() => handleInputBlur('lip')}
                       />
                     </div>
                   </div>
@@ -962,10 +1046,11 @@ function App() {
                             type="number"
                             min="0"
                             step="0.25"
-                            value={planterInput.linerDepth}
+                            value={displayNumberInput(planterInput.linerDepth)}
                             onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                              handleInputChange('linerDepth', Number(event.target.value))
+                              handleInputChange('linerDepth', parseNumberInput(event.target.value))
                             }
+                            onBlur={() => handleInputBlur('linerDepth')}
                           />
                         </div>
                         <div className="space-y-1">
@@ -1088,13 +1173,14 @@ function App() {
                           <TableCell>
                             <Input
                               type="number"
-                              value={price}
+                              value={displayNumberInput(price)}
                               step="0.5"
                               min="0"
                               disabled={priceDisabled}
                               onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                                handlePriceOverride(category, Number(event.target.value))
+                                handlePriceOverride(category, parseNumberInput(event.target.value))
                               }
+                              onBlur={() => handlePriceOverrideBlur(category)}
                             />
                           </TableCell>
                         </TableRow>
@@ -1359,10 +1445,15 @@ function App() {
                                 type="number"
                                 min="0"
                                 step="100"
-                                value={thresholds[category].lowThreshold}
+                                value={displayNumberInput(thresholds[category].lowThreshold)}
                                 onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                                  handleThresholdChange(category, 'lowThreshold', Number(event.target.value))
+                                  handleThresholdChange(
+                                    category,
+                                    'lowThreshold',
+                                    parseNumberInput(event.target.value),
+                                  )
                                 }
+                                onBlur={() => handleThresholdBlur(category, 'lowThreshold')}
                               />
                               <Label htmlFor={`${category}-lowPrice`}>Price</Label>
                               <Input
@@ -1370,10 +1461,11 @@ function App() {
                                 type="number"
                                 min="0"
                                 step="1"
-                                value={thresholds[category].lowPrice}
+                                value={displayNumberInput(thresholds[category].lowPrice)}
                                 onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                                  handleThresholdChange(category, 'lowPrice', Number(event.target.value))
+                                  handleThresholdChange(category, 'lowPrice', parseNumberInput(event.target.value))
                                 }
+                                onBlur={() => handleThresholdBlur(category, 'lowPrice')}
                               />
                             </div>
                             <div className="space-y-1">
@@ -1383,10 +1475,15 @@ function App() {
                                 type="number"
                                 min="0"
                                 step="100"
-                                value={thresholds[category].mediumThreshold}
+                                value={displayNumberInput(thresholds[category].mediumThreshold)}
                                 onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                                  handleThresholdChange(category, 'mediumThreshold', Number(event.target.value))
+                                  handleThresholdChange(
+                                    category,
+                                    'mediumThreshold',
+                                    parseNumberInput(event.target.value),
+                                  )
                                 }
+                                onBlur={() => handleThresholdBlur(category, 'mediumThreshold')}
                               />
                               <Label htmlFor={`${category}-mediumPrice`}>Price</Label>
                               <Input
@@ -1394,10 +1491,15 @@ function App() {
                                 type="number"
                                 min="0"
                                 step="1"
-                                value={thresholds[category].mediumPrice}
+                                value={displayNumberInput(thresholds[category].mediumPrice)}
                                 onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                                  handleThresholdChange(category, 'mediumPrice', Number(event.target.value))
+                                  handleThresholdChange(
+                                    category,
+                                    'mediumPrice',
+                                    parseNumberInput(event.target.value),
+                                  )
                                 }
+                                onBlur={() => handleThresholdBlur(category, 'mediumPrice')}
                               />
                             </div>
                             <div className="space-y-1">
@@ -1417,10 +1519,11 @@ function App() {
                                 type="number"
                                 min="0"
                                 step="1"
-                                value={thresholds[category].highPrice}
+                                value={displayNumberInput(thresholds[category].highPrice)}
                                 onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                                  handleThresholdChange(category, 'highPrice', Number(event.target.value))
+                                  handleThresholdChange(category, 'highPrice', parseNumberInput(event.target.value))
                                 }
+                                onBlur={() => handleThresholdBlur(category, 'highPrice')}
                               />
                             </div>
                           </div>
@@ -1497,10 +1600,15 @@ function App() {
                           type="number"
                           min="0"
                           step="0.25"
-                          value={row.width}
+                          value={displayNumberInput(row.width)}
                           onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleSheetDimensionChange(row.id, 'width', Number(event.target.value))
+                            handleSheetDimensionChange(
+                              row.id,
+                              'width',
+                              parseNumberInput(event.target.value),
+                            )
                           }
+                          onBlur={() => handleSheetDimensionBlur(row.id, 'width')}
                         />
                       </div>
                       <div className="space-y-1">
@@ -1510,10 +1618,15 @@ function App() {
                           type="number"
                           min="0"
                           step="0.25"
-                          value={row.height}
+                          value={displayNumberInput(row.height)}
                           onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleSheetDimensionChange(row.id, 'height', Number(event.target.value))
+                            handleSheetDimensionChange(
+                              row.id,
+                              'height',
+                              parseNumberInput(event.target.value),
+                            )
                           }
+                          onBlur={() => handleSheetDimensionBlur(row.id, 'height')}
                         />
                       </div>
                       <div className="space-y-1">
@@ -1523,10 +1636,11 @@ function App() {
                           type="number"
                           min="0"
                           step="0.01"
-                          value={row.costPerSqft}
+                          value={displayNumberInput(row.costPerSqft)}
                           onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleSheetCostChange(row.id, Number(event.target.value))
+                            handleSheetCostChange(row.id, parseNumberInput(event.target.value))
                           }
+                          onBlur={() => handleSheetCostBlur(row.id)}
                         />
                       </div>
                       <div className="space-y-2">
@@ -1546,10 +1660,11 @@ function App() {
                           type="number"
                           min="0"
                           step="1"
-                          value={row.quantity}
+                          value={displayNumberInput(row.quantity)}
                           onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleSheetQuantityChange(row.id, Number(event.target.value))
+                            handleSheetQuantityChange(row.id, parseNumberInput(event.target.value))
                           }
+                          onBlur={() => handleSheetQuantityBlur(row.id)}
                         />
                       </div>
                       <div className="flex items-end justify-end">
