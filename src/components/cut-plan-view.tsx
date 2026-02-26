@@ -196,7 +196,6 @@ export default function CutPlanView({ sheetUsages, formatCurrency, measurementUn
                               }}
                             />
                             {placement.name}
-                            {placement.isLiner && <span className="text-[0.65rem] text-muted-foreground">(liner)</span>}
                             {placement.panelType === 'shelf' && <span className="text-[0.65rem] text-muted-foreground">(shelf)</span>}
                             <span className="text-sm text-muted-foreground">
                               {formatPanelLengthWidthDimensions(
