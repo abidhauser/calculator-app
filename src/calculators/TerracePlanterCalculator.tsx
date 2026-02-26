@@ -388,7 +388,6 @@ function App() {
   const [sheetInventory, setSheetInventory] = useState<SheetInventoryRow[]>(() =>
     DEFAULT_SHEET_INVENTORY.map((row) => ({ ...row })),
   )
-  const [sheetMode, setSheetMode] = useState<'auto' | 'manual'>('manual')
   const [customSalePrice, setCustomSalePrice] = useState('')
   const [settingsBanner, setSettingsBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const settingsImportInputRef = useRef<HTMLInputElement | null>(null)
@@ -825,7 +824,6 @@ function App() {
         'high price',
       ],
       ['meta', 'version', '1', '', '', '', '', ''],
-      ['sheetMode', 'mode', sheetMode, '', '', '', '', ''],
     ]
 
     categoryList.forEach((category) => {
@@ -894,7 +892,6 @@ function App() {
       }
 
       const thresholdDraft: Partial<Record<Category, CostThreshold>> = {}
-      let importedSheetMode: 'auto' | 'manual' | null = null
       const importedSheets: SheetInventoryRow[] = []
 
       for (const rawRow of parsed.rows) {
@@ -908,13 +905,7 @@ function App() {
         if (!section) continue
 
         if (section === 'sheetmode') {
-          const modeValue = row[2]?.toLowerCase()
-          if (modeValue === 'auto' || modeValue === 'manual') {
-            importedSheetMode = modeValue
-            continue
-          }
-          setSettingsBanner({ type: 'error', message: 'Invalid sheet mode in CSV. Expected "auto" or "manual".' })
-          return
+          continue
         }
 
         if (section === 'threshold') {
@@ -992,13 +983,7 @@ function App() {
         })
         return
       }
-      if (!importedSheetMode) {
-        setSettingsBanner({ type: 'error', message: 'CSV is missing sheet mode.' })
-        return
-      }
-
       setThresholds(cloneThresholds(thresholdDraft))
-      setSheetMode(importedSheetMode)
       setSheetInventory(importedSheets.length ? importedSheets : [createSheetRow()])
       setSettingsBanner({ type: 'success', message: 'Settings imported from CSV and applied to the form.' })
     } catch {
@@ -1024,27 +1009,17 @@ function App() {
 
     const dims = buildFabricationDimensions(planterInput)
     const volume = dims.length * dims.width * dims.height
-
     const breakdownResults: CostBreakdownPreview[] = categoryList.map((category) => {
       if (category === 'Weight Plate' && !planterInput.weightPlateEnabled) {
         return { category, tierUsed: 'Not Selected', price: 0 }
       }
-      if (category === 'Liner') {
-        if (!planterInput.linerEnabled) {
-          return { category, tierUsed: 'Not Selected', price: 0 }
-        }
-        const threshold = thresholds[category]
-        const { tier, price } = determineTier(volume, threshold)
-        return { category, tierUsed: tier, price }
+      if (category === 'Liner' && !planterInput.linerEnabled) {
+        return { category, tierUsed: 'Not Selected', price: 0 }
       }
-      if (category === 'Shelf') {
-        if (!planterInput.shelfEnabled) {
-          return { category, tierUsed: 'Not Selected', price: 0 }
-        }
-        const threshold = thresholds[category]
-        const { tier, price } = determineTier(volume, threshold)
-        return { category, tierUsed: tier, price }
+      if (category === 'Shelf' && !planterInput.shelfEnabled) {
+        return { category, tierUsed: 'Not Selected', price: 0 }
       }
+
       const threshold = thresholds[category]
       const { tier, price } = determineTier(volume, threshold)
       return { category, tierUsed: tier, price }
@@ -1058,20 +1033,49 @@ function App() {
 
   const handleGenerate = () => {
     setActiveTab('results')
-    if (!isCalculated) {
+    const validationMessage = validatePlanterInput(planterInput)
+    if (validationMessage) {
+      setCalculationError(validationMessage)
+      setIsCalculated(false)
+      return
+    }
+    if (hasThresholdErrors) {
+      setCalculationError('Resolve invalid threshold settings before generating.')
+      setIsCalculated(false)
       return
     }
 
+    const dims = buildFabricationDimensions(planterInput)
+    const volume = dims.length * dims.width * dims.height
+    const breakdownResults: CostBreakdownPreview[] = categoryList.map((category) => {
+      if (category === 'Weight Plate' && !planterInput.weightPlateEnabled) {
+        return { category, tierUsed: 'Not Selected', price: 0 }
+      }
+      if (category === 'Liner' && !planterInput.linerEnabled) {
+        return { category, tierUsed: 'Not Selected', price: 0 }
+      }
+      if (category === 'Shelf' && !planterInput.shelfEnabled) {
+        return { category, tierUsed: 'Not Selected', price: 0 }
+      }
+
+      const threshold = thresholds[category]
+      const { tier, price } = determineTier(volume, threshold)
+      return { category, tierUsed: tier, price }
+    })
+
     setCalculationError(null)
+    setFabricationDims(dims)
+    setFabricationVolume(volume)
+    setBreakdowns(breakdownResults)
+    setIsCalculated(true)
+
     try {
       const result = runPlanterSolver({
         planterInput,
-        fabricationDims,
-        breakdowns,
+        fabricationDims: dims,
+        breakdowns: breakdownResults,
         options: {
           inventory: sheetInventory,
-          mode: sheetMode,
-          manualRowOrder: sheetInventory.map((row) => row.id),
         },
       })
       setSolverResult(result)
@@ -1079,7 +1083,7 @@ function App() {
         (total, usage) => total + ((usage.width * usage.height) / 144) * usage.costPerSqft,
         0,
       )
-      const generatedBreakdownTotal = breakdowns.reduce((total, row) => {
+      const generatedBreakdownTotal = breakdownResults.reduce((total, row) => {
         if (row.category === 'Liner' && !planterInput.linerEnabled) return total
         if (row.category === 'Shelf' && !planterInput.shelfEnabled) return total
         return total + row.price
@@ -1385,7 +1389,7 @@ function App() {
             <Card className="space-y-4">
               <CardHeader>
                 <CardTitle>Calculation</CardTitle>
-                <CardDescription>Lip is added after validation, then volume determines the tier selection.</CardDescription>
+                <CardDescription>Lip is added to panel height after validation, then volume determines the tier selection.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-wrap gap-3">
@@ -1857,23 +1861,9 @@ function App() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-5">
-                <div className="grid gap-3 sm:grid-cols-2 sm:items-end">
-                  <div className="space-y-1">
-                    <Label htmlFor="sheet-mode">Sheet selection mode</Label>
-                    <Select value={sheetMode} onValueChange={(value) => setSheetMode(value as 'auto' | 'manual')}>
-                      <SelectTrigger id="sheet-mode" className="w-full">
-                        <SelectValue placeholder="Mode" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="manual">Manual (use these sheets only)</SelectItem>
-                        <SelectItem value="auto">Auto (solver may reorder)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Manual mode restricts the solver to this list and honors each quantity; auto mode will still prefer the cheapest configured rows.
-                  </p>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Solver uses the sheet rows below, applies quantity limits when enforced, and searches for the lowest-cost combination.
+                </p>
                 <div className="overflow-x-auto rounded-md border border-border">
                   <Table className="min-w-[860px]">
                     <TableHeader>

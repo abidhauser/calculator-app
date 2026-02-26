@@ -58,8 +58,6 @@ export type SolverResult = {
 
 export type SolverOptions = {
   inventory?: SheetInventoryRow[]
-  mode?: 'auto' | 'manual'
-  manualRowOrder?: string[]
   linerHeightPercent?: number
 }
 
@@ -164,8 +162,8 @@ type SheetInstance = {
 
 export function buildFabricationDimensions(input: PlanterInput): FabricationDimensions {
   return {
-    length: input.length + input.lip,
-    width: input.width + input.lip,
+    length: input.length,
+    width: input.width,
     height: input.height + input.lip,
   }
 }
@@ -184,7 +182,7 @@ export function runPlanterSolver({
   const linerHeightPercent = options?.linerHeightPercent ?? LINER_HEIGHT_PERCENT
   const inventory = options?.inventory ?? DEFAULT_SHEET_INVENTORY
 
-  const sheetRows = buildOrderedSheetRows(inventory, options)
+  const sheetRows = buildOrderedSheetRows(inventory)
   if (sheetRows.length === 0) {
     throw new Error('No sheet inventory provided to the solver.')
   }
@@ -204,12 +202,23 @@ export function runPlanterSolver({
   const placedPanels = new Set<string>()
   let bundleSavings = 0
 
-  for (const candidate of candidateQueue) {
+  for (let queueIndex = 0; queueIndex < candidateQueue.length; queueIndex += 1) {
+    const candidate = candidateQueue[queueIndex]
     if (candidate.panels.some((panel) => placedPanels.has(panel.id))) {
       continue
     }
 
-    const commit = placeCandidateOnSheets(candidate, sheetInstances, sheetRows, rowUsage)
+    const remainingCandidates = candidateQueue
+      .slice(queueIndex + 1)
+      .filter((queued) => queued.panels.every((panel) => !placedPanels.has(panel.id)))
+
+    const commit = placeCandidateOnSheets(
+      candidate,
+      sheetInstances,
+      sheetRows,
+      rowUsage,
+      remainingCandidates,
+    )
 
     if (!commit) {
       continue
@@ -240,7 +249,8 @@ export function runPlanterSolver({
   }, 0)
 
   const totalMaterialCost = sheetUsages.reduce((total, usage) => {
-    return (total += usage.areaUsedSqft * usage.costPerSqft)
+    const sheetAreaSqft = (usage.width * usage.height) / 144
+    return (total += sheetAreaSqft * usage.costPerSqft)
   }, 0)
 
   const fabricationRows = breakdowns.filter((row) => row.category !== 'Liner')
@@ -466,14 +476,13 @@ function isLCutBundleCandidate(candidateId: string) {
   )
 }
 
-function buildOrderedSheetRows(inventory: SheetInventoryRow[], options?: SolverOptions) {
-  if (options?.mode === 'manual' && options.manualRowOrder?.length) {
-    return options.manualRowOrder
-      .map((rowId) => inventory.find((row) => row.id === rowId))
-      .filter((row): row is SheetInventoryRow => Boolean(row))
-  }
-
+function buildOrderedSheetRows(inventory: SheetInventoryRow[]) {
   return [...inventory].sort((a, b) => {
+    const sheetCostA = getSheetCost(a.width, a.height, a.costPerSqft)
+    const sheetCostB = getSheetCost(b.width, b.height, b.costPerSqft)
+    if (sheetCostA !== sheetCostB) {
+      return sheetCostA - sheetCostB
+    }
     if (a.costPerSqft !== b.costPerSqft) {
       return a.costPerSqft - b.costPerSqft
     }
@@ -486,15 +495,41 @@ function placeCandidateOnSheets(
   sheetInstances: SheetInstance[],
   sheetRows: SheetInventoryRow[],
   rowUsage: Record<string, number>,
+  remainingCandidates: Candidate[],
 ): Placement[] | null {
+  let bestExisting: { instance: SheetInstance; attempt: Placement[]; wasteAfterIn2: number } | null = null
   for (const instance of sheetInstances) {
     const attempt = tryPlaceCandidate(instance, candidate)
-    if (attempt) {
-      instance.placements.push(...attempt)
-      instance.usedAreaIn2 += attempt.reduce((sum, placement) => sum + placement.width * placement.height, 0)
-      return attempt
+    if (!attempt) {
+      continue
+    }
+    const attemptArea = attempt.reduce((sum, placement) => sum + placement.width * placement.height, 0)
+    const sheetAreaIn2 = instance.width * instance.height
+    const wasteAfterIn2 = Math.max(0, sheetAreaIn2 - (instance.usedAreaIn2 + attemptArea))
+    if (!bestExisting || wasteAfterIn2 < bestExisting.wasteAfterIn2) {
+      bestExisting = { instance, attempt, wasteAfterIn2 }
     }
   }
+
+  if (bestExisting) {
+    bestExisting.instance.placements.push(...bestExisting.attempt)
+    bestExisting.instance.usedAreaIn2 += bestExisting.attempt.reduce(
+      (sum, placement) => sum + placement.width * placement.height,
+      0,
+    )
+    return bestExisting.attempt
+  }
+
+  let bestNewSheet:
+    | {
+        row: SheetInventoryRow
+        usage: number
+        attempt: Placement[]
+        sheetCost: number
+        wasteAfterIn2: number
+        canFitAllRemaining: boolean
+      }
+    | null = null
 
   for (const row of sheetRows) {
     const usage = rowUsage[row.id] ?? 0
@@ -520,14 +555,85 @@ function placeCandidateOnSheets(
       continue
     }
 
-    rowUsage[row.id] = usage + 1
-    sheetInstance.placements.push(...attempt)
-    sheetInstance.usedAreaIn2 += attempt.reduce((sum, placement) => sum + placement.width * placement.height, 0)
+    const attemptArea = attempt.reduce((sum, placement) => sum + placement.width * placement.height, 0)
+    const sheetAreaIn2 = row.width * row.height
+    const wasteAfterIn2 = Math.max(0, sheetAreaIn2 - attemptArea)
+    const sheetCost = getSheetCost(row.width, row.height, row.costPerSqft)
+    const canFitAllRemaining = canFitCandidatesOnSingleSheet(row, [candidate, ...remainingCandidates])
+
+    if (
+      !bestNewSheet ||
+      (canFitAllRemaining && !bestNewSheet.canFitAllRemaining) ||
+      (canFitAllRemaining === bestNewSheet.canFitAllRemaining && sheetCost < bestNewSheet.sheetCost) ||
+      (canFitAllRemaining === bestNewSheet.canFitAllRemaining &&
+        sheetCost === bestNewSheet.sheetCost &&
+        wasteAfterIn2 < bestNewSheet.wasteAfterIn2)
+    ) {
+      bestNewSheet = { row, usage, attempt, sheetCost, wasteAfterIn2, canFitAllRemaining }
+    }
+  }
+
+  if (bestNewSheet) {
+    const sheetInstance: SheetInstance = {
+      id: `${bestNewSheet.row.id}-${bestNewSheet.usage + 1}`,
+      rowId: bestNewSheet.row.id,
+      name: bestNewSheet.row.name,
+      width: bestNewSheet.row.width,
+      height: bestNewSheet.row.height,
+      costPerSqft: bestNewSheet.row.costPerSqft,
+      placements: [],
+      usedAreaIn2: 0,
+    }
+
+    rowUsage[bestNewSheet.row.id] = bestNewSheet.usage + 1
+    sheetInstance.placements.push(...bestNewSheet.attempt)
+    sheetInstance.usedAreaIn2 += bestNewSheet.attempt.reduce(
+      (sum, placement) => sum + placement.width * placement.height,
+      0,
+    )
     sheetInstances.push(sheetInstance)
-    return attempt
+    return bestNewSheet.attempt
   }
 
   return null
+}
+
+function canFitCandidatesOnSingleSheet(row: SheetInventoryRow, candidates: Candidate[]) {
+  const tempSheet: SheetInstance = {
+    id: 'temp-sheet',
+    rowId: row.id,
+    name: row.name,
+    width: row.width,
+    height: row.height,
+    costPerSqft: row.costPerSqft,
+    placements: [],
+    usedAreaIn2: 0,
+  }
+  const tempPlacedPanels = new Set<string>()
+
+  for (const nextCandidate of candidates) {
+    if (nextCandidate.panels.some((panel) => tempPlacedPanels.has(panel.id))) {
+      continue
+    }
+
+    const attempt = tryPlaceCandidate(tempSheet, nextCandidate)
+    if (!attempt) {
+      return false
+    }
+
+    for (const panel of nextCandidate.panels) {
+      tempPlacedPanels.add(panel.id)
+    }
+
+    tempSheet.placements.push(...attempt)
+    tempSheet.usedAreaIn2 += attempt.reduce((sum, placement) => sum + placement.width * placement.height, 0)
+  }
+
+  return true
+}
+
+function getSheetCost(width: number, height: number, costPerSqft: number) {
+  return (width * height) / 144 * costPerSqft
 }
 
 function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placement[] | null {
