@@ -912,7 +912,8 @@ function App() {
     })
 
     const csv = serializeCsv(rows)
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    // Include UTF-8 BOM so Excel and other Windows tools decode symbols like × correctly.
+    const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
