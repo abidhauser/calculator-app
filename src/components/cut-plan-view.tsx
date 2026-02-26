@@ -13,9 +13,9 @@ type PaletteEntry = {
   text: string
 }
 
-const MAX_DISPLAY_DIMENSION = 260
-const MIN_DISPLAY_SCALE = 0.55
-const MAX_DISPLAY_SCALE = 2.2
+const MAX_DISPLAY_DIMENSION = 500
+const MIN_DISPLAY_SCALE = 0.95
+const MAX_DISPLAY_SCALE = 4.25
 
 const PANEL_PALETTE: Record<string, PaletteEntry> = {
   floor: {
@@ -154,38 +154,71 @@ export default function CutPlanView({ sheetUsages, formatCurrency, measurementUn
           return (
         <div key={sheet.id} className="space-y-4 border border-border/60 bg-muted/40 p-4 shadow-sm">
               <div className="flex flex-col gap-4 lg:flex-row">
-                <div className="flex-1 space-y-2">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Sheet type</p>
-                    <p className="text-lg font-semibold text-foreground">{sheet.name}</p>
-                    <p className="text-xs text-muted-foreground">Instance {sheet.id}</p>
+                <div className="flex flex-1 flex-col gap-3">
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Sheet type</p>
+                      <p className="text-lg font-semibold text-foreground">{sheet.name}</p>
+                      <p className="text-xs text-muted-foreground">Instance {sheet.id}</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {sortedPlacements.length} panels · {formatDisplaySheetDimensions(sheet.width, sheet.height, measurementUnit)}
+                    </p>
+                    <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+                      <div>
+                        <p className="text-[0.72rem] uppercase tracking-[0.25em]">Cost / sheet</p>
+                        <p className="text-base font-semibold text-foreground">{formatCurrency(sheetCost)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[0.72rem] uppercase tracking-[0.25em]">Area used</p>
+                        <p className="text-base font-semibold text-foreground">{usedSqft.toFixed(2)} sq ft</p>
+                      </div>
+                      <div>
+                        <p className="text-[0.72rem] uppercase tracking-[0.25em]">Utilization</p>
+                        <p className="text-base font-semibold text-foreground">{formatPercent(utilizationPct)}</p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {sortedPlacements.length} panels · {formatDisplaySheetDimensions(sheet.width, sheet.height, measurementUnit)}
-                  </p>
-                  <div className="grid gap-3 text-xs text-muted-foreground sm:grid-cols-3">
-                    <div>
-                      <p className="text-[0.6rem] uppercase tracking-[0.3em]">Cost / sheet</p>
-                      <p className="text-sm text-foreground">{formatCurrency(sheetCost)}</p>
-                    </div>
-                    <div>
-                      <p className="text-[0.6rem] uppercase tracking-[0.3em]">Area used</p>
-                      <p className="text-sm text-foreground">{usedSqft.toFixed(2)} sq ft</p>
-                    </div>
-                    <div>
-                      <p className="text-[0.6rem] uppercase tracking-[0.3em]">Utilization</p>
-                      <p className="text-sm text-foreground">{formatPercent(utilizationPct)}</p>
-                    </div>
+                  <div className="mt-auto grid gap-2.5 text-[0.9rem] text-muted-foreground max-w-3xl">
+                    {sortedPlacements.map((placement) => {
+                      const placementStyle = getPlacementStyle(placement)
+                      return (
+                        <div
+                          key={`${placement.id}-detail`}
+                          className="inline-flex w-fit max-w-full rounded-xl border border-border/30 bg-background/60 px-3.5 py-1.5 text-[0.9rem]"
+                        >
+                          <span className="flex flex-wrap items-center gap-2 font-semibold text-foreground">
+                            <span
+                              className="h-2 w-6 rounded-full border"
+                              style={{
+                                backgroundColor: placementStyle.background,
+                                borderColor: placementStyle.border,
+                              }}
+                            />
+                            {placement.name}
+                            {placement.isLiner && <span className="text-[0.65rem] text-muted-foreground">(liner)</span>}
+                            {placement.panelType === 'shelf' && <span className="text-[0.65rem] text-muted-foreground">(shelf)</span>}
+                            <span className="text-sm text-muted-foreground">
+                              {formatPanelLengthWidthDimensions(
+                                placement.width,
+                                placement.height,
+                                measurementUnit,
+                              )}
+                            </span>
+                          </span>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center justify-center">
+                <div className="flex shrink-0 items-end justify-center">
                   <div
                     className="relative overflow-hidden border border-border/70 bg-background shadow-inner"
                     style={{
                       width: `${displayWidth}px`,
                       height: `${displayHeight}px`,
-                      minWidth: 140,
-                      minHeight: 140,
+                      minWidth: 280,
+                      minHeight: 280,
                     }}
                   >
                     {sortedPlacements.map((placement) => {
@@ -193,7 +226,7 @@ export default function CutPlanView({ sheetUsages, formatCurrency, measurementUn
                       return (
                     <div
                       key={placement.id}
-                      className="absolute flex flex-col justify-between border px-1 pb-0.5 pt-1 text-[0.55rem] leading-none"
+                      className="absolute flex flex-col justify-between border px-1.5 pb-1 pt-1.5 text-[0.72rem] leading-none"
                           style={{
                             left: `${placement.x * scale}px`,
                             top: `${placement.y * scale}px`,
@@ -205,7 +238,7 @@ export default function CutPlanView({ sheetUsages, formatCurrency, measurementUn
                           }}
                         >
                           <span className="font-semibold tracking-tight">{placement.name}</span>
-                          <span className="text-[0.5rem]">
+                          <span className="text-[0.66rem]">
                             {formatPanelLengthWidthDimensions(
                               placement.width,
                               placement.height,
@@ -223,37 +256,6 @@ export default function CutPlanView({ sheetUsages, formatCurrency, measurementUn
                   </div>
                 </div>
               </div>
-              <div className="grid gap-2 text-[0.7rem] text-muted-foreground max-w-2xl">
-                    {sortedPlacements.map((placement) => {
-                      const placementStyle = getPlacementStyle(placement)
-                      return (
-                        <div
-                          key={`${placement.id}-detail`}
-                          className="inline-flex w-fit max-w-full rounded-xl border border-border/30 bg-background/60 px-3 py-1 text-[0.7rem]"
-                        >
-                          <span className="flex flex-wrap items-center gap-2 font-semibold text-foreground">
-                            <span
-                              className="h-2 w-6 rounded-full border"
-                              style={{
-                                backgroundColor: placementStyle.background,
-                                borderColor: placementStyle.border,
-                              }}
-                            />
-                            {placement.name}
-                            {placement.isLiner && <span className="text-[0.55rem] text-muted-foreground">(liner)</span>}
-                            {placement.panelType === 'shelf' && <span className="text-[0.55rem] text-muted-foreground">(shelf)</span>}
-                            <span className="text-xs text-muted-foreground">
-                              {formatPanelLengthWidthDimensions(
-                                placement.width,
-                                placement.height,
-                                measurementUnit,
-                              )}
-                            </span>
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
             </div>
           )
         })}
