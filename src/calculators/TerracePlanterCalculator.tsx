@@ -1788,9 +1788,11 @@ function App() {
                         <p className="text-sm font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
                       </div>
                     </div>
-                    <div className="result-detail-metric rounded-xl p-2.5">
-                      <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Fabrication size</p>
-                      <p className="text-sm font-semibold text-foreground">{fabricationSizeLabel}</p>
+                    <div className="results-grid-3 grid gap-3 md:grid-cols-3">
+                      <div className="result-detail-metric rounded-xl p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Fabrication size</p>
+                        <p className="text-sm font-semibold text-foreground">{fabricationSizeLabel}</p>
+                      </div>
                     </div>
                     <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Features</p>
                     <div className="results-grid-3 grid gap-3 md:grid-cols-3">
