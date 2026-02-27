@@ -226,6 +226,12 @@
     page-break-inside: avoid !important;
   }
 
+  body.results-print-mode .results-group-card {
+    border-width: 0 !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
   body.results-print-mode .results-strip-card,
   body.results-print-mode .result-metric {
     break-inside: avoid !important;

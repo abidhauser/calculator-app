@@ -1737,7 +1737,7 @@ function App() {
                 )}
 
               <section id="results-overview" className="results-print-keep scroll-mt-24 space-y-4">
-                <Card className="results-strip-card">
+                <Card className="results-strip-card results-group-card">
                   <CardHeader>
                       <CardTitle>Pricing</CardTitle>
                       <CardDescription>Core pricing model first, followed by immediate decision signals.</CardDescription>
@@ -1780,7 +1780,7 @@ function App() {
                     </CardContent>
                   </Card>
 
-                  <Card className="results-strip-card">
+                  <Card className="results-strip-card results-group-card">
                     <CardHeader>
                       <CardTitle>Cost composition</CardTitle>
                       <CardDescription>Material and labor structure.</CardDescription>
@@ -1803,7 +1803,7 @@ function App() {
                     </CardContent>
                   </Card>
 
-                  <Card className="results-strip-card">
+                  <Card className="results-strip-card results-group-card">
                     <CardHeader>
                       <CardTitle>Efficiency</CardTitle>
                       <CardDescription>Operational quality indicators.</CardDescription>
@@ -1833,7 +1833,7 @@ function App() {
                 </div>
 
                 <section id="results-planter-details" className="results-print-keep scroll-mt-24">
-                <Card className="space-y-4">
+                  <Card className="results-group-card space-y-4">
                   <CardHeader
                     role="button"
                     tabIndex={0}
@@ -1933,7 +1933,7 @@ function App() {
                 </section>
 
             <section id="results-cost-breakdown" className="results-print-keep scroll-mt-24">
-            <Card className="space-y-3">
+            <Card className="results-group-card space-y-3">
               <CardHeader
                 role="button"
                 tabIndex={0}
@@ -2079,7 +2079,7 @@ function App() {
             </section>
 
             <section id="results-sheet-breakdown" className="results-print-keep scroll-mt-24">
-            <Card className="space-y-3">
+            <Card className="results-group-card space-y-3">
               <CardHeader
                 role="button"
                 tabIndex={0}
@@ -2145,7 +2145,7 @@ function App() {
             </section>
 
             <section id="results-cut-plan" className="results-print-keep scroll-mt-24">
-            <Card className="space-y-3">
+            <Card className="results-group-card space-y-3">
               <CardHeader
                 role="button"
                 tabIndex={0}
