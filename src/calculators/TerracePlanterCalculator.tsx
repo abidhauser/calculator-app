@@ -28,7 +28,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import type { CostBreakdownPreview, CostThreshold, PlanterInput } from '../types'
 import {
   DEFAULT_SHEET_INVENTORY,
@@ -290,6 +289,7 @@ const parseNumberInput = (rawValue: string) => {
 }
 
 const displayNumberInput = (value: number) => (Number.isFinite(value) ? value : '')
+const getBreakdownPrice = (row: CostBreakdownPreview) => row.overridePrice ?? row.basePrice
 
 const escapeCsvCell = (value: string) => {
   if (/[",\n\r]/.test(value)) {
@@ -388,7 +388,6 @@ function App() {
     {} as Record<Category, string | undefined>,
   )
   const [fabricationDims, setFabricationDims] = useState({ length: 0, width: 0, height: 0 })
-  const [fabricationVolume, setFabricationVolume] = useState<number | null>(null)
   const [breakdowns, setBreakdowns] = useState<CostBreakdownPreview[]>([])
   const [calculationError, setCalculationError] = useState<string | null>(null)
   const [isCalculated, setIsCalculated] = useState(false)
@@ -398,7 +397,8 @@ function App() {
   const [sheetInventory, setSheetInventory] = useState<SheetInventoryRow[]>(() =>
     DEFAULT_SHEET_INVENTORY.map((row) => ({ ...row })),
   )
-  const [customSalePrice, setCustomSalePrice] = useState('')
+  const [saleBufferInput, setSaleBufferInput] = useState('')
+  const [saleDiscountInput, setSaleDiscountInput] = useState('')
   const [settingsBanner, setSettingsBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const settingsImportInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -521,58 +521,24 @@ function App() {
     return total
   }, [linerSheetInstanceIds, sheetInstanceAreaCost])
   const linerBreakdown = breakdownLookup['Liner']
-  const linerLaborCost = linerBreakdown?.price ?? 0
+  const linerLaborCost = linerBreakdown ? getBreakdownPrice(linerBreakdown) : 0
   const breakdownTotal = breakdowns.reduce((total, row) => {
     if (row.category === 'Liner' && !planterInput.linerEnabled) return total
     if (row.category === 'Shelf' && !planterInput.shelfEnabled) return total
-    return total + row.price
+    return total + getBreakdownPrice(row)
   }, 0)
   const totalFabricationCost = totalMaterialCost + breakdownTotal
   const totalNonMaterialCost = breakdownTotal
 
-  const saleMarginFraction = Math.min(Math.max(planterInput.marginPct / 100, 0), 0.99)
-  const estimatedSalePrice =
-    totalFabricationCost > 0 ? totalFabricationCost / (1 - saleMarginFraction) : totalFabricationCost
-  const profit = estimatedSalePrice - totalFabricationCost
-
-  const parsedCustomSalePrice = Number(customSalePrice)
-  const hasCustomSalePrice =
-    Number.isFinite(parsedCustomSalePrice) && parsedCustomSalePrice > 0
-  const salePriceForMargin = hasCustomSalePrice ? parsedCustomSalePrice : estimatedSalePrice
-  const userSaleMarginPct =
-    salePriceForMargin > 0
-      ? ((salePriceForMargin - totalFabricationCost) / salePriceForMargin) * 100
-      : 0
-  const salePriceDelta = hasCustomSalePrice ? parsedCustomSalePrice - estimatedSalePrice : 0
-  const salePriceDeltaColorClass = hasCustomSalePrice
-    ? salePriceDelta > 0
-      ? 'text-emerald-500'
-      : salePriceDelta < 0
-        ? 'text-destructive'
-        : 'text-muted-foreground'
-    : 'text-muted-foreground'
-  const salePriceDeltaCopy = hasCustomSalePrice
-    ? salePriceDelta === 0
-      ? 'Sale price matches the estimate.'
-      : `Sale price is ${salePriceDelta > 0 ? 'above' : 'below'} the estimate by ${formatCurrencyValue(
-          Math.abs(salePriceDelta),
-        )}.`
-    : 'Enter a sale price to compare against the estimate.'
-  const salePriceDeltaIcon = hasCustomSalePrice ? (
-    salePriceDelta > 0 ? (
-      <ArrowUpRight className="h-4 w-4 text-emerald-500" aria-hidden />
-    ) : salePriceDelta < 0 ? (
-      <ArrowDownRight className="h-4 w-4 text-destructive" aria-hidden />
-    ) : (
-      <span className="text-muted-foreground">—</span>
-    )
-  ) : (
-    <span className="text-muted-foreground">—</span>
-  )
-  const salePriceMarginDisplay = hasCustomSalePrice ? formatPercentValue(userSaleMarginPct) : '—'
-  const salePriceMarginNote = hasCustomSalePrice
-    ? 'Margin computed from the entered sale price.'
-    : 'Enter a sale price to compute the resulting margin.'
+  const targetMarginFraction = Math.min(Math.max(planterInput.marginPct / 100, 0), 0.99)
+  const suggestedSalePrice =
+    totalFabricationCost > 0 ? totalFabricationCost / (1 - targetMarginFraction) : totalFabricationCost
+  const parsedSaleBuffer = Number(saleBufferInput)
+  const bufferAmount = Number.isFinite(parsedSaleBuffer) && parsedSaleBuffer > 0 ? parsedSaleBuffer : 0
+  const parsedSaleDiscount = Number(saleDiscountInput)
+  const discountAmount = Number.isFinite(parsedSaleDiscount) && parsedSaleDiscount > 0 ? parsedSaleDiscount : 0
+  const finalTotal = Math.max(0, suggestedSalePrice + bufferAmount - discountAmount)
+  const actualMarginPct = finalTotal > 0 ? ((finalTotal - totalFabricationCost) / finalTotal) * 100 : 0
 
   const detailRows = useMemo(
     () =>
@@ -590,7 +556,8 @@ function App() {
           return {
             category,
             tierUsed: cheapestSheet ? cheapestSheet.name : 'Awaiting calculation',
-            price: totalMaterialCost,
+            basePrice: totalMaterialCost,
+            overridePrice: null,
             notes: solverResult
               ? `${baseNote}${sheetNames ? ` (${sheetNames})` : ''}.`
               : 'Run calculation to assign material tier.',
@@ -602,7 +569,8 @@ function App() {
           const tierUsed = planterInput.linerEnabled
             ? breakdown?.tierUsed ?? 'Awaiting calculation'
             : 'Disabled'
-          const price = planterInput.linerEnabled ? breakdown?.price ?? 0 : 0
+          const basePrice = planterInput.linerEnabled ? breakdown?.basePrice ?? 0 : 0
+          const overridePrice = planterInput.linerEnabled ? breakdown?.overridePrice ?? null : null
           const notes = breakdown
             ? breakdown.tierUsed === 'Not Selected'
               ? 'Liner is not selected yet.'
@@ -613,7 +581,8 @@ function App() {
           return {
             category,
             tierUsed,
-            price,
+            basePrice,
+            overridePrice,
             notes,
           }
         }
@@ -623,7 +592,8 @@ function App() {
           const tierUsed = planterInput.shelfEnabled
             ? breakdown?.tierUsed ?? 'Awaiting calculation'
             : 'Disabled'
-          const price = planterInput.shelfEnabled ? breakdown?.price ?? 0 : 0
+          const basePrice = planterInput.shelfEnabled ? breakdown?.basePrice ?? 0 : 0
+          const overridePrice = planterInput.shelfEnabled ? breakdown?.overridePrice ?? null : null
           const notes = breakdown
             ? breakdown.tierUsed === 'Not Selected'
               ? 'Shelf is not selected yet.'
@@ -634,7 +604,8 @@ function App() {
           return {
             category,
             tierUsed,
-            price,
+            basePrice,
+            overridePrice,
             notes,
           }
         }
@@ -644,7 +615,8 @@ function App() {
           const tierUsed = planterInput.weightPlateEnabled
             ? breakdown?.tierUsed ?? 'Awaiting calculation'
             : 'Disabled'
-          const price = planterInput.weightPlateEnabled ? breakdown?.price ?? 0 : 0
+          const basePrice = planterInput.weightPlateEnabled ? breakdown?.basePrice ?? 0 : 0
+          const overridePrice = planterInput.weightPlateEnabled ? breakdown?.overridePrice ?? null : null
           const notes = breakdown
             ? breakdown.tierUsed === 'Not Selected'
               ? 'Weight plate is not selected yet.'
@@ -655,13 +627,13 @@ function App() {
           return {
             category,
             tierUsed,
-            price,
+            basePrice,
+            overridePrice,
             notes,
           }
         }
 
         const breakdown = breakdownLookup[category]
-        const price = breakdown?.price ?? 0
         const tierUsed = breakdown?.tierUsed ?? '—'
         const notes = breakdown
           ? breakdown.tierUsed === 'Not Selected'
@@ -671,7 +643,8 @@ function App() {
         return {
           category,
           tierUsed,
-          price,
+          basePrice: breakdown?.basePrice ?? 0,
+          overridePrice: breakdown?.overridePrice ?? null,
           notes: solverResult ? notes : 'Run calculation to assign tier.',
         }
       }),
@@ -1045,7 +1018,25 @@ function App() {
     }
   }
 
+  const buildBreakdownResults = (volume: number): CostBreakdownPreview[] =>
+    categoryList.map((category) => {
+      if (category === 'Weight Plate' && !planterInput.weightPlateEnabled) {
+        return { category, tierUsed: 'Not Selected', basePrice: 0, overridePrice: null }
+      }
+      if (category === 'Liner' && !planterInput.linerEnabled) {
+        return { category, tierUsed: 'Not Selected', basePrice: 0, overridePrice: null }
+      }
+      if (category === 'Shelf' && !planterInput.shelfEnabled) {
+        return { category, tierUsed: 'Not Selected', basePrice: 0, overridePrice: null }
+      }
+
+      const threshold = thresholds[category]
+      const { tier, price } = determineTier(volume, threshold)
+      return { category, tierUsed: tier, basePrice: price, overridePrice: null }
+    })
+
   const handleCalculate = () => {
+    setActiveTab('results')
     setCalculationError(null)
     setSolverResult(null)
     setResultBanner(null)
@@ -1063,63 +1054,9 @@ function App() {
 
     const dims = buildFabricationDimensions(planterInput)
     const volume = dims.length * dims.width * dims.height
-    const breakdownResults: CostBreakdownPreview[] = categoryList.map((category) => {
-      if (category === 'Weight Plate' && !planterInput.weightPlateEnabled) {
-        return { category, tierUsed: 'Not Selected', price: 0 }
-      }
-      if (category === 'Liner' && !planterInput.linerEnabled) {
-        return { category, tierUsed: 'Not Selected', price: 0 }
-      }
-      if (category === 'Shelf' && !planterInput.shelfEnabled) {
-        return { category, tierUsed: 'Not Selected', price: 0 }
-      }
-
-      const threshold = thresholds[category]
-      const { tier, price } = determineTier(volume, threshold)
-      return { category, tierUsed: tier, price }
-    })
+    const breakdownResults = buildBreakdownResults(volume)
 
     setFabricationDims(dims)
-    setFabricationVolume(volume)
-    setBreakdowns(breakdownResults)
-    setIsCalculated(true)
-  }
-
-  const handleGenerate = () => {
-    setActiveTab('results')
-    const validationMessage = validatePlanterInput(planterInput)
-    if (validationMessage) {
-      setCalculationError(validationMessage)
-      setIsCalculated(false)
-      return
-    }
-    if (hasThresholdErrors) {
-      setCalculationError('Resolve invalid threshold settings before generating.')
-      setIsCalculated(false)
-      return
-    }
-
-    const dims = buildFabricationDimensions(planterInput)
-    const volume = dims.length * dims.width * dims.height
-    const breakdownResults: CostBreakdownPreview[] = categoryList.map((category) => {
-      if (category === 'Weight Plate' && !planterInput.weightPlateEnabled) {
-        return { category, tierUsed: 'Not Selected', price: 0 }
-      }
-      if (category === 'Liner' && !planterInput.linerEnabled) {
-        return { category, tierUsed: 'Not Selected', price: 0 }
-      }
-      if (category === 'Shelf' && !planterInput.shelfEnabled) {
-        return { category, tierUsed: 'Not Selected', price: 0 }
-      }
-
-      const threshold = thresholds[category]
-      const { tier, price } = determineTier(volume, threshold)
-      return { category, tierUsed: tier, price }
-    })
-
-    setCalculationError(null)
-    setFabricationDims(dims)
-    setFabricationVolume(volume)
     setBreakdowns(breakdownResults)
     setIsCalculated(true)
 
@@ -1140,7 +1077,7 @@ function App() {
       const generatedBreakdownTotal = breakdownResults.reduce((total, row) => {
         if (row.category === 'Liner' && !planterInput.linerEnabled) return total
         if (row.category === 'Shelf' && !planterInput.shelfEnabled) return total
-        return total + row.price
+        return total + getBreakdownPrice(row)
       }, 0)
       const generatedTotalFabricationCost = generatedMaterialCost + generatedBreakdownTotal
       setResultBanner({
@@ -1162,14 +1099,20 @@ function App() {
 
   const handlePriceOverride = (category: Category, value: number) => {
     setBreakdowns((prev) =>
-      prev.map((row) => (row.category === category ? { ...row, price: value } : row)),
+      prev.map((row) =>
+        row.category === category
+          ? { ...row, overridePrice: Number.isFinite(value) ? Math.max(0, value) : null }
+          : row,
+      ),
     )
   }
 
   const handlePriceOverrideBlur = (category: Category) => {
     setBreakdowns((prev) =>
       prev.map((row) =>
-        row.category === category && !Number.isFinite(row.price) ? { ...row, price: 0 } : row,
+        row.category === category && row.overridePrice !== null && !Number.isFinite(row.overridePrice)
+          ? { ...row, overridePrice: null }
+          : row,
       ),
     )
   }
@@ -1178,13 +1121,6 @@ function App() {
     ? `${formatDimension(fabricationDims.length)} × ${formatDimension(fabricationDims.width)} × ${formatDimension(
         fabricationDims.height,
       )}`
-    : '—'
-
-  const formatVolume = fabricationVolume
-    ? inchesToDisplay(
-        inchesToDisplay(inchesToDisplay(fabricationVolume, measurementUnit), measurementUnit),
-        measurementUnit,
-      ).toLocaleString(undefined, { maximumFractionDigits: 1 })
     : '—'
 
   return (
@@ -1288,18 +1224,6 @@ function App() {
                           handleInputChange('marginPct', parseNumberInput(event.target.value))
                         }
                         onBlur={() => handleInputBlur('marginPct')}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="salePrice">Sale price</Label>
-                      <Input
-                        id="salePrice"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={customSalePrice}
-                        placeholder={estimatedSalePrice > 0 ? formatCurrencyValue(estimatedSalePrice) : undefined}
-                        onChange={(event: ChangeEvent<HTMLInputElement>) => setCustomSalePrice(event.target.value)}
                       />
                     </div>
                     <div className="space-y-1">
@@ -1462,99 +1386,22 @@ function App() {
               </Card>
             </div>
 
-            <Card className="space-y-4">
-              <CardHeader>
-                <CardTitle>Calculation</CardTitle>
-                <CardDescription>Lip is added to panel height after validation, then volume determines the tier selection.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-3">
-                  <Button onClick={handleCalculate}>Calculate</Button>
-                  <Button variant="outline" disabled={!isCalculated} onClick={handleGenerate}>
-                    Generate
-                  </Button>
-                </div>
-                {solverResult && (
-                  <p className="text-sm text-muted-foreground">
-                    Solver placed {solverResult.placements.length} panels across {solverResult.sheetUsages.length} sheet instances; total fabrication cost ${totalFabricationCost.toFixed(2)}.
-                  </p>
-                )}
-                {calculationError && (
-                  <p className="text-sm text-destructive">{calculationError}</p>
-                )}
-                {hasThresholdErrors && (
-                  <p className="text-sm text-warning">
-                    Fix threshold ordering on the Settings tab before recalculating.
-                  </p>
-                )}
-                <div className="grid gap-2 rounded-xl border border-border/70 bg-muted/20 p-4 text-sm text-muted-foreground md:grid-cols-2">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em]">Fabrication size</p>
-                    <p className="text-base text-foreground">{fabricationSizeLabel}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em]">Volume</p>
-                    <p className="text-base text-foreground">{formatVolume} {unitLabel === 'mm' ? 'mm³' : 'in³'}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="space-y-4">
-              <CardHeader>
-                <CardTitle>Cost breakdown preview</CardTitle>
-                <CardDescription>
-                  Tiers populate after calculation; edit prices manually once the tiers are assigned.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Table className="border border-border">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Tier</TableHead>
-                      <TableHead>Price (override)</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {categoryList.map((category) => {
-                      const row = breakdowns.find((entry) => entry.category === category)
-                      const isWeightPlate = category === 'Weight Plate'
-                      const isLinerCategory = category === 'Liner'
-                      const isShelfCategory = category === 'Shelf'
-                      const isTierDisabled =
-                        (isWeightPlate && !planterInput.weightPlateEnabled) ||
-                        (isLinerCategory && !planterInput.linerEnabled) ||
-                        (isShelfCategory && !planterInput.shelfEnabled)
-                      const tierLabel = isTierDisabled ? 'Disabled' : row?.tierUsed ?? '—'
-                      const price = row?.price ?? 0
-                      const priceDisabled =
-                        !isCalculated ||
-                        isTierDisabled
-                      return (
-                        <TableRow key={category}>
-                          <TableCell className="font-semibold text-foreground">{category}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{tierLabel}</TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={displayNumberInput(price)}
-                              step="0.5"
-                              min="0"
-                              disabled={priceDisabled}
-                              onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                                handlePriceOverride(category, parseNumberInput(event.target.value))
-                              }
-                              onBlur={() => handlePriceOverrideBlur(category)}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+            <div className="space-y-3">
+              <Button onClick={handleCalculate}>Calculate</Button>
+              {solverResult && (
+                <p className="text-sm text-muted-foreground">
+                  Solver placed {solverResult.placements.length} panels across {solverResult.sheetUsages.length} sheet instances; total fabrication cost ${totalFabricationCost.toFixed(2)}.
+                </p>
+              )}
+              {calculationError && (
+                <p className="text-sm text-destructive">{calculationError}</p>
+              )}
+              {hasThresholdErrors && (
+                <p className="text-sm text-warning">
+                  Fix threshold ordering on the Settings tab before recalculating.
+                </p>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="results" className="space-y-6">
@@ -1588,6 +1435,81 @@ function App() {
                     </CardContent>
                   </Card>
                 )}
+
+                <Card className="space-y-4">
+                  <CardHeader>
+                    <CardTitle>Planter details</CardTitle>
+                    <CardDescription>
+                      Snapshot of the current planter inputs, dimensions, and add-on feature selections.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Length</p>
+                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.length)}</p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Width</p>
+                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.width)}</p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Height</p>
+                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.height)}</p>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Lip</p>
+                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.lip)}</p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Thickness</p>
+                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.thickness, 3)}</p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Target margin</p>
+                        <p className="text-base font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner depth</p>
+                        <p className="text-base font-semibold text-foreground">
+                          {planterInput.linerEnabled ? formatDimension(planterInput.linerDepth) : 'Disabled'}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner thickness</p>
+                        <p className="text-base font-semibold text-foreground">
+                          {planterInput.linerEnabled ? formatDimension(planterInput.linerThickness, 3) : 'Disabled'}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Fabrication size</p>
+                        <p className="text-base font-semibold text-foreground">{fabricationSizeLabel}</p>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-4">
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner</p>
+                        <p className="text-base font-semibold text-foreground">{planterInput.linerEnabled ? 'Enabled' : 'Disabled'}</p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Weight plate</p>
+                        <p className="text-base font-semibold text-foreground">{planterInput.weightPlateEnabled ? 'Enabled' : 'Disabled'}</p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Shelf</p>
+                        <p className="text-base font-semibold text-foreground">{planterInput.shelfEnabled ? 'Enabled' : 'Disabled'}</p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Floor</p>
+                        <p className="text-base font-semibold text-foreground">{planterInput.floorEnabled ? 'Enabled' : 'Disabled'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 <Card className="space-y-4">
                   <CardHeader>
@@ -1627,33 +1549,16 @@ function App() {
                     <p className="text-xl font-semibold text-foreground">{sheetCount.toLocaleString()}</p>
                   </div>
                   <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Estimated sale price</p>
-                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(estimatedSalePrice)}</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Suggested sale price</p>
+                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(suggestedSalePrice)}</p>
                   </div>
                   <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Profit</p>
-                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(profit)}</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final total</p>
+                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(finalTotal)}</p>
                   </div>
                   <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Margin %</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Target margin %</p>
                     <p className="text-xl font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
-                  </div>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Sale price margin</p>
-                    <p className="text-xl font-semibold text-foreground">{salePriceMarginDisplay}</p>
-                    <p className="text-xs text-muted-foreground">{salePriceMarginNote}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Sale price vs estimate</p>
-                    <div className="flex items-center gap-2">
-                      {salePriceDeltaIcon}
-                      <p className={`text-lg font-semibold ${salePriceDeltaColorClass}`}>
-                        {formatCurrencyValue(Math.abs(salePriceDelta))}
-                      </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{salePriceDeltaCopy}</p>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">Sale price = total fabrication cost / (1 - margin %)</p>
@@ -1676,6 +1581,7 @@ function App() {
                       <TableHead>Category</TableHead>
                       <TableHead>Tier used</TableHead>
                       <TableHead>Base price</TableHead>
+                      <TableHead>Override price</TableHead>
                       <TableHead>Notes</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1684,12 +1590,87 @@ function App() {
                       <TableRow key={row.category}>
                         <TableCell className="font-semibold text-foreground">{row.category}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{row.tierUsed}</TableCell>
-                        <TableCell>{formatCurrencyValue(row.price)}</TableCell>
+                        <TableCell>{formatCurrencyValue(row.basePrice)}</TableCell>
+                        <TableCell>
+                          {row.category === 'Material' ? (
+                            <span className="text-sm text-muted-foreground">Not applicable</span>
+                          ) : (
+                            <Input
+                              type="number"
+                              value={row.overridePrice === null ? '' : displayNumberInput(row.overridePrice)}
+                              step="0.5"
+                              min="0"
+                              disabled={
+                                !isCalculated ||
+                                (row.category === 'Weight Plate' && !planterInput.weightPlateEnabled) ||
+                                (row.category === 'Liner' && !planterInput.linerEnabled) ||
+                                (row.category === 'Shelf' && !planterInput.shelfEnabled)
+                              }
+                              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                handlePriceOverride(
+                                  row.category as Category,
+                                  parseNumberInput(event.target.value),
+                                )
+                              }
+                              onBlur={() => handlePriceOverrideBlur(row.category as Category)}
+                            />
+                          )}
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{row.notes}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+                <div className="mt-4 space-y-4 rounded-xl border border-border/70 bg-muted/20 p-4">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Total cost</p>
+                      <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(totalFabricationCost)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Target margin</p>
+                      <p className="text-lg font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Suggested sale price</p>
+                      <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(suggestedSalePrice)}</p>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="sale-buffer">Buffer</Label>
+                      <Input
+                        id="sale-buffer"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={saleBufferInput}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => setSaleBufferInput(event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="sale-discount">Discounts</Label>
+                      <Input
+                        id="sale-discount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={saleDiscountInput}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => setSaleDiscountInput(event.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final total</p>
+                      <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(finalTotal)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Actual margin</p>
+                      <p className="text-lg font-semibold text-foreground">{formatPercentValue(actualMarginPct)}</p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -1703,7 +1684,7 @@ function App() {
               </CardHeader>
               <CardContent>
                 {sheetSummaries.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Run Calculate + Generate to collect sheet usage data.</p>
+                  <p className="text-sm text-muted-foreground">Run Calculate to collect sheet usage data.</p>
                 ) : (
                   <Table className="border border-border">
                     <TableHeader>

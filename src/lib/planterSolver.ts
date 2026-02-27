@@ -62,6 +62,7 @@ export type SolverOptions = {
 }
 
 const LINER_HEIGHT_PERCENT = 0.5
+const getBreakdownPrice = (row: CostBreakdownPreview) => row.overridePrice ?? row.basePrice
 
 export const DEFAULT_SHEET_INVENTORY: SheetInventoryRow[] = [
   {
@@ -254,12 +255,12 @@ export function runPlanterSolver({
   }, 0)
 
   const fabricationRows = breakdowns.filter((row) => row.category !== 'Liner')
-  const baseFabricationCost = fabricationRows.reduce((total, row) => total + row.price, 0)
+  const baseFabricationCost = fabricationRows.reduce((total, row) => total + getBreakdownPrice(row), 0)
   const linerAreaSqft = panels
     .filter((panel) => panel.isLiner)
     .reduce((total, panel) => total + panel.width * panel.height, 0) / 144
   const linerRow = breakdowns.find((row) => row.category === 'Liner')
-  const linerExtraCost = linerRow?.price ?? 0
+  const linerExtraCost = linerRow ? getBreakdownPrice(linerRow) : 0
   const totalFabricationCost = totalMaterialCost + baseFabricationCost + linerExtraCost
 
   return {

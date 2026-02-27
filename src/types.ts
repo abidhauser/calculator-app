@@ -25,5 +25,6 @@ export type CostThreshold = {
 export type CostBreakdownPreview = {
   category: string
   tierUsed: 'Low' | 'Medium' | 'High' | 'Not Selected'
-  price: number
+  basePrice: number
+  overridePrice: number | null
 }
