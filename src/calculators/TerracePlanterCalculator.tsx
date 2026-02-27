@@ -1123,8 +1123,36 @@ function App() {
       )}`
     : '—'
 
+  const scrollToResultsSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <div className="min-h-screen bg-background px-4 py-10">
+      {activeTab === 'results' && (
+        <aside className="fixed top-44 left-4 z-20 hidden xl:block">
+          <div className="w-56 rounded-xl border border-border/70 bg-muted/20 p-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Results nav</p>
+            <nav className="mt-3 flex flex-col gap-1 text-sm">
+              <button type="button" onClick={() => scrollToResultsSection('results-planter-details')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
+                Planter details
+              </button>
+              <button type="button" onClick={() => scrollToResultsSection('results-overview')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
+                Results overview
+              </button>
+              <button type="button" onClick={() => scrollToResultsSection('results-cost-breakdown')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
+                Detailed cost breakdown
+              </button>
+              <button type="button" onClick={() => scrollToResultsSection('results-sheet-breakdown')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
+                Sheet breakdown
+              </button>
+              <button type="button" onClick={() => scrollToResultsSection('results-cut-plan')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
+                Cut plan
+              </button>
+            </nav>
+          </div>
+        </aside>
+      )}
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <header className="space-y-2">
           <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Fabrication cost engine</p>
@@ -1436,6 +1464,7 @@ function App() {
                   </Card>
                 )}
 
+                <section id="results-planter-details" className="scroll-mt-24">
                 <Card className="space-y-4">
                   <CardHeader>
                     <CardTitle>Planter details</CardTitle>
@@ -1510,7 +1539,9 @@ function App() {
                     </div>
                   </CardContent>
                 </Card>
+                </section>
 
+                <section id="results-overview" className="scroll-mt-24">
                 <Card className="space-y-4">
                   <CardHeader>
                     <CardTitle>Results overview</CardTitle>
@@ -1564,8 +1595,9 @@ function App() {
                 <p className="text-xs text-muted-foreground">Sale price = total fabrication cost / (1 - margin %)</p>
                   </CardContent>
                 </Card>
-            </div>
+                </section>
 
+            <section id="results-cost-breakdown" className="scroll-mt-24">
             <Card className="space-y-3">
               <CardHeader>
                 <CardTitle>Detailed cost breakdown</CardTitle>
@@ -1673,7 +1705,9 @@ function App() {
                 </div>
               </CardContent>
             </Card>
+            </section>
 
+            <section id="results-sheet-breakdown" className="scroll-mt-24">
             <Card className="space-y-3">
               <CardHeader>
                 <CardTitle>Sheet breakdown</CardTitle>
@@ -1713,13 +1747,17 @@ function App() {
                 )}
               </CardContent>
             </Card>
+            </section>
 
+            <section id="results-cut-plan" className="scroll-mt-24">
             <CutPlanView
               sheetUsages={solverResult?.sheetUsages ?? []}
               formatCurrency={formatCurrencyValue}
               measurementUnit={measurementUnit}
             />
+            </section>
 
+            </div>
           </TabsContent>
           <TabsContent value="settings" className="space-y-6">
             {settingsBanner && (
