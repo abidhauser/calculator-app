@@ -207,13 +207,8 @@
     display: block !important;
   }
 
-  body.results-print-mode .results-print-cover {
-    display: flex !important;
-    min-height: calc(100vh - 20mm);
-    align-items: center;
-    justify-content: center;
-    break-after: page;
-    page-break-after: always;
+  body.results-print-mode .results-print-quote-header {
+    margin-bottom: 0.5rem;
   }
 
   body.results-print-mode .results-print-keep,

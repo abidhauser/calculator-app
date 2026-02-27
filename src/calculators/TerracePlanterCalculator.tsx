@@ -1326,11 +1326,6 @@ function App() {
         fabricationDims.height,
       )}`
     : '—'
-  const exportDateLabel = new Intl.DateTimeFormat('en-CA', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date())
   const isPlanterDetailsOpen = isPrintMode || resultsSectionState.planterDetails
   const isCostBreakdownOpen = isPrintMode || resultsSectionState.costBreakdown
   const isSheetBreakdownOpen = isPrintMode || resultsSectionState.sheetBreakdown
@@ -1699,13 +1694,6 @@ function App() {
 
           <TabsContent value="results" className="space-y-6">
             <div id="results-export-root" className="flex flex-col gap-6">
-              <div className="results-print-only results-print-cover">
-                <div className="space-y-3 text-center">
-                  <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Terrace Planter</p>
-                  <p className="text-4xl font-semibold text-foreground">Results Report</p>
-                  <p className="text-base text-muted-foreground">{exportDateLabel}</p>
-                </div>
-              </div>
               {resultBanner && (
                 <Card
                     className={`border ${
@@ -1737,6 +1725,9 @@ function App() {
                 )}
 
               <section id="results-planter-details" className="results-print-keep scroll-mt-24 order-1">
+                  <div className="results-print-only results-print-quote-header">
+                    <p className="text-2xl font-semibold text-foreground">Terrace Planter Quote</p>
+                  </div>
                   <Card className="results-group-card space-y-4">
                   <CardHeader
                     role="button"
