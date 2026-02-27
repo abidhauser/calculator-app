@@ -397,6 +397,7 @@ function App() {
   const [sheetInventory, setSheetInventory] = useState<SheetInventoryRow[]>(() =>
     DEFAULT_SHEET_INVENTORY.map((row) => ({ ...row })),
   )
+  const [userSalePriceInput, setUserSalePriceInput] = useState('')
   const [saleBufferInput, setSaleBufferInput] = useState('')
   const [saleDiscountInput, setSaleDiscountInput] = useState('')
   const [isPrintMode, setIsPrintMode] = useState(false)
@@ -543,6 +544,12 @@ function App() {
   const targetMarginFraction = Math.min(Math.max(planterInput.marginPct / 100, 0), 0.99)
   const suggestedSalePrice =
     totalFabricationCost > 0 ? totalFabricationCost / (1 - targetMarginFraction) : totalFabricationCost
+  const parsedUserSalePrice = Number(userSalePriceInput)
+  const hasUserSalePrice = Number.isFinite(parsedUserSalePrice) && parsedUserSalePrice > 0
+  const userSalePrice = hasUserSalePrice ? parsedUserSalePrice : 0
+  const userSaleMarginPct =
+    hasUserSalePrice && userSalePrice > 0 ? ((userSalePrice - totalFabricationCost) / userSalePrice) * 100 : 0
+  const userSalePriceDelta = hasUserSalePrice ? userSalePrice - suggestedSalePrice : 0
   const parsedSaleBuffer = Number(saleBufferInput)
   const bufferAmount = Number.isFinite(parsedSaleBuffer) && parsedSaleBuffer > 0 ? parsedSaleBuffer : 0
   const parsedSaleDiscount = Number(saleDiscountInput)
@@ -1289,6 +1296,17 @@ function App() {
                       />
                     </div>
                     <div className="space-y-1">
+                      <Label htmlFor="userSalePrice">User sale price</Label>
+                      <Input
+                        id="userSalePrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={userSalePriceInput}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => setUserSalePriceInput(event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
                       <Label htmlFor="thickness">Thickness</Label>
                       <Select
                         value={String(planterInput.thickness)}
@@ -1612,6 +1630,24 @@ function App() {
                   <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                     <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Target margin %</p>
                     <p className="text-xl font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
+                  </div>
+                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User sale price</p>
+                    <p className="text-xl font-semibold text-foreground">
+                      {hasUserSalePrice ? formatCurrencyValue(userSalePrice) : '—'}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User margin %</p>
+                    <p className="text-xl font-semibold text-foreground">
+                      {hasUserSalePrice ? formatPercentValue(userSaleMarginPct) : '—'}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User vs suggested</p>
+                    <p className="text-xl font-semibold text-foreground">
+                      {hasUserSalePrice ? formatCurrencyValue(userSalePriceDelta) : '—'}
+                    </p>
                   </div>
                   <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                     <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Waste %</p>
