@@ -73,6 +73,19 @@ type ResultsCategory =
   | 'Liner'
   | 'Shelf'
 
+type ResultsSectionKey = 'planterDetails' | 'costBreakdown' | 'sheetBreakdown' | 'cutPlan'
+
+type ResultColorThresholds = {
+  marginWarnMax: number
+  marginGoodMin: number
+  deltaNegativeMax: number
+  deltaPositiveMin: number
+  utilizationWarnMax: number
+  utilizationGoodMin: number
+  wasteGoodMax: number
+  wasteWarnMax: number
+}
+
 const RESULTS_CATEGORY_ORDER: ResultsCategory[] = [
   'Material',
   'Weld',
@@ -228,6 +241,61 @@ const createSheetRow = (overrides?: Partial<SheetInventoryRow>): SheetInventoryR
 })
 
 const LOCAL_STORAGE_KEY = 'planterCostThresholds-v1'
+const RESULT_COLOR_STORAGE_KEY = 'planterResultColorThresholds-v1'
+
+const DEFAULT_RESULTS_SECTION_STATE: Record<ResultsSectionKey, boolean> = {
+  planterDetails: false,
+  costBreakdown: false,
+  sheetBreakdown: false,
+  cutPlan: false,
+}
+
+const DEFAULT_RESULT_COLOR_THRESHOLDS: ResultColorThresholds = {
+  marginWarnMax: 20,
+  marginGoodMin: 35,
+  deltaNegativeMax: -25,
+  deltaPositiveMin: 25,
+  utilizationWarnMax: 60,
+  utilizationGoodMin: 80,
+  wasteGoodMax: 20,
+  wasteWarnMax: 40,
+}
+
+const RESULT_SECTION_ID_MAP: Record<string, ResultsSectionKey> = {
+  'results-planter-details': 'planterDetails',
+  'results-cost-breakdown': 'costBreakdown',
+  'results-sheet-breakdown': 'sheetBreakdown',
+  'results-cut-plan': 'cutPlan',
+}
+
+const normalizeResultColorThresholds = (
+  source?: Partial<ResultColorThresholds>,
+): ResultColorThresholds => ({
+  marginWarnMax: Number.isFinite(source?.marginWarnMax)
+    ? (source?.marginWarnMax as number)
+    : DEFAULT_RESULT_COLOR_THRESHOLDS.marginWarnMax,
+  marginGoodMin: Number.isFinite(source?.marginGoodMin)
+    ? (source?.marginGoodMin as number)
+    : DEFAULT_RESULT_COLOR_THRESHOLDS.marginGoodMin,
+  deltaNegativeMax: Number.isFinite(source?.deltaNegativeMax)
+    ? (source?.deltaNegativeMax as number)
+    : DEFAULT_RESULT_COLOR_THRESHOLDS.deltaNegativeMax,
+  deltaPositiveMin: Number.isFinite(source?.deltaPositiveMin)
+    ? (source?.deltaPositiveMin as number)
+    : DEFAULT_RESULT_COLOR_THRESHOLDS.deltaPositiveMin,
+  utilizationWarnMax: Number.isFinite(source?.utilizationWarnMax)
+    ? (source?.utilizationWarnMax as number)
+    : DEFAULT_RESULT_COLOR_THRESHOLDS.utilizationWarnMax,
+  utilizationGoodMin: Number.isFinite(source?.utilizationGoodMin)
+    ? (source?.utilizationGoodMin as number)
+    : DEFAULT_RESULT_COLOR_THRESHOLDS.utilizationGoodMin,
+  wasteGoodMax: Number.isFinite(source?.wasteGoodMax)
+    ? (source?.wasteGoodMax as number)
+    : DEFAULT_RESULT_COLOR_THRESHOLDS.wasteGoodMax,
+  wasteWarnMax: Number.isFinite(source?.wasteWarnMax)
+    ? (source?.wasteWarnMax as number)
+    : DEFAULT_RESULT_COLOR_THRESHOLDS.wasteWarnMax,
+})
 
 const cloneThresholds = (source?: Partial<Record<Category, CostThreshold>>) =>
   categoryList.reduce<Record<Category, CostThreshold>>((acc, category) => {
@@ -401,6 +469,12 @@ function App() {
   const [saleBufferInput, setSaleBufferInput] = useState('')
   const [saleDiscountInput, setSaleDiscountInput] = useState('')
   const [isPrintMode, setIsPrintMode] = useState(false)
+  const [resultsSectionState, setResultsSectionState] = useState<Record<ResultsSectionKey, boolean>>(
+    DEFAULT_RESULTS_SECTION_STATE,
+  )
+  const [resultColorThresholds, setResultColorThresholds] = useState<ResultColorThresholds>(
+    DEFAULT_RESULT_COLOR_THRESHOLDS,
+  )
   const [detailNotes, setDetailNotes] = useState<Record<ResultsCategory, string>>(() =>
     RESULTS_CATEGORY_ORDER.reduce(
       (acc, category) => {
@@ -701,8 +775,23 @@ function App() {
   }, [])
 
   useEffect(() => {
+    const stored = localStorage.getItem(RESULT_COLOR_STORAGE_KEY)
+    if (!stored) return
+    try {
+      const parsed = JSON.parse(stored) as Partial<ResultColorThresholds>
+      setResultColorThresholds(normalizeResultColorThresholds(parsed))
+    } catch {
+      // ignore malformed persistence
+    }
+  }, [])
+
+  useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(thresholds))
   }, [thresholds])
+
+  useEffect(() => {
+    localStorage.setItem(RESULT_COLOR_STORAGE_KEY, JSON.stringify(resultColorThresholds))
+  }, [resultColorThresholds])
 
   useEffect(() => {
     const nextErrors: Record<Category, string | undefined> = {} as Record<Category, string | undefined>
@@ -846,6 +935,22 @@ function App() {
     setSheetInventory(DEFAULT_SHEET_INVENTORY.map((row) => ({ ...row })))
   }
 
+  const setAllResultsSections = (isOpen: boolean) => {
+    setResultsSectionState({
+      planterDetails: isOpen,
+      costBreakdown: isOpen,
+      sheetBreakdown: isOpen,
+      cutPlan: isOpen,
+    })
+  }
+
+  const toggleResultsSection = (section: ResultsSectionKey) => {
+    setResultsSectionState((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
+
   const handleExportSettingsCsv = () => {
     const rows: string[][] = [
       [
@@ -874,6 +979,48 @@ function App() {
         String(threshold.highPrice),
       ])
     })
+
+    rows.push(['resultColorHeader', 'metric', 'risk/low', 'warn/high', '', '', '', ''])
+    rows.push([
+      'resultColor',
+      'margin',
+      String(resultColorThresholds.marginWarnMax),
+      String(resultColorThresholds.marginGoodMin),
+      '',
+      '',
+      '',
+      '',
+    ])
+    rows.push([
+      'resultColor',
+      'delta',
+      String(resultColorThresholds.deltaNegativeMax),
+      String(resultColorThresholds.deltaPositiveMin),
+      '',
+      '',
+      '',
+      '',
+    ])
+    rows.push([
+      'resultColor',
+      'utilization',
+      String(resultColorThresholds.utilizationWarnMax),
+      String(resultColorThresholds.utilizationGoodMin),
+      '',
+      '',
+      '',
+      '',
+    ])
+    rows.push([
+      'resultColor',
+      'waste',
+      String(resultColorThresholds.wasteGoodMax),
+      String(resultColorThresholds.wasteWarnMax),
+      '',
+      '',
+      '',
+      '',
+    ])
 
     rows.push(['sheetMode', 'unit', measurementUnit, '', '', '', '', ''])
 
@@ -930,6 +1077,7 @@ function App() {
       }
 
       const thresholdDraft: Partial<Record<Category, CostThreshold>> = {}
+      const resultColorDraft: Partial<ResultColorThresholds> = {}
       const importedSheets: SheetInventoryRow[] = []
       let importedSheetUnit: MeasurementUnit = 'in'
 
@@ -941,6 +1089,7 @@ function App() {
         const section = row[0]?.toLowerCase()
         if (section === 'section') continue
         if (section === 'sheetheader') continue
+        if (section === 'resultcolorheader') continue
         if (!section) continue
 
         if (section === 'sheetmode') {
@@ -978,6 +1127,40 @@ function App() {
             highPrice: highPrice as number,
           }
           continue
+        }
+
+        if (section === 'resultcolor') {
+          const metric = row[1]?.toLowerCase()
+          const firstValue = parseNumberCell(row[2] ?? '')
+          const secondValue = parseNumberCell(row[3] ?? '')
+          if (firstValue === null || secondValue === null) {
+            setSettingsBanner({ type: 'error', message: `Result color values for "${row[1] ?? ''}" must be numbers.` })
+            return
+          }
+
+          if (metric === 'margin') {
+            resultColorDraft.marginWarnMax = firstValue
+            resultColorDraft.marginGoodMin = secondValue
+            continue
+          }
+          if (metric === 'delta') {
+            resultColorDraft.deltaNegativeMax = firstValue
+            resultColorDraft.deltaPositiveMin = secondValue
+            continue
+          }
+          if (metric === 'utilization') {
+            resultColorDraft.utilizationWarnMax = firstValue
+            resultColorDraft.utilizationGoodMin = secondValue
+            continue
+          }
+          if (metric === 'waste') {
+            resultColorDraft.wasteGoodMax = firstValue
+            resultColorDraft.wasteWarnMax = secondValue
+            continue
+          }
+
+          setSettingsBanner({ type: 'error', message: `Unknown result color metric "${row[1] ?? ''}".` })
+          return
         }
 
         if (section === 'sheet') {
@@ -1027,6 +1210,9 @@ function App() {
         return
       }
       setThresholds(cloneThresholds(thresholdDraft))
+      if (Object.keys(resultColorDraft).length > 0) {
+        setResultColorThresholds(normalizeResultColorThresholds(resultColorDraft))
+      }
       setSheetInventory(importedSheets.length ? importedSheets : [createSheetRow()])
       setMeasurementUnit(importedSheetUnit)
       setSettingsBanner({ type: 'success', message: 'Settings imported from CSV and applied to the form.' })
@@ -1139,9 +1325,24 @@ function App() {
         fabricationDims.height,
       )}`
     : '—'
+  const exportDateLabel = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date())
+  const isPlanterDetailsOpen = isPrintMode || resultsSectionState.planterDetails
+  const isCostBreakdownOpen = isPrintMode || resultsSectionState.costBreakdown
+  const isSheetBreakdownOpen = isPrintMode || resultsSectionState.sheetBreakdown
+  const isCutPlanOpen = isPrintMode || resultsSectionState.cutPlan
 
   const scrollToResultsSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const sectionKey = RESULT_SECTION_ID_MAP[id]
+    if (sectionKey) {
+      setResultsSectionState((prev) => ({ ...prev, [sectionKey]: true }))
+    }
+    window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 10)
   }
 
   const handleExportResultsPdf = () => {
@@ -1170,14 +1371,14 @@ function App() {
           <div className="w-56 rounded-xl border border-border/70 bg-muted/20 p-3">
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Results nav</p>
             <nav className="mt-3 flex flex-col gap-1 text-sm">
+              <button type="button" onClick={() => scrollToResultsSection('results-overview')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
+                Pricing
+              </button>
               <button type="button" onClick={() => scrollToResultsSection('results-planter-details')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
                 Planter details
               </button>
-              <button type="button" onClick={() => scrollToResultsSection('results-overview')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
-                Results overview
-              </button>
               <button type="button" onClick={() => scrollToResultsSection('results-cost-breakdown')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
-                Detailed cost breakdown
+                Cost details
               </button>
               <button type="button" onClick={() => scrollToResultsSection('results-sheet-breakdown')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
                 Sheet breakdown
@@ -1194,41 +1395,52 @@ function App() {
           </div>
         </aside>
       )}
-      <div className="mx-auto w-full max-w-6xl space-y-8">
-        <header className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Fabrication cost engine</p>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-3xl font-semibold text-foreground">Terrace Planter</h1>
-            <div className="flex items-center gap-2">
-              <Label htmlFor="measurementUnit-global">Units</Label>
-              <Select
-                value={measurementUnit}
-                onValueChange={(value: string) => setMeasurementUnit(value as MeasurementUnit)}
-              >
-                <SelectTrigger id="measurementUnit-global" className="w-[120px]">
-                  <SelectValue placeholder="Units" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="in">in</SelectItem>
-                  <SelectItem value="mm">mm</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </header>
-
+      <div className="mx-auto w-full max-w-6xl space-y-6">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'input' | 'results' | 'settings')} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 rounded-full border border-border bg-muted/60 px-2 pt-1 pb-2 text-sm font-medium text-muted-foreground">
-            <TabsTrigger value="input" className="text-foreground">
-              Input
-            </TabsTrigger>
-            <TabsTrigger value="results" className="text-foreground">
-              Results
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="text-foreground">
-              Settings
-            </TabsTrigger>
-          </TabsList>
+          <div className="results-print-hide sticky top-0 z-40 space-y-3 border-b border-border/70 bg-background/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+            <header className="space-y-2">
+              <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Fabrication cost engine</p>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h1 className="text-3xl font-semibold text-foreground">Terrace Planter</h1>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="measurementUnit-global">Units</Label>
+                  <Select
+                    value={measurementUnit}
+                    onValueChange={(value: string) => setMeasurementUnit(value as MeasurementUnit)}
+                  >
+                    <SelectTrigger id="measurementUnit-global" className="w-[120px] bg-background">
+                      <SelectValue placeholder="Units" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="in">in</SelectItem>
+                      <SelectItem value="mm">mm</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </header>
+
+            <TabsList className="grid h-auto w-full grid-cols-3 overflow-hidden rounded-full border border-border/80 bg-muted p-1 text-sm font-medium text-muted-foreground">
+              <TabsTrigger
+                value="input"
+                className="rounded-full text-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              >
+                Input
+              </TabsTrigger>
+              <TabsTrigger
+                value="results"
+                className="rounded-full text-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              >
+                Results
+              </TabsTrigger>
+              <TabsTrigger
+                value="settings"
+                className="rounded-full text-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              >
+                Settings
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="input" className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -1486,8 +1698,15 @@ function App() {
 
           <TabsContent value="results" className="space-y-6">
             <div id="results-export-root" className="space-y-6">
-                {resultBanner && (
-                  <Card
+              <div className="results-print-only results-print-cover">
+                <div className="space-y-3 text-center">
+                  <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Terrace Planter</p>
+                  <p className="text-4xl font-semibold text-foreground">Results Report</p>
+                  <p className="text-base text-muted-foreground">{exportDateLabel}</p>
+                </div>
+              </div>
+              {resultBanner && (
+                <Card
                     className={`border ${
                       resultBanner.type === 'success'
                         ? 'border-emerald-400/70 bg-emerald-400/10 results-print-hide'
@@ -1516,15 +1735,125 @@ function App() {
                   </Card>
                 )}
 
+              <section id="results-overview" className="results-print-keep scroll-mt-24 space-y-4">
+                <Card className="results-strip-card">
+                  <CardHeader>
+                      <CardTitle>Pricing</CardTitle>
+                      <CardDescription>Core pricing model first, followed by immediate decision signals.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="results-grid-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Suggested sale price</p>
+                          <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(suggestedSalePrice)}</p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Target margin %</p>
+                          <p className="text-xl font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Total fabrication cost</p>
+                          <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalFabricationCost)}</p>
+                        </div>
+                      </div>
+                      <div className="results-grid-4 mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final total</p>
+                          <p className="text-2xl font-semibold text-foreground">{formatCurrencyValue(finalTotal)}</p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User sale price</p>
+                          <p className="text-2xl font-semibold text-foreground">
+                            {hasUserSalePrice ? formatCurrencyValue(userSalePrice) : '—'}
+                          </p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User margin %</p>
+                          <p className="text-2xl font-semibold text-foreground">
+                            {hasUserSalePrice ? formatPercentValue(userSaleMarginPct) : '—'}
+                          </p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User vs suggested</p>
+                          <p className="text-2xl font-semibold text-foreground">
+                            {hasUserSalePrice ? formatCurrencyValue(userSalePriceDelta) : '—'}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="results-strip-card">
+                    <CardHeader>
+                      <CardTitle>Cost composition</CardTitle>
+                      <CardDescription>Material and labor structure.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="results-grid-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Material cost</p>
+                          <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalMaterialCost)}</p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Non-material cost</p>
+                          <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalNonMaterialCost)}</p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Sheet count</p>
+                          <p className="text-xl font-semibold text-foreground">{sheetCount.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="results-strip-card">
+                    <CardHeader>
+                      <CardTitle>Efficiency</CardTitle>
+                      <CardDescription>Operational quality indicators.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="results-grid-2 grid gap-4 sm:grid-cols-2">
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Utilization %</p>
+                          <p className="text-xl font-semibold text-foreground">{formatPercentValue(utilizationPct)}</p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Waste %</p>
+                          <p className="text-xl font-semibold text-foreground">{formatPercentValue(wastePct)}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </section>
+
+                <div className="results-print-hide flex flex-wrap items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setAllResultsSections(true)}>
+                    Expand all sections
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setAllResultsSections(false)}>
+                    Collapse all sections
+                  </Button>
+                </div>
+
                 <section id="results-planter-details" className="results-print-keep scroll-mt-24">
                 <Card className="space-y-4">
-                  <CardHeader>
-                    <CardTitle>Planter details</CardTitle>
-                    <CardDescription>
-                      Snapshot of the current planter inputs, dimensions, and add-on feature selections.
-                    </CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between gap-3">
+                    <div>
+                      <CardTitle>Planter details</CardTitle>
+                      <CardDescription>
+                        Snapshot of the current planter inputs, dimensions, and add-on feature selections.
+                      </CardDescription>
+                    </div>
+                    <Button
+                      className="results-print-hide"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleResultsSection('planterDetails')}
+                    >
+                      {isPlanterDetailsOpen ? 'Collapse' : 'Expand'}
+                    </Button>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  {isPlanterDetailsOpen && <CardContent className="space-y-4">
                     <div className="results-grid-3 grid gap-4 md:grid-cols-3">
                       <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Length</p>
@@ -1553,26 +1882,12 @@ function App() {
                         <p className="text-base font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
                       </div>
                     </div>
-                    <div className="results-grid-3 grid gap-4 md:grid-cols-3">
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner depth</p>
-                        <p className="text-base font-semibold text-foreground">
-                          {planterInput.linerEnabled ? formatDimension(planterInput.linerDepth) : 'Disabled'}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner thickness</p>
-                        <p className="text-base font-semibold text-foreground">
-                          {planterInput.linerEnabled ? formatDimension(planterInput.linerThickness, 3) : 'Disabled'}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Fabrication size</p>
-                        <p className="text-base font-semibold text-foreground">{fabricationSizeLabel}</p>
-                      </div>
+                    <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Fabrication size</p>
+                      <p className="text-base font-semibold text-foreground">{fabricationSizeLabel}</p>
                     </div>
                     <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Features</p>
-                    <div className="results-grid-4 grid gap-4 md:grid-cols-4">
+                    <div className="results-grid-3 grid gap-4 md:grid-cols-3">
                       <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner</p>
                         <p className="text-base font-semibold text-foreground">{planterInput.linerEnabled ? 'Enabled' : 'Disabled'}</p>
@@ -1589,95 +1904,43 @@ function App() {
                         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Floor</p>
                         <p className="text-base font-semibold text-foreground">{planterInput.floorEnabled ? 'Enabled' : 'Disabled'}</p>
                       </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner depth</p>
+                        <p className="text-base font-semibold text-foreground">
+                          {planterInput.linerEnabled ? formatDimension(planterInput.linerDepth) : 'Disabled'}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner thickness</p>
+                        <p className="text-base font-semibold text-foreground">
+                          {planterInput.linerEnabled ? formatDimension(planterInput.linerThickness, 3) : 'Disabled'}
+                        </p>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-                </section>
-
-                <section id="results-overview" className="results-print-keep scroll-mt-24">
-                <Card className="space-y-4">
-                  <CardHeader>
-                    <CardTitle>Results overview</CardTitle>
-                    <CardDescription>
-                      Solver highlights the lowest total fabrication cost configuration while waste metrics remain
-                      visible but secondary.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="results-grid-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Total fabrication cost</p>
-                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalFabricationCost)}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Material cost</p>
-                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalMaterialCost)}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Total non-material cost</p>
-                    <p className="text-xl font-semibold text-foreground">
-                      {formatCurrencyValue(totalNonMaterialCost)}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Suggested sale price</p>
-                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(suggestedSalePrice)}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final total</p>
-                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(finalTotal)}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Target margin %</p>
-                    <p className="text-xl font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User sale price</p>
-                    <p className="text-xl font-semibold text-foreground">
-                      {hasUserSalePrice ? formatCurrencyValue(userSalePrice) : '—'}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User margin %</p>
-                    <p className="text-xl font-semibold text-foreground">
-                      {hasUserSalePrice ? formatPercentValue(userSaleMarginPct) : '—'}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User vs suggested</p>
-                    <p className="text-xl font-semibold text-foreground">
-                      {hasUserSalePrice ? formatCurrencyValue(userSalePriceDelta) : '—'}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Waste %</p>
-                    <p className="text-xl font-semibold text-muted-foreground">{formatPercentValue(wastePct)}</p>
-                    <p className="text-xs text-muted-foreground">Material waste is secondary to cost.</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Utilization %</p>
-                    <p className="text-xl font-semibold text-foreground">{formatPercentValue(utilizationPct)}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Sheet count</p>
-                    <p className="text-xl font-semibold text-foreground">{sheetCount.toLocaleString()}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">Sale price = total fabrication cost / (1 - margin %)</p>
-                  </CardContent>
+                  </CardContent>}
                 </Card>
                 </section>
 
             <section id="results-cost-breakdown" className="results-print-keep scroll-mt-24">
             <Card className="space-y-3">
-              <CardHeader>
-                <CardTitle>Cost breakdown</CardTitle>
-                <CardDescription>
-                  Material and fabrication tiers are shown alongside liner/add-on costs. Tier selections follow the
-                  calculated volume.
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between gap-3">
+                <div>
+                  <CardTitle>Cost details</CardTitle>
+                  <CardDescription>
+                    Material and fabrication tiers are shown alongside liner/add-on costs. Tier selections follow the
+                    calculated volume.
+                  </CardDescription>
+                </div>
+                <Button
+                  className="results-print-hide"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleResultsSection('costBreakdown')}
+                >
+                  {isCostBreakdownOpen ? 'Collapse' : 'Expand'}
+                </Button>
               </CardHeader>
-              <CardContent>
+              {isCostBreakdownOpen && <CardContent>
                 <Table className="border border-border">
                   <TableHeader>
                     <TableRow>
@@ -1784,20 +2047,30 @@ function App() {
                     </div>
                   </div>
                 </div>
-              </CardContent>
+              </CardContent>}
             </Card>
             </section>
 
             <section id="results-sheet-breakdown" className="results-print-keep scroll-mt-24">
             <Card className="space-y-3">
-              <CardHeader>
-                <CardTitle>Sheet breakdown</CardTitle>
-                <CardDescription>
-                  Each sheet type's utilization, unused material, and per-sheet cost encourage deterministic reuse and
-                  transparency.
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between gap-3">
+                <div>
+                  <CardTitle>Sheet breakdown</CardTitle>
+                  <CardDescription>
+                    Each sheet type's utilization, unused material, and per-sheet cost encourage deterministic reuse and
+                    transparency.
+                  </CardDescription>
+                </div>
+                <Button
+                  className="results-print-hide"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleResultsSection('sheetBreakdown')}
+                >
+                  {isSheetBreakdownOpen ? 'Collapse' : 'Expand'}
+                </Button>
               </CardHeader>
-              <CardContent>
+              {isSheetBreakdownOpen && <CardContent>
                 {sheetSummaries.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Run Calculate to collect sheet usage data.</p>
                 ) : (
@@ -1826,17 +2099,35 @@ function App() {
                     </TableBody>
                   </Table>
                 )}
-              </CardContent>
+              </CardContent>}
             </Card>
             </section>
 
             <section id="results-cut-plan" className="results-print-keep scroll-mt-24">
-            <CutPlanView
-              sheetUsages={solverResult?.sheetUsages ?? []}
-              formatCurrency={formatCurrencyValue}
-              measurementUnit={measurementUnit}
-              compact={isPrintMode}
-            />
+            <Card className="space-y-3">
+              <CardHeader className="flex flex-row items-center justify-between gap-3">
+                <div>
+                  <CardTitle>Cut plan</CardTitle>
+                  <CardDescription>Sheet-level panel placement and legend.</CardDescription>
+                </div>
+                <Button
+                  className="results-print-hide"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleResultsSection('cutPlan')}
+                >
+                  {isCutPlanOpen ? 'Collapse' : 'Expand'}
+                </Button>
+              </CardHeader>
+              {isCutPlanOpen && <CardContent>
+                <CutPlanView
+                  sheetUsages={solverResult?.sheetUsages ?? []}
+                  formatCurrency={formatCurrencyValue}
+                  measurementUnit={measurementUnit}
+                  compact={isPrintMode}
+                />
+              </CardContent>}
+            </Card>
             </section>
 
             </div>

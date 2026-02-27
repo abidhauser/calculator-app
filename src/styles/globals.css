@@ -124,6 +124,41 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+.results-strip-card {
+  border-color: color-mix(in oklch, var(--border) 75%, transparent);
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.result-metric {
+  border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  background: color-mix(in oklch, var(--muted) 35%, transparent);
+}
+
+.result-metric-neutral {
+  border-color: color-mix(in oklch, var(--border) 80%, transparent);
+  background: color-mix(in oklch, var(--muted) 30%, transparent);
+}
+
+.result-metric-good {
+  border-color: color-mix(in oklch, oklch(0.72 0.18 149) 58%, var(--border));
+  background: color-mix(in oklch, oklch(0.95 0.06 149) 45%, transparent);
+}
+
+.result-metric-warn {
+  border-color: color-mix(in oklch, oklch(0.82 0.16 88) 62%, var(--border));
+  background: color-mix(in oklch, oklch(0.96 0.06 88) 46%, transparent);
+}
+
+.result-metric-risk {
+  border-color: color-mix(in oklch, oklch(0.64 0.22 28) 55%, var(--border));
+  background: color-mix(in oklch, oklch(0.95 0.06 28) 42%, transparent);
+}
+
+.results-print-only {
+  display: none;
+}
+
 @media print {
   @page {
     size: landscape;
@@ -167,6 +202,19 @@
     display: none !important;
   }
 
+  body.results-print-mode .results-print-only {
+    display: block !important;
+  }
+
+  body.results-print-mode .results-print-cover {
+    display: flex !important;
+    min-height: calc(100vh - 20mm);
+    align-items: center;
+    justify-content: center;
+    break-after: page;
+    page-break-after: always;
+  }
+
   body.results-print-mode .results-print-keep,
   body.results-print-mode .results-print-keep > * {
     break-inside: avoid;
@@ -174,6 +222,12 @@
   }
 
   body.results-print-mode .results-summary-block {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.results-print-mode .results-strip-card,
+  body.results-print-mode .result-metric {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
