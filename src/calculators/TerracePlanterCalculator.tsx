@@ -1757,11 +1757,7 @@ function App() {
                           <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalFabricationCost)}</p>
                         </div>
                       </div>
-                      <div className="results-grid-4 mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final total</p>
-                          <p className="text-2xl font-semibold text-foreground">{formatCurrencyValue(finalTotal)}</p>
-                        </div>
+                      <div className="results-grid-3 mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         <div className="result-metric result-metric-neutral rounded-xl p-4">
                           <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User sale price</p>
                           <p className="text-2xl font-semibold text-foreground">
@@ -1838,7 +1834,18 @@ function App() {
 
                 <section id="results-planter-details" className="results-print-keep scroll-mt-24">
                 <Card className="space-y-4">
-                  <CardHeader className="flex flex-row items-center justify-between gap-3">
+                  <CardHeader
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleResultsSection('planterDetails')}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        toggleResultsSection('planterDetails')
+                      }
+                    }}
+                    className="flex cursor-pointer flex-row items-center justify-between gap-3"
+                  >
                     <div>
                       <CardTitle>Planter details</CardTitle>
                       <CardDescription>
@@ -1849,7 +1856,10 @@ function App() {
                       className="results-print-hide"
                       variant="ghost"
                       size="sm"
-                      onClick={() => toggleResultsSection('planterDetails')}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        toggleResultsSection('planterDetails')
+                      }}
                     >
                       {isPlanterDetailsOpen ? 'Collapse' : 'Expand'}
                     </Button>
@@ -1924,7 +1934,18 @@ function App() {
 
             <section id="results-cost-breakdown" className="results-print-keep scroll-mt-24">
             <Card className="space-y-3">
-              <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <CardHeader
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleResultsSection('costBreakdown')}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    toggleResultsSection('costBreakdown')
+                  }
+                }}
+                className="flex cursor-pointer flex-row items-center justify-between gap-3"
+              >
                 <div>
                   <CardTitle>Cost details</CardTitle>
                   <CardDescription>
@@ -1936,7 +1957,10 @@ function App() {
                   className="results-print-hide"
                   variant="ghost"
                   size="sm"
-                  onClick={() => toggleResultsSection('costBreakdown')}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    toggleResultsSection('costBreakdown')
+                  }}
                 >
                   {isCostBreakdownOpen ? 'Collapse' : 'Expand'}
                 </Button>
@@ -2056,7 +2080,18 @@ function App() {
 
             <section id="results-sheet-breakdown" className="results-print-keep scroll-mt-24">
             <Card className="space-y-3">
-              <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <CardHeader
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleResultsSection('sheetBreakdown')}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    toggleResultsSection('sheetBreakdown')
+                  }
+                }}
+                className="flex cursor-pointer flex-row items-center justify-between gap-3"
+              >
                 <div>
                   <CardTitle>Sheet breakdown</CardTitle>
                   <CardDescription>
@@ -2068,7 +2103,10 @@ function App() {
                   className="results-print-hide"
                   variant="ghost"
                   size="sm"
-                  onClick={() => toggleResultsSection('sheetBreakdown')}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    toggleResultsSection('sheetBreakdown')
+                  }}
                 >
                   {isSheetBreakdownOpen ? 'Collapse' : 'Expand'}
                 </Button>
@@ -2108,7 +2146,18 @@ function App() {
 
             <section id="results-cut-plan" className="results-print-keep scroll-mt-24">
             <Card className="space-y-3">
-              <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <CardHeader
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleResultsSection('cutPlan')}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    toggleResultsSection('cutPlan')
+                  }
+                }}
+                className="flex cursor-pointer flex-row items-center justify-between gap-3"
+              >
                 <div>
                   <CardTitle>Cut plan</CardTitle>
                   <CardDescription>Sheet-level panel placement and legend.</CardDescription>
@@ -2117,7 +2166,10 @@ function App() {
                   className="results-print-hide"
                   variant="ghost"
                   size="sm"
-                  onClick={() => toggleResultsSection('cutPlan')}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    toggleResultsSection('cutPlan')
+                  }}
                 >
                   {isCutPlanOpen ? 'Collapse' : 'Expand'}
                 </Button>
@@ -2128,6 +2180,7 @@ function App() {
                   formatCurrency={formatCurrencyValue}
                   measurementUnit={measurementUnit}
                   compact={isPrintMode}
+                  embedded
                 />
               </CardContent>}
             </Card>
