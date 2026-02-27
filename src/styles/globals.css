@@ -239,6 +239,8 @@
     page-break-inside: avoid !important;
   }
 
+  body.results-print-mode .results-summary-block,
+  body.results-print-mode .result-metric,
   body.results-print-mode .result-detail-metric {
     border-width: 1.5px !important;
     border-color: color-mix(in oklch, var(--foreground) 22%, white) !important;
