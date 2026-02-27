@@ -1725,7 +1725,7 @@ function App() {
                 )}
 
               <section id="results-planter-details" className="results-print-keep scroll-mt-24 order-1">
-                  <div className="results-print-only results-print-quote-header">
+                  <div className="results-print-only results-print-quote-header text-center">
                     <p className="text-2xl font-semibold text-foreground">Terrace Planter Quote</p>
                   </div>
                   <Card className="results-group-card space-y-4">
