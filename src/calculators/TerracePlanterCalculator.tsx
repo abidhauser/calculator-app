@@ -1809,14 +1809,14 @@ function App() {
                       <CardDescription>Operational quality indicators.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="results-grid-2 grid gap-4 sm:grid-cols-2">
+                      <div className="results-grid-3 grid gap-4 md:grid-cols-3">
                         <div className="result-metric result-metric-neutral rounded-xl p-4">
                           <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Utilization %</p>
-                          <p className="text-xl font-semibold text-foreground">{formatPercentValue(utilizationPct)}</p>
+                          <p className="text-base font-semibold text-foreground">{formatPercentValue(utilizationPct)}</p>
                         </div>
                         <div className="result-metric result-metric-neutral rounded-xl p-4">
                           <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Waste %</p>
-                          <p className="text-xl font-semibold text-foreground">{formatPercentValue(wastePct)}</p>
+                          <p className="text-base font-semibold text-foreground">{formatPercentValue(wastePct)}</p>
                         </div>
                       </div>
                     </CardContent>
