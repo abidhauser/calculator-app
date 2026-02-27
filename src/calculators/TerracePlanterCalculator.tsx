@@ -1398,7 +1398,7 @@ function App() {
       )}
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'input' | 'results' | 'settings')} className="space-y-6">
-          <div className="results-print-hide sticky top-0 z-40 space-y-3 border-b border-border/70 bg-background/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+          <div className="results-print-hide space-y-3 bg-background py-3">
             <header className="space-y-2">
               <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Fabrication cost engine</p>
               <div className="flex flex-wrap items-center justify-between gap-3">
