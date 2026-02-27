@@ -628,6 +628,7 @@ function App() {
   const bufferAmount = Number.isFinite(parsedSaleBuffer) && parsedSaleBuffer > 0 ? parsedSaleBuffer : 0
   const parsedSaleDiscount = Number(saleDiscountInput)
   const discountAmount = Number.isFinite(parsedSaleDiscount) && parsedSaleDiscount > 0 ? parsedSaleDiscount : 0
+  const hasSaleAdjustmentsInput = saleBufferInput.trim() !== '' || saleDiscountInput.trim() !== ''
   const finalTotal = Math.max(0, suggestedSalePrice + bufferAmount - discountAmount)
   const actualMarginPct = finalTotal > 0 ? ((finalTotal - totalFabricationCost) / finalTotal) * 100 : 0
 
@@ -2036,16 +2037,18 @@ function App() {
                       />
                     </div>
                   </div>
-                  <div className="results-grid-2 grid gap-4 md:grid-cols-2">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final total</p>
-                      <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(finalTotal)}</p>
+                  {hasSaleAdjustmentsInput && (
+                    <div className="results-grid-2 grid gap-4 md:grid-cols-2">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final total</p>
+                        <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(finalTotal)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Actual margin</p>
+                        <p className="text-lg font-semibold text-foreground">{formatPercentValue(actualMarginPct)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Actual margin</p>
-                      <p className="text-lg font-semibold text-foreground">{formatPercentValue(actualMarginPct)}</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>}
             </Card>
