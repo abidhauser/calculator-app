@@ -1728,7 +1728,7 @@ function App() {
                   <div className="results-print-only results-print-quote-header text-center">
                     <p className="text-2xl font-semibold text-foreground">Terrace Planter Quote</p>
                   </div>
-                  <Card className="results-group-card space-y-4">
+                  <Card className="results-group-card gap-3">
                   <CardHeader
                     role="button"
                     tabIndex={0}
@@ -1761,62 +1761,62 @@ function App() {
                   </CardHeader>
                   {isPlanterDetailsOpen && <CardContent className="space-y-3">
                     <div className="results-grid-3 grid gap-3 md:grid-cols-3">
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Length</p>
                         <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.length)}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Width</p>
                         <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.width)}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Height</p>
                         <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.height)}</p>
                       </div>
                     </div>
                     <div className="results-grid-3 grid gap-3 md:grid-cols-3">
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Lip</p>
                         <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.lip, 3)}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Thickness</p>
                         <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.thickness, 3)}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Target margin</p>
                         <p className="text-sm font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
                       </div>
                     </div>
-                    <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                    <div className="result-detail-metric rounded-xl p-2.5">
                       <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Fabrication size</p>
                       <p className="text-sm font-semibold text-foreground">{fabricationSizeLabel}</p>
                     </div>
                     <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Features</p>
                     <div className="results-grid-3 grid gap-3 md:grid-cols-3">
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Liner</p>
                         <p className="text-sm font-semibold text-foreground">{planterInput.linerEnabled ? 'Enabled' : 'Disabled'}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Weight plate</p>
                         <p className="text-sm font-semibold text-foreground">{planterInput.weightPlateEnabled ? 'Enabled' : 'Disabled'}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Shelf</p>
                         <p className="text-sm font-semibold text-foreground">{planterInput.shelfEnabled ? 'Enabled' : 'Disabled'}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Floor</p>
                         <p className="text-sm font-semibold text-foreground">{planterInput.floorEnabled ? 'Enabled' : 'Disabled'}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Liner depth</p>
                         <p className="text-sm font-semibold text-foreground">
                           {planterInput.linerEnabled ? formatDimension(planterInput.linerDepth) : 'Disabled'}
                         </p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Liner thickness</p>
                         <p className="text-sm font-semibold text-foreground">
                           {planterInput.linerEnabled ? formatDimension(planterInput.linerThickness, 3) : 'Disabled'}
@@ -1828,7 +1828,7 @@ function App() {
                 </section>
 
               <section id="results-overview" className="results-print-keep scroll-mt-24 order-2 space-y-4">
-                  <Card className="results-strip-card results-group-card">
+                  <Card className="results-strip-card results-group-card gap-3">
                     <CardHeader>
                       <CardTitle>Cost composition</CardTitle>
                       <CardDescription>Material and labor structure with yield visibility.</CardDescription>
@@ -1866,7 +1866,7 @@ function App() {
                 </div>
 
             <section id="results-cost-breakdown" className="results-print-keep scroll-mt-24 order-3">
-            <Card className="results-group-card space-y-3">
+            <Card className="results-group-card gap-3">
               <CardHeader
                 role="button"
                 tabIndex={0}
@@ -2032,7 +2032,7 @@ function App() {
             </section>
 
             <section id="results-sheet-breakdown" className="results-print-keep scroll-mt-24 order-4">
-            <Card className="results-group-card space-y-3">
+            <Card className="results-group-card gap-3">
               <CardHeader
                 role="button"
                 tabIndex={0}
@@ -2098,7 +2098,7 @@ function App() {
             </section>
 
             <section id="results-cut-plan" className="results-print-keep scroll-mt-24 order-5">
-            <Card className="results-group-card space-y-3">
+            <Card className="results-group-card gap-3">
               <CardHeader
                 role="button"
                 tabIndex={0}
