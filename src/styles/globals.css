@@ -161,7 +161,7 @@
 
 @media print {
   @page {
-    size: landscape;
+    size: portrait;
     margin: 10mm;
   }
 
@@ -184,6 +184,7 @@
     top: 0;
     left: 0;
     width: 100%;
+    font-size: 0.9rem;
   }
 
   body.results-print-mode .results-grid-2 {
@@ -243,16 +244,26 @@
     page-break-inside: avoid !important;
   }
 
-  body.results-print-mode .cut-plan-sheet + .cut-plan-sheet {
-    break-before: page;
-    page-break-before: always;
-  }
-
   body.results-print-mode table,
   body.results-print-mode tr,
   body.results-print-mode td,
   body.results-print-mode th {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  body.results-print-mode #results-sheet-breakdown [data-slot='table-container'] {
+    overflow: visible !important;
+  }
+
+  body.results-print-mode #results-sheet-breakdown [data-slot='table'] {
+    table-layout: fixed;
+    width: 100% !important;
+  }
+
+  body.results-print-mode #results-sheet-breakdown [data-slot='table-head'],
+  body.results-print-mode #results-sheet-breakdown [data-slot='table-cell'] {
+    white-space: normal !important;
+    word-break: break-word;
   }
 }

@@ -581,7 +581,6 @@ function App() {
   )
   const totalMaterialArea = solverResult?.materialAreaSqft ?? 0
   const utilizationPct = totalSheetAreaAvailable > 0 ? (totalMaterialArea / totalSheetAreaAvailable) * 100 : 0
-  const wastePct = totalSheetAreaAvailable > 0 ? 100 - utilizationPct : 0
   const sheetCount = sheetSummaries.reduce((total, sheet) => total + sheet.quantityUsed, 0)
 
   const totalMaterialCost = sheetMaterialCost
@@ -1241,6 +1240,7 @@ function App() {
 
   const handleCalculate = () => {
     setActiveTab('results')
+    setAllResultsSections(true)
     setCalculationError(null)
     setSolverResult(null)
     setResultBanner(null)
@@ -1372,11 +1372,11 @@ function App() {
           <div className="w-56 rounded-xl border border-border/70 bg-muted/20 p-3">
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Results nav</p>
             <nav className="mt-3 flex flex-col gap-1 text-sm">
-              <button type="button" onClick={() => scrollToResultsSection('results-overview')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
-                Pricing
-              </button>
               <button type="button" onClick={() => scrollToResultsSection('results-planter-details')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
                 Planter details
+              </button>
+              <button type="button" onClick={() => scrollToResultsSection('results-overview')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
+                Cost composition
               </button>
               <button type="button" onClick={() => scrollToResultsSection('results-cost-breakdown')} className="rounded-md px-2 py-1 text-left text-foreground hover:bg-muted">
                 Cost details
@@ -1698,7 +1698,7 @@ function App() {
           </TabsContent>
 
           <TabsContent value="results" className="space-y-6">
-            <div id="results-export-root" className="space-y-6">
+            <div id="results-export-root" className="flex flex-col gap-6">
               <div className="results-print-only results-print-cover">
                 <div className="space-y-3 text-center">
                   <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Terrace Planter</p>
@@ -1736,103 +1736,7 @@ function App() {
                   </Card>
                 )}
 
-              <section id="results-overview" className="results-print-keep scroll-mt-24 space-y-4">
-                <Card className="results-strip-card results-group-card">
-                  <CardHeader>
-                      <CardTitle>Pricing</CardTitle>
-                      <CardDescription>Core pricing model first, followed by immediate decision signals.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <div className="results-grid-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Suggested sale price</p>
-                          <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(suggestedSalePrice)}</p>
-                        </div>
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Target margin %</p>
-                          <p className="text-xl font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
-                        </div>
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Total fabrication cost</p>
-                          <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalFabricationCost)}</p>
-                        </div>
-                      </div>
-                      <div className="results-grid-3 mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User sale price</p>
-                          <p className="text-2xl font-semibold text-foreground">
-                            {hasUserSalePrice ? formatCurrencyValue(userSalePrice) : '—'}
-                          </p>
-                        </div>
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User margin %</p>
-                          <p className="text-2xl font-semibold text-foreground">
-                            {hasUserSalePrice ? formatPercentValue(userSaleMarginPct) : '—'}
-                          </p>
-                        </div>
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User vs suggested</p>
-                          <p className="text-2xl font-semibold text-foreground">
-                            {hasUserSalePrice ? formatCurrencyValue(userSalePriceDelta) : '—'}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="results-strip-card results-group-card">
-                    <CardHeader>
-                      <CardTitle>Cost composition</CardTitle>
-                      <CardDescription>Material and labor structure.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="results-grid-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Material cost</p>
-                          <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalMaterialCost)}</p>
-                        </div>
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Non-material cost</p>
-                          <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalNonMaterialCost)}</p>
-                        </div>
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Sheet count</p>
-                          <p className="text-xl font-semibold text-foreground">{sheetCount.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="results-strip-card results-group-card">
-                    <CardHeader>
-                      <CardTitle>Efficiency</CardTitle>
-                      <CardDescription>Operational quality indicators.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="results-grid-3 grid gap-4 md:grid-cols-3">
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Utilization %</p>
-                          <p className="text-base font-semibold text-foreground">{formatPercentValue(utilizationPct)}</p>
-                        </div>
-                        <div className="result-metric result-metric-neutral rounded-xl p-4">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Waste %</p>
-                          <p className="text-base font-semibold text-foreground">{formatPercentValue(wastePct)}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </section>
-
-                <div className="results-print-hide flex flex-wrap items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setAllResultsSections(true)}>
-                    Expand all sections
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setAllResultsSections(false)}>
-                    Collapse all sections
-                  </Button>
-                </div>
-
-                <section id="results-planter-details" className="results-print-keep scroll-mt-24">
+              <section id="results-planter-details" className="results-print-keep scroll-mt-24 order-1">
                   <Card className="results-group-card space-y-4">
                   <CardHeader
                     role="button"
@@ -1864,66 +1768,66 @@ function App() {
                       {isPlanterDetailsOpen ? 'Collapse' : 'Expand'}
                     </Button>
                   </CardHeader>
-                  {isPlanterDetailsOpen && <CardContent className="space-y-4">
-                    <div className="results-grid-3 grid gap-4 md:grid-cols-3">
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Length</p>
-                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.length)}</p>
+                  {isPlanterDetailsOpen && <CardContent className="space-y-3">
+                    <div className="results-grid-3 grid gap-3 md:grid-cols-3">
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Length</p>
+                        <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.length)}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Width</p>
-                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.width)}</p>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Width</p>
+                        <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.width)}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Height</p>
-                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.height)}</p>
-                      </div>
-                    </div>
-                    <div className="results-grid-3 grid gap-4 md:grid-cols-3">
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Lip</p>
-                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.lip, 3)}</p>
-                      </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Thickness</p>
-                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.thickness, 3)}</p>
-                      </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Target margin</p>
-                        <p className="text-base font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Height</p>
+                        <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.height)}</p>
                       </div>
                     </div>
-                    <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Fabrication size</p>
-                      <p className="text-base font-semibold text-foreground">{fabricationSizeLabel}</p>
+                    <div className="results-grid-3 grid gap-3 md:grid-cols-3">
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Lip</p>
+                        <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.lip, 3)}</p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Thickness</p>
+                        <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.thickness, 3)}</p>
+                      </div>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Target margin</p>
+                        <p className="text-sm font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
+                      </div>
                     </div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Features</p>
-                    <div className="results-grid-3 grid gap-4 md:grid-cols-3">
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner</p>
-                        <p className="text-base font-semibold text-foreground">{planterInput.linerEnabled ? 'Enabled' : 'Disabled'}</p>
+                    <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                      <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Fabrication size</p>
+                      <p className="text-sm font-semibold text-foreground">{fabricationSizeLabel}</p>
+                    </div>
+                    <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Features</p>
+                    <div className="results-grid-3 grid gap-3 md:grid-cols-3">
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Liner</p>
+                        <p className="text-sm font-semibold text-foreground">{planterInput.linerEnabled ? 'Enabled' : 'Disabled'}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Weight plate</p>
-                        <p className="text-base font-semibold text-foreground">{planterInput.weightPlateEnabled ? 'Enabled' : 'Disabled'}</p>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Weight plate</p>
+                        <p className="text-sm font-semibold text-foreground">{planterInput.weightPlateEnabled ? 'Enabled' : 'Disabled'}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Shelf</p>
-                        <p className="text-base font-semibold text-foreground">{planterInput.shelfEnabled ? 'Enabled' : 'Disabled'}</p>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Shelf</p>
+                        <p className="text-sm font-semibold text-foreground">{planterInput.shelfEnabled ? 'Enabled' : 'Disabled'}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Floor</p>
-                        <p className="text-base font-semibold text-foreground">{planterInput.floorEnabled ? 'Enabled' : 'Disabled'}</p>
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Floor</p>
+                        <p className="text-sm font-semibold text-foreground">{planterInput.floorEnabled ? 'Enabled' : 'Disabled'}</p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner depth</p>
-                        <p className="text-base font-semibold text-foreground">
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Liner depth</p>
+                        <p className="text-sm font-semibold text-foreground">
                           {planterInput.linerEnabled ? formatDimension(planterInput.linerDepth) : 'Disabled'}
                         </p>
                       </div>
-                      <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner thickness</p>
-                        <p className="text-base font-semibold text-foreground">
+                      <div className="rounded-xl border border-border/70 bg-muted/20 p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Liner thickness</p>
+                        <p className="text-sm font-semibold text-foreground">
                           {planterInput.linerEnabled ? formatDimension(planterInput.linerThickness, 3) : 'Disabled'}
                         </p>
                       </div>
@@ -1932,7 +1836,45 @@ function App() {
                 </Card>
                 </section>
 
-            <section id="results-cost-breakdown" className="results-print-keep scroll-mt-24">
+              <section id="results-overview" className="results-print-keep scroll-mt-24 order-2 space-y-4">
+                  <Card className="results-strip-card results-group-card">
+                    <CardHeader>
+                      <CardTitle>Cost composition</CardTitle>
+                      <CardDescription>Material and labor structure with yield visibility.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="results-grid-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <div className="result-metric result-metric-neutral rounded-xl p-2.5">
+                          <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Material cost</p>
+                          <p className="text-sm font-semibold text-foreground">{formatCurrencyValue(totalMaterialCost)}</p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-2.5">
+                          <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Non-material cost</p>
+                          <p className="text-sm font-semibold text-foreground">{formatCurrencyValue(totalNonMaterialCost)}</p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-2.5">
+                          <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Sheet count</p>
+                          <p className="text-sm font-semibold text-foreground">{sheetCount.toLocaleString()}</p>
+                        </div>
+                        <div className="result-metric result-metric-neutral rounded-xl p-2.5">
+                          <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Material yield</p>
+                          <p className="text-sm font-semibold text-foreground">{formatPercentValue(utilizationPct)}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </section>
+
+                <div className="results-print-hide flex flex-wrap items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setAllResultsSections(true)}>
+                    Expand all sections
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setAllResultsSections(false)}>
+                    Collapse all sections
+                  </Button>
+                </div>
+
+            <section id="results-cost-breakdown" className="results-print-keep scroll-mt-24 order-3">
             <Card className="results-group-card space-y-3">
               <CardHeader
                 role="button"
@@ -1967,22 +1909,22 @@ function App() {
               </CardHeader>
               {isCostBreakdownOpen && <CardContent>
                 <Table className="border border-border">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Tier used</TableHead>
-                      <TableHead>Base price</TableHead>
-                      <TableHead>Override price</TableHead>
-                      <TableHead>Notes</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Tier used</TableHead>
+                        <TableHead>Base price</TableHead>
+                        <TableHead className="w-[130px]">Override price</TableHead>
+                        <TableHead className="w-[320px]">Notes</TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {detailRows.map((row) => (
                       <TableRow key={row.category}>
                         <TableCell className="font-semibold text-foreground">{row.category}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{row.tierUsed}</TableCell>
                         <TableCell>{formatCurrencyValue(row.basePrice)}</TableCell>
-                        <TableCell>
+                        <TableCell className="w-[130px]">
                           {row.category === 'Material' ? (
                             <span className="text-sm text-muted-foreground">Not applicable</span>
                           ) : (
@@ -2007,7 +1949,7 @@ function App() {
                             />
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-[320px]">
                           <Input
                             value={detailNotes[row.category as ResultsCategory]}
                             onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -2035,6 +1977,26 @@ function App() {
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Suggested sale price</p>
                       <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(suggestedSalePrice)}</p>
+                    </div>
+                  </div>
+                  <div className="results-grid-3 grid gap-4 md:grid-cols-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User sale price</p>
+                      <p className="text-lg font-semibold text-foreground">
+                        {hasUserSalePrice ? formatCurrencyValue(userSalePrice) : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User margin %</p>
+                      <p className="text-lg font-semibold text-foreground">
+                        {hasUserSalePrice ? formatPercentValue(userSaleMarginPct) : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User vs suggested</p>
+                      <p className="text-lg font-semibold text-foreground">
+                        {hasUserSalePrice ? formatCurrencyValue(userSalePriceDelta) : '—'}
+                      </p>
                     </div>
                   </div>
                   <div className="results-grid-2 grid gap-4 md:grid-cols-2">
@@ -2078,7 +2040,7 @@ function App() {
             </Card>
             </section>
 
-            <section id="results-sheet-breakdown" className="results-print-keep scroll-mt-24">
+            <section id="results-sheet-breakdown" className="results-print-keep scroll-mt-24 order-4">
             <Card className="results-group-card space-y-3">
               <CardHeader
                 role="button"
@@ -2144,7 +2106,7 @@ function App() {
             </Card>
             </section>
 
-            <section id="results-cut-plan" className="results-print-keep scroll-mt-24">
+            <section id="results-cut-plan" className="results-print-keep scroll-mt-24 order-5">
             <Card className="results-group-card space-y-3">
               <CardHeader
                 role="button"
