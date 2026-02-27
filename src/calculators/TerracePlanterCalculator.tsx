@@ -73,7 +73,7 @@ type ResultsCategory =
   | 'Liner'
   | 'Shelf'
 
-type ResultsSectionKey = 'planterDetails' | 'costBreakdown' | 'sheetBreakdown' | 'cutPlan'
+type ResultsSectionKey = 'planterDetails' | 'overview' | 'costBreakdown' | 'sheetBreakdown' | 'cutPlan'
 
 type ResultColorThresholds = {
   marginWarnMax: number
@@ -245,6 +245,7 @@ const RESULT_COLOR_STORAGE_KEY = 'planterResultColorThresholds-v1'
 
 const DEFAULT_RESULTS_SECTION_STATE: Record<ResultsSectionKey, boolean> = {
   planterDetails: false,
+  overview: false,
   costBreakdown: false,
   sheetBreakdown: false,
   cutPlan: false,
@@ -263,6 +264,7 @@ const DEFAULT_RESULT_COLOR_THRESHOLDS: ResultColorThresholds = {
 
 const RESULT_SECTION_ID_MAP: Record<string, ResultsSectionKey> = {
   'results-planter-details': 'planterDetails',
+  'results-overview': 'overview',
   'results-cost-breakdown': 'costBreakdown',
   'results-sheet-breakdown': 'sheetBreakdown',
   'results-cut-plan': 'cutPlan',
@@ -934,6 +936,7 @@ function App() {
   const setAllResultsSections = (isOpen: boolean) => {
     setResultsSectionState({
       planterDetails: isOpen,
+      overview: isOpen,
       costBreakdown: isOpen,
       sheetBreakdown: isOpen,
       cutPlan: isOpen,
@@ -1323,6 +1326,7 @@ function App() {
       )}`
     : '—'
   const isPlanterDetailsOpen = isPrintMode || resultsSectionState.planterDetails
+  const isOverviewOpen = isPrintMode || resultsSectionState.overview
   const isCostBreakdownOpen = isPrintMode || resultsSectionState.costBreakdown
   const isSheetBreakdownOpen = isPrintMode || resultsSectionState.sheetBreakdown
   const isCutPlanOpen = isPrintMode || resultsSectionState.cutPlan
@@ -1823,11 +1827,35 @@ function App() {
 
               <section id="results-overview" className="results-print-keep scroll-mt-24 order-2 space-y-4">
                   <Card className="results-strip-card results-group-card gap-3">
-                    <CardHeader>
-                      <CardTitle>Cost composition</CardTitle>
-                      <CardDescription>Material and labor structure with yield visibility.</CardDescription>
+                    <CardHeader
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => toggleResultsSection('overview')}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          toggleResultsSection('overview')
+                        }
+                      }}
+                      className="flex cursor-pointer flex-row items-center justify-between gap-3"
+                    >
+                      <div>
+                        <CardTitle>Cost composition</CardTitle>
+                        <CardDescription>Material and labor structure with yield visibility.</CardDescription>
+                      </div>
+                      <Button
+                        className="results-print-hide"
+                        variant="ghost"
+                        size="sm"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          toggleResultsSection('overview')
+                        }}
+                      >
+                        {isOverviewOpen ? 'Collapse' : 'Expand'}
+                      </Button>
                     </CardHeader>
-                    <CardContent>
+                    {isOverviewOpen && <CardContent>
                       <div className="results-grid-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         <div className="result-metric result-metric-neutral rounded-xl p-2.5">
                           <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Material cost</p>
@@ -1846,7 +1874,7 @@ function App() {
                           <p className="text-sm font-semibold text-foreground">{formatPercentValue(utilizationPct)}</p>
                         </div>
                       </div>
-                    </CardContent>
+                    </CardContent>}
                   </Card>
                 </section>
 
