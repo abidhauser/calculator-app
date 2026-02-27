@@ -584,28 +584,22 @@ function App() {
   const sheetCount = sheetSummaries.reduce((total, sheet) => total + sheet.quantityUsed, 0)
 
   const totalMaterialCost = sheetMaterialCost
-  const sheetInstanceAreaCost = useMemo(() => {
-    if (!solverResult) return new Map<string, number>()
-    return new Map(
-      solverResult.sheetUsages.map((usage) => {
-        const area = (usage.width * usage.height) / 144
-        return [usage.id, area * usage.costPerSqft]
-      }),
-    )
-  }, [solverResult])
-  const linerSheetInstanceIds = useMemo(() => {
-    if (!solverResult) return new Set<string>()
-    return new Set(solverResult.placements.filter((placement) => placement.isLiner).map((placement) => placement.sheetInstanceId))
-  }, [solverResult])
-  const linerMaterialCost = useMemo(() => {
-    let total = 0
-    for (const id of linerSheetInstanceIds) {
-      total += sheetInstanceAreaCost.get(id) ?? 0
-    }
-    return total
-  }, [linerSheetInstanceIds, sheetInstanceAreaCost])
   const linerBreakdown = breakdownLookup['Liner']
-  const linerLaborCost = linerBreakdown ? getBreakdownPrice(linerBreakdown) : 0
+  const linerLaborPreview = useMemo(() => {
+    if (!planterInput.linerEnabled) {
+      return { tierUsed: 'Disabled', laborCost: 0 }
+    }
+    const validationMessage = validatePlanterInput(planterInput)
+    if (validationMessage) {
+      return { tierUsed: 'Awaiting valid inputs', laborCost: 0 }
+    }
+    const dims = buildFabricationDimensions(planterInput)
+    const volume = dims.length * dims.width * dims.height
+    const { tier, price } = determineTier(volume, thresholds.Liner)
+    return { tierUsed: tier, laborCost: price }
+  }, [planterInput, thresholds])
+  const linerLaborTier = linerBreakdown?.tierUsed ?? linerLaborPreview.tierUsed
+  const linerLaborCost = linerBreakdown ? getBreakdownPrice(linerBreakdown) : linerLaborPreview.laborCost
   const breakdownTotal = breakdowns.reduce((total, row) => {
     if (row.category === 'Liner' && !planterInput.linerEnabled) return total
     if (row.category === 'Shelf' && !planterInput.shelfEnabled) return total
@@ -658,16 +652,16 @@ function App() {
         if (category === 'Liner') {
           const breakdown = linerBreakdown
           const tierUsed = planterInput.linerEnabled
-            ? breakdown?.tierUsed ?? 'Awaiting calculation'
+            ? breakdown?.tierUsed ?? linerLaborTier
             : 'Disabled'
-          const basePrice = planterInput.linerEnabled ? breakdown?.basePrice ?? 0 : 0
+          const basePrice = planterInput.linerEnabled ? breakdown?.basePrice ?? linerLaborCost : 0
           const overridePrice = planterInput.linerEnabled ? breakdown?.overridePrice ?? null : null
           const notes = breakdown
             ? breakdown.tierUsed === 'Not Selected'
               ? 'Liner is not selected yet.'
               : 'Liner labor tier applied.'
             : planterInput.linerEnabled
-              ? 'Run calculation to assign tier.'
+              ? 'Liner labor tier preview applied from current dimensions.'
               : 'Liner feature disabled.'
           return {
             category,
@@ -742,6 +736,8 @@ function App() {
     [
       breakdownLookup,
       linerBreakdown,
+      linerLaborCost,
+      linerLaborTier,
       planterInput.linerEnabled,
       planterInput.weightPlateEnabled,
       planterInput.shelfEnabled,
@@ -1657,15 +1653,11 @@ function App() {
                       <div className="rounded-xl border border-border/70 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
                         <p>
                           <span className="font-semibold text-foreground">Liner labor tier:</span>{' '}
-                          {linerBreakdown?.tierUsed ?? 'Awaiting calculation'}
+                          {linerLaborTier}
                         </p>
                         <p>
                           <span className="font-semibold text-foreground">Liner labor cost:</span>{' '}
                           {formatCurrencyValue(linerLaborCost)}
-                        </p>
-                        <p>
-                          <span className="font-semibold text-foreground">Liner material cost:</span>{' '}
-                          {solverResult ? formatCurrencyValue(linerMaterialCost) : '—'}
                         </p>
                       </div>
                     </div>
