@@ -773,6 +773,14 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (!resultBanner || resultBanner.type !== 'success') return
+    const timeoutId = window.setTimeout(() => {
+      setResultBanner(null)
+    }, 30000)
+    return () => window.clearTimeout(timeoutId)
+  }, [resultBanner])
+
+  useEffect(() => {
     const stored = localStorage.getItem(RESULT_COLOR_STORAGE_KEY)
     if (!stored) return
     try {
@@ -1256,6 +1264,45 @@ function App() {
     }
 
     const dims = buildFabricationDimensions(planterInput)
+    const availableSheetEdges = sheetInventory
+      .filter((row) => !row.limitQuantity || row.quantity > 0)
+      .flatMap((row) => [row.width, row.height])
+      .filter((value) => Number.isFinite(value) && value > 0)
+
+    if (availableSheetEdges.length === 0) {
+      const message = 'No usable sheet inventory is available. Add at least one sheet with a positive size.'
+      setCalculationError(message)
+      setResultBanner({
+        type: 'error',
+        message,
+      })
+      setIsCalculated(false)
+      return
+    }
+
+    const maxSheetEdge = Math.max(...availableSheetEdges)
+    const oversizedDimensions = [
+      { label: 'Length', value: dims.length },
+      { label: 'Width', value: dims.width },
+      { label: 'Height', value: dims.height },
+    ].filter((dimension) => dimension.value > maxSheetEdge)
+
+    if (oversizedDimensions.length > 0) {
+      const oversizedLabel = oversizedDimensions
+        .map((dimension) => `${dimension.label} ${formatDimension(dimension.value)}`)
+        .join(', ')
+      const message = `Input exceeds sheet inventory limits: ${oversizedLabel}. Max available sheet edge is ${formatDimension(
+        maxSheetEdge,
+      )}.`
+      setCalculationError(message)
+      setResultBanner({
+        type: 'error',
+        message,
+      })
+      setIsCalculated(false)
+      return
+    }
+
     const volume = dims.length * dims.width * dims.height
     const breakdownResults = buildBreakdownResults(volume)
 
@@ -1692,7 +1739,7 @@ function App() {
             <div id="results-export-root" className="flex flex-col gap-6">
               {resultBanner && (
                 <Card
-                    className={`border ${
+                    className={`border text-black ${
                       resultBanner.type === 'success'
                         ? 'border-emerald-400/70 bg-emerald-400/10 results-print-hide'
                         : 'border-destructive/70 bg-destructive/10'
@@ -1701,14 +1748,10 @@ function App() {
                     <CardContent className="space-y-2">
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-1">
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                          <p className="text-xs uppercase tracking-[0.3em] text-black">
                             {resultBanner.type === 'success' ? 'Success' : 'Failure'}
                           </p>
-                          <p
-                            className={`text-sm font-semibold ${
-                              resultBanner.type === 'success' ? 'text-foreground' : 'text-destructive'
-                            }`}
-                          >
+                          <p className="text-sm font-semibold text-black">
                             {resultBanner.message}
                           </p>
                         </div>
