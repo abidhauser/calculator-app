@@ -123,3 +123,76 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body.results-print-mode * {
+    visibility: hidden !important;
+  }
+
+  body.results-print-mode #results-export-root,
+  body.results-print-mode #results-export-root * {
+    visibility: visible !important;
+  }
+
+  body.results-print-mode #results-export-root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  body.results-print-mode .results-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body.results-print-mode .results-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  body.results-print-mode .results-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  body.results-print-mode .results-print-hide {
+    display: none !important;
+  }
+
+  body.results-print-mode .results-print-keep,
+  body.results-print-mode .results-print-keep > * {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  body.results-print-mode .results-summary-block {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.results-print-mode .cut-plan-sheet {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.results-print-mode .cut-plan-sheet + .cut-plan-sheet {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  body.results-print-mode table,
+  body.results-print-mode tr,
+  body.results-print-mode td,
+  body.results-print-mode th {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

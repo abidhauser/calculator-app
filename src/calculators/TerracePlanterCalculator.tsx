@@ -399,6 +399,16 @@ function App() {
   )
   const [saleBufferInput, setSaleBufferInput] = useState('')
   const [saleDiscountInput, setSaleDiscountInput] = useState('')
+  const [isPrintMode, setIsPrintMode] = useState(false)
+  const [detailNotes, setDetailNotes] = useState<Record<ResultsCategory, string>>(() =>
+    RESULTS_CATEGORY_ORDER.reduce(
+      (acc, category) => {
+        acc[category] = ''
+        return acc
+      },
+      {} as Record<ResultsCategory, string>,
+    ),
+  )
   const [settingsBanner, setSettingsBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const settingsImportInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -1127,10 +1137,29 @@ function App() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
+  const handleExportResultsPdf = () => {
+    const previousTitle = document.title
+    const cleanup = () => {
+      document.title = previousTitle
+      document.body.classList.remove('results-print-mode')
+      setIsPrintMode(false)
+      window.removeEventListener('afterprint', cleanup)
+    }
+
+    document.title = 'Terrace-Planter-Results'
+    document.body.classList.add('results-print-mode')
+    setIsPrintMode(true)
+    window.addEventListener('afterprint', cleanup)
+
+    window.setTimeout(() => {
+      window.print()
+    }, 100)
+  }
+
   return (
     <div className="min-h-screen bg-background px-4 py-10">
       {activeTab === 'results' && (
-        <aside className="fixed top-44 left-4 z-20 hidden xl:block">
+        <aside className="results-print-hide fixed top-44 left-4 z-20 hidden xl:block">
           <div className="w-56 rounded-xl border border-border/70 bg-muted/20 p-3">
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Results nav</p>
             <nav className="mt-3 flex flex-col gap-1 text-sm">
@@ -1150,6 +1179,11 @@ function App() {
                 Cut plan
               </button>
             </nav>
+            <div className="mt-3 border-t border-border/70 pt-3">
+              <Button className="w-full" variant="outline" onClick={handleExportResultsPdf}>
+                Export PDF
+              </Button>
+            </div>
           </div>
         </aside>
       )}
@@ -1433,12 +1467,12 @@ function App() {
           </TabsContent>
 
           <TabsContent value="results" className="space-y-6">
-            <div className="space-y-6">
+            <div id="results-export-root" className="space-y-6">
                 {resultBanner && (
                   <Card
                     className={`border ${
                       resultBanner.type === 'success'
-                        ? 'border-emerald-400/70 bg-emerald-400/10'
+                        ? 'border-emerald-400/70 bg-emerald-400/10 results-print-hide'
                         : 'border-destructive/70 bg-destructive/10'
                     }`}
                   >
@@ -1464,7 +1498,7 @@ function App() {
                   </Card>
                 )}
 
-                <section id="results-planter-details" className="scroll-mt-24">
+                <section id="results-planter-details" className="results-print-keep scroll-mt-24">
                 <Card className="space-y-4">
                   <CardHeader>
                     <CardTitle>Planter details</CardTitle>
@@ -1473,7 +1507,7 @@ function App() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="results-grid-3 grid gap-4 md:grid-cols-3">
                       <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Length</p>
                         <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.length)}</p>
@@ -1487,10 +1521,10 @@ function App() {
                         <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.height)}</p>
                       </div>
                     </div>
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="results-grid-3 grid gap-4 md:grid-cols-3">
                       <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Lip</p>
-                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.lip)}</p>
+                        <p className="text-base font-semibold text-foreground">{formatDimension(planterInput.lip, 3)}</p>
                       </div>
                       <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Thickness</p>
@@ -1501,7 +1535,7 @@ function App() {
                         <p className="text-base font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
                       </div>
                     </div>
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="results-grid-3 grid gap-4 md:grid-cols-3">
                       <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner depth</p>
                         <p className="text-base font-semibold text-foreground">
@@ -1519,7 +1553,8 @@ function App() {
                         <p className="text-base font-semibold text-foreground">{fabricationSizeLabel}</p>
                       </div>
                     </div>
-                    <div className="grid gap-4 md:grid-cols-4">
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Features</p>
+                    <div className="results-grid-4 grid gap-4 md:grid-cols-4">
                       <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Liner</p>
                         <p className="text-base font-semibold text-foreground">{planterInput.linerEnabled ? 'Enabled' : 'Disabled'}</p>
@@ -1541,7 +1576,7 @@ function App() {
                 </Card>
                 </section>
 
-                <section id="results-overview" className="scroll-mt-24">
+                <section id="results-overview" className="results-print-keep scroll-mt-24">
                 <Card className="space-y-4">
                   <CardHeader>
                     <CardTitle>Results overview</CardTitle>
@@ -1551,7 +1586,7 @@ function App() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="results-grid-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                     <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Total fabrication cost</p>
                     <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(totalFabricationCost)}</p>
@@ -1567,6 +1602,18 @@ function App() {
                     </p>
                   </div>
                   <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Suggested sale price</p>
+                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(suggestedSalePrice)}</p>
+                  </div>
+                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final total</p>
+                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(finalTotal)}</p>
+                  </div>
+                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Target margin %</p>
+                    <p className="text-xl font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
+                  </div>
+                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
                     <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Waste %</p>
                     <p className="text-xl font-semibold text-muted-foreground">{formatPercentValue(wastePct)}</p>
                     <p className="text-xs text-muted-foreground">Material waste is secondary to cost.</p>
@@ -1579,28 +1626,16 @@ function App() {
                     <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Sheet count</p>
                     <p className="text-xl font-semibold text-foreground">{sheetCount.toLocaleString()}</p>
                   </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Suggested sale price</p>
-                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(suggestedSalePrice)}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final total</p>
-                    <p className="text-xl font-semibold text-foreground">{formatCurrencyValue(finalTotal)}</p>
-                  </div>
-                  <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Target margin %</p>
-                    <p className="text-xl font-semibold text-foreground">{formatPercentValue(planterInput.marginPct)}</p>
-                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground">Sale price = total fabrication cost / (1 - margin %)</p>
                   </CardContent>
                 </Card>
                 </section>
 
-            <section id="results-cost-breakdown" className="scroll-mt-24">
+            <section id="results-cost-breakdown" className="results-print-keep scroll-mt-24">
             <Card className="space-y-3">
               <CardHeader>
-                <CardTitle>Detailed cost breakdown</CardTitle>
+                <CardTitle>Cost breakdown</CardTitle>
                 <CardDescription>
                   Material and fabrication tiers are shown alongside liner/add-on costs. Tier selections follow the
                   calculated volume.
@@ -1648,13 +1683,23 @@ function App() {
                             />
                           )}
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{row.notes}</TableCell>
+                        <TableCell>
+                          <Input
+                            value={detailNotes[row.category as ResultsCategory]}
+                            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                              setDetailNotes((prev) => ({
+                                ...prev,
+                                [row.category as ResultsCategory]: event.target.value,
+                              }))
+                            }
+                          />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-                <div className="mt-4 space-y-4 rounded-xl border border-border/70 bg-muted/20 p-4">
-                  <div className="grid gap-4 md:grid-cols-3">
+                <div className="results-summary-block mt-4 space-y-4 rounded-xl border border-border/70 bg-muted/20 p-4">
+                  <div className="results-grid-3 grid gap-4 md:grid-cols-3">
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Total cost</p>
                       <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(totalFabricationCost)}</p>
@@ -1668,7 +1713,7 @@ function App() {
                       <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(suggestedSalePrice)}</p>
                     </div>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="results-grid-2 grid gap-4 md:grid-cols-2">
                     <div className="space-y-1">
                       <Label htmlFor="sale-buffer">Buffer</Label>
                       <Input
@@ -1692,7 +1737,7 @@ function App() {
                       />
                     </div>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="results-grid-2 grid gap-4 md:grid-cols-2">
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final total</p>
                       <p className="text-lg font-semibold text-foreground">{formatCurrencyValue(finalTotal)}</p>
@@ -1707,7 +1752,7 @@ function App() {
             </Card>
             </section>
 
-            <section id="results-sheet-breakdown" className="scroll-mt-24">
+            <section id="results-sheet-breakdown" className="results-print-keep scroll-mt-24">
             <Card className="space-y-3">
               <CardHeader>
                 <CardTitle>Sheet breakdown</CardTitle>
@@ -1749,11 +1794,12 @@ function App() {
             </Card>
             </section>
 
-            <section id="results-cut-plan" className="scroll-mt-24">
+            <section id="results-cut-plan" className="results-print-keep scroll-mt-24">
             <CutPlanView
               sheetUsages={solverResult?.sheetUsages ?? []}
               formatCurrency={formatCurrencyValue}
               measurementUnit={measurementUnit}
+              compact={isPrintMode}
             />
             </section>
 
@@ -1823,7 +1869,7 @@ function App() {
                 <div>
                   <CardTitle>Cost thresholds</CardTitle>
                   <CardDescription>
-                    Volume thresholds drive which tier applies for each fabrication category.
+                    Volume thresholds in cubic inches drive which tier applies for each fabrication category.
                   </CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
