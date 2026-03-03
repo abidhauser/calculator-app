@@ -1069,8 +1069,7 @@ const PergolaCalculator = () => {
                       </TableHeader>
                       <TableBody>
                         {PIECE_ROWS.map((row) => {
-                          const baseValue = result.pieceCounts[row.key]
-                          const currentValue = pieceQtyEdits[row.key] ?? (baseValue == null ? '' : String(baseValue))
+                          const currentValue = pieceQtyEdits[row.key] ?? ''
 
                           return (
                             <TableRow key={row.key}>
