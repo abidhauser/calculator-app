@@ -930,12 +930,21 @@ function App() {
     )
   }
 
-  const handleAddSheetRow = () => {
-    setSheetInventory((prev) => [...prev, createSheetRow()])
+  const handleAddSheetRowBelow = (rowId: string) => {
+    setSheetInventory((prev) => {
+      const index = prev.findIndex((row) => row.id === rowId)
+      if (index < 0) return [...prev, createSheetRow()]
+      const next = [...prev]
+      next.splice(index + 1, 0, createSheetRow())
+      return next
+    })
   }
 
   const handleRemoveSheetRow = (rowId: string) => {
-    setSheetInventory((prev) => prev.filter((row) => row.id !== rowId))
+    setSheetInventory((prev) => {
+      const next = prev.filter((row) => row.id !== rowId)
+      return next.length ? next : [createSheetRow()]
+    })
   }
 
   const handleResetThresholds = () => {
@@ -2540,19 +2549,29 @@ function App() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => handleRemoveSheetRow(row.id)}>
-                              Remove
-                            </Button>
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xl font-bold text-emerald-600 hover:text-emerald-700"
+                                onClick={() => handleAddSheetRowBelow(row.id)}
+                              >
+                                +
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xl font-bold text-red-600 hover:text-red-700"
+                                onClick={() => handleRemoveSheetRow(row.id)}
+                              >
+                                -
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
-                </div>
-                <div>
-                  <Button variant="secondary" size="sm" onClick={handleAddSheetRow}>
-                    Add sheet
-                  </Button>
                 </div>
               </CardContent>
             </Card>

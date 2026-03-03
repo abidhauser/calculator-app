@@ -204,6 +204,11 @@
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 
+
+  body.results-print-mode .results-summary-right-col {
+    padding-top: 3.5rem !important;
+  }
+
   body.results-print-mode .results-print-hide {
     display: none !important;
   }
