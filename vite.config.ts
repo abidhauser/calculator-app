@@ -8,8 +8,24 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  esbuild: {
+    drop: ['console', 'debugger'],
+    legalComments: 'none',
+  },
+  build: {
+    sourcemap: false,
+    minify: 'esbuild',
+    cssCodeSplit: false,
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/[hash].js',
+        chunkFileNames: 'assets/[hash].js',
+        assetFileNames: 'assets/[hash][extname]',
+      },
+    },
+  },
   plugins: [
     tailwindcss(),
   ],
-  base: '/calculator-app/'
+  base: '/calculator-app/',
 })

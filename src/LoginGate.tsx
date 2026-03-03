@@ -8,11 +8,22 @@ type LoginGateProps = {
 
 const AUTH_KEY = 'calculator_app_authenticated'
 
+const toHex = (bytes: Uint8Array) =>
+  Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+
+const sha256 = async (value: string) => {
+  const data = new TextEncoder().encode(value)
+  const digest = await crypto.subtle.digest('SHA-256', data)
+  return toHex(new Uint8Array(digest))
+}
+
 const LoginGate = ({ children }: LoginGateProps) => {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const configuredPassword = import.meta.env.VITE_APP_PASSWORD
+  const configuredPasswordHash = import.meta.env.VITE_APP_PASSWORD_HASH?.toLowerCase()
 
   useEffect(() => {
     const savedAuth = sessionStorage.getItem(AUTH_KEY)
@@ -21,15 +32,17 @@ const LoginGate = ({ children }: LoginGateProps) => {
     }
   }, [])
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    if (!configuredPassword) {
-      setError('Password is not configured. Set VITE_APP_PASSWORD in your .env file.')
+    if (!configuredPasswordHash) {
+      setError('Password hash is not configured. Set VITE_APP_PASSWORD_HASH in your .env file.')
       return
     }
 
-    if (password === configuredPassword) {
+    const enteredHash = await sha256(password)
+
+    if (enteredHash === configuredPasswordHash) {
       sessionStorage.setItem(AUTH_KEY, 'true')
       setIsAuthenticated(true)
       setError('')
@@ -140,4 +153,3 @@ const LoginGate = ({ children }: LoginGateProps) => {
 }
 
 export default LoginGate
-
