@@ -2189,35 +2189,25 @@ function App() {
                 </CardContent>
               </Card>
             )}
-            <Card>
-              <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle>Settings import/export</CardTitle>
-                  <CardDescription>
-                    Import or export all settings on this tab, including thresholds and sheet inventory.
-                  </CardDescription>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <input
-                    ref={settingsImportInputRef}
-                    type="file"
-                    accept=".csv,text/csv"
-                    className="hidden"
-                    onChange={handleImportSettingsCsv}
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => settingsImportInputRef.current?.click()}
-                  >
-                    Import CSV
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={handleExportSettingsCsv}>
-                    Export CSV
-                  </Button>
-                </div>
-              </CardHeader>
-            </Card>
+            <div className="flex flex-wrap justify-start gap-2">
+              <input
+                ref={settingsImportInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={handleImportSettingsCsv}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => settingsImportInputRef.current?.click()}
+              >
+                Import CSV
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleExportSettingsCsv}>
+                Export CSV
+              </Button>
+            </div>
             <Card className="space-y-4">
               <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
