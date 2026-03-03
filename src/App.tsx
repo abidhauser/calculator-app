@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card'
 import TerracePlanterCalculator from '@/calculators/TerracePlanterCalculator'
 import PergolaCalculator from '@/calculators/PergolaCalculator'
+import { stripAppBasePath, withAppBasePath } from '@/lib/routing'
 
 const HUB_ROUTE = '/calculators' as const
 type Route = typeof HUB_ROUTE | '/calculators/terrace-planter' | '/calculators/pergola'
@@ -36,21 +37,8 @@ const CALCULATORS: CalculatorMeta[] = [
   },
 ]
 
-const APP_BASE = (() => {
-  const base = (import.meta.env.BASE_URL || '/').trim()
-  if (!base || base === '/') return ''
-  return base.endsWith('/') ? base.slice(0, -1) : base
-})()
-
-const withBase = (route: Route) => {
-  const scopedRoute = route === HUB_ROUTE ? `${route}/` : route
-  if (!APP_BASE) return scopedRoute
-  return `${APP_BASE}${scopedRoute}`
-}
-
 const normalizePathRoute = (pathname: string): Route | 'not-found' => {
-  const scopedPathname =
-    APP_BASE && pathname.startsWith(APP_BASE) ? pathname.slice(APP_BASE.length) || '/' : pathname
+  const scopedPathname = stripAppBasePath(pathname) || '/'
   const raw = (scopedPathname || '/').trim().toLowerCase()
   const route = raw !== '/' && raw.endsWith('/') ? raw.slice(0, -1) : raw
 
@@ -62,7 +50,7 @@ const normalizePathRoute = (pathname: string): Route | 'not-found' => {
 }
 
 const navigateTo = (route: Route) => {
-  const targetPath = withBase(route)
+  const targetPath = withAppBasePath(route === HUB_ROUTE ? `${route}/` : route)
   if (window.location.pathname !== targetPath) {
     window.history.pushState({}, '', targetPath)
   }
@@ -148,7 +136,7 @@ function App() {
 
   useEffect(() => {
     if (pathRoute !== HUB_ROUTE) return
-    const hubPath = withBase(HUB_ROUTE)
+    const hubPath = withAppBasePath(HUB_ROUTE + "/")
     if (window.location.pathname === hubPath) return
     window.history.replaceState({}, '', hubPath)
     window.dispatchEvent(new PopStateEvent('popstate'))
@@ -180,6 +168,4 @@ function App() {
 }
 
 export default App
-
-
 

@@ -28,6 +28,7 @@ import {
   type FlatbarRow,
 } from '@/lib/pergola/pergolaData'
 import { cn } from '@/lib/utils'
+import { parseCsv, serializeCsv } from '@/lib/csv'
 
 const toFeet = (value: number, unit: 'ft' | 'in') => (unit === 'ft' ? value : value / 12)
 
@@ -144,83 +145,6 @@ const createPricingSections = (): Record<PricingSectionKey, PricingLineRow[]> =>
 const parseNumberInput = (raw: string): number => {
   const parsed = Number(raw)
   return Number.isFinite(parsed) ? parsed : 0
-}
-
-const escapeCsvCell = (value: string) => {
-  if (/[",\n\r]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`
-  }
-  return value
-}
-
-const serializeCsv = (rows: string[][]) =>
-  rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(',')).join('\n')
-
-const parseCsv = (source: string) => {
-  const rows: string[][] = []
-  let row: string[] = []
-  let cell = ''
-  let index = 0
-  let inQuotes = false
-
-  while (index < source.length) {
-    const char = source[index]
-
-    if (inQuotes) {
-      if (char === '"') {
-        const next = source[index + 1]
-        if (next === '"') {
-          cell += '"'
-          index += 2
-          continue
-        }
-        inQuotes = false
-        index += 1
-        continue
-      }
-      cell += char
-      index += 1
-      continue
-    }
-
-    if (char === '"') {
-      inQuotes = true
-      index += 1
-      continue
-    }
-    if (char === ',') {
-      row.push(cell)
-      cell = ''
-      index += 1
-      continue
-    }
-    if (char === '\n') {
-      row.push(cell)
-      rows.push(row)
-      row = []
-      cell = ''
-      index += 1
-      continue
-    }
-    if (char === '\r') {
-      index += 1
-      continue
-    }
-
-    cell += char
-    index += 1
-  }
-
-  if (inQuotes) {
-    return { rows: [], error: 'CSV contains an unmatched quote.' }
-  }
-
-  if (cell.length > 0 || row.length > 0) {
-    row.push(cell)
-    rows.push(row)
-  }
-
-  return { rows, error: null as string | null }
 }
 
 const formatCsvNumber = (value: number | null | undefined) =>
@@ -1595,7 +1519,7 @@ const PergolaCalculator = () => {
             <EditableSourceTableCard
               title="Tubing Source Table"
               isOpen={settingsSectionState.tubingSource}
-              onToggle={() => toggleSettingsSection('tubingSource')} 
+              onToggle={() => toggleSettingsSection('tubingSource')}
               columns={[
                 { key: 'label', label: 'Label' },
                 { key: 'partNumber', label: 'Part Number' },
@@ -1625,7 +1549,7 @@ const PergolaCalculator = () => {
             <EditableSourceTableCard
               title="Connectors Source Table"
               isOpen={settingsSectionState.connectorsSource}
-              onToggle={() => toggleSettingsSection('connectorsSource')} 
+              onToggle={() => toggleSettingsSection('connectorsSource')}
               columns={[
                 { key: 'label', label: 'Label' },
                 { key: 'partNumber', label: 'Part Number' },
@@ -1653,7 +1577,7 @@ const PergolaCalculator = () => {
             <EditableSourceTableCard
               title="End Caps Source Table"
               isOpen={settingsSectionState.endCapsSource}
-              onToggle={() => toggleSettingsSection('endCapsSource')} 
+              onToggle={() => toggleSettingsSection('endCapsSource')}
               columns={[
                 { key: 'label', label: 'Label' },
                 { key: 'partNumber', label: 'Part Number' },
@@ -1681,7 +1605,7 @@ const PergolaCalculator = () => {
             <EditableSourceTableCard
               title="Angle Source Table"
               isOpen={settingsSectionState.angleSource}
-              onToggle={() => toggleSettingsSection('angleSource')} 
+              onToggle={() => toggleSettingsSection('angleSource')}
               columns={[
                 { key: 'label', label: 'Label' },
                 { key: 'partNumber', label: 'Part Number' },
@@ -1710,7 +1634,7 @@ const PergolaCalculator = () => {
             <EditableSourceTableCard
               title="Flatbar Source Table"
               isOpen={settingsSectionState.flatbarSource}
-              onToggle={() => toggleSettingsSection('flatbarSource')} 
+              onToggle={() => toggleSettingsSection('flatbarSource')}
               columns={[
                 { key: 'label', label: 'Label' },
                 { key: 'gauge', label: 'Gauge', type: 'number' },
@@ -1924,61 +1848,4 @@ const EditableSourceTableCard = <T extends Record<string, EditableCellValue>>({
 )
 
 export default PergolaCalculator
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

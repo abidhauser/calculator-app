@@ -1,17 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
+import { APP_ROOT_PATH } from '@/lib/routing'
 
 type LoginGateProps = {
   children: ReactNode
 }
 
 const AUTH_KEY = 'calculator_app_authenticated'
-const APP_BASE = (() => {
-  const base = (import.meta.env.BASE_URL || '/').trim()
-  if (!base || base === '/') return ''
-  return base.endsWith('/') ? base.slice(0, -1) : base
-})()
-const APP_ROOT_PATH = APP_BASE ? `${APP_BASE}/` : '/'
 
 const LoginGate = ({ children }: LoginGateProps) => {
   const [password, setPassword] = useState('')
@@ -145,3 +140,4 @@ const LoginGate = ({ children }: LoginGateProps) => {
 }
 
 export default LoginGate
+

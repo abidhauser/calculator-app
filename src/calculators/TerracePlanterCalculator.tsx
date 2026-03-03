@@ -30,6 +30,7 @@ import {
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { Menubar, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar'
 import { cn } from '@/lib/utils'
+import { parseCsv, serializeCsv } from '@/lib/csv'
 import type { CostBreakdownPreview, CostThreshold, PlanterInput } from '../types'
 import {
   DEFAULT_SHEET_INVENTORY,
@@ -364,82 +365,6 @@ const parseNumberInput = (rawValue: string) => {
 const displayNumberInput = (value: number) => (Number.isFinite(value) ? value : '')
 const getBreakdownPrice = (row: CostBreakdownPreview) => row.overridePrice ?? row.basePrice
 
-const escapeCsvCell = (value: string) => {
-  if (/[",\n\r]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`
-  }
-  return value
-}
-
-const serializeCsv = (rows: string[][]) =>
-  rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(',')).join('\n')
-
-const parseCsv = (source: string) => {
-  const rows: string[][] = []
-  let row: string[] = []
-  let cell = ''
-  let index = 0
-  let inQuotes = false
-
-  while (index < source.length) {
-    const char = source[index]
-
-    if (inQuotes) {
-      if (char === '"') {
-        const next = source[index + 1]
-        if (next === '"') {
-          cell += '"'
-          index += 2
-          continue
-        }
-        inQuotes = false
-        index += 1
-        continue
-      }
-      cell += char
-      index += 1
-      continue
-    }
-
-    if (char === '"') {
-      inQuotes = true
-      index += 1
-      continue
-    }
-    if (char === ',') {
-      row.push(cell)
-      cell = ''
-      index += 1
-      continue
-    }
-    if (char === '\n') {
-      row.push(cell)
-      rows.push(row)
-      row = []
-      cell = ''
-      index += 1
-      continue
-    }
-    if (char === '\r') {
-      index += 1
-      continue
-    }
-
-    cell += char
-    index += 1
-  }
-
-  if (inQuotes) {
-    return { rows: [], error: 'CSV contains an unmatched quote.' }
-  }
-
-  if (cell.length > 0 || row.length > 0) {
-    row.push(cell)
-    rows.push(row)
-  }
-
-  return { rows, error: null as string | null }
-}
 
 const parseBooleanCell = (rawValue: string) => {
   const value = rawValue.trim().toLowerCase()
@@ -1350,7 +1275,6 @@ function App() {
           generatedTotalFabricationCost,
         )}) by preferring the cheapest sheets.`,
       })
-      console.log('Solver result', result)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown solver failure.'
       setCalculationError(`Solver failure: ${message}`)
@@ -2583,12 +2507,4 @@ function App() {
 }
 
 export default App
-
-
-
-
-
-
-
-
 
