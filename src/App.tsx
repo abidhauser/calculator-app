@@ -9,9 +9,10 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import TerracePlanterCalculator from '@/calculators/TerracePlanterCalculator'
+import PergolaCalculator from '@/calculators/PergolaCalculator'
 
 const HUB_ROUTE = '/calculators' as const
-type Route = typeof HUB_ROUTE | '/calculators/terrace-planter'
+type Route = typeof HUB_ROUTE | '/calculators/terrace-planter' | '/calculators/pergola'
 
 type CalculatorMeta = {
   slug: Route
@@ -25,6 +26,12 @@ const CALCULATORS: CalculatorMeta[] = [
     slug: '/calculators/terrace-planter',
     title: 'Terrace Planter',
     description: 'Configure planter geometry, fabrication thresholds, sheet usage, and sale margin estimates.',
+    status: 'available',
+  },
+  {
+    slug: '/calculators/pergola',
+    title: 'Pergola',
+    description: 'Configure pergola dimensions, purlin layouts, piece counts, and pricing in one tool.',
     status: 'available',
   },
 ]
@@ -49,6 +56,7 @@ const normalizePathRoute = (pathname: string): Route | 'not-found' => {
 
   if (route === '/' || route === HUB_ROUTE) return HUB_ROUTE
   if (route === '/calculators/terrace-planter') return '/calculators/terrace-planter'
+  if (route === '/calculators/pergola') return '/calculators/pergola'
 
   return 'not-found'
 }
@@ -75,19 +83,19 @@ const CalculatorHub = () => {
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {CALCULATORS.map((calculator) => (
-            <Card key={calculator.slug} className="border-border/60 bg-card/80 backdrop-blur">
+            <Card key={calculator.slug} className="flex h-full flex-col border-border/60 bg-card/80 backdrop-blur">
               <CardHeader>
                 <CardTitle>{calculator.title}</CardTitle>
                 <CardDescription>{calculator.description}</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="mt-auto">
                 {calculator.status === 'available' ? (
-                  <Button onClick={() => navigateTo(calculator.slug)} className="w-full justify-between">
+                  <Button onClick={() => navigateTo(calculator.slug)} className="h-10 w-full justify-between">
                     Open calculator
                     <ArrowRight className="h-4 w-4" aria-hidden />
                   </Button>
                 ) : (
-                  <Button disabled className="w-full">
+                  <Button disabled className="h-10 w-full">
                     Coming soon
                   </Button>
                 )}
@@ -114,6 +122,19 @@ const NotFound = () => (
   </div>
 )
 
+const BackButton = () => (
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    onClick={() => navigateTo(HUB_ROUTE)}
+    className="fixed left-4 top-4 z-[900] h-9"
+  >
+    <ArrowLeft className="h-4 w-4" aria-hidden />
+    Back to hub
+  </Button>
+)
+
 function App() {
   const [pathRoute, setPathRoute] = useState<Route | 'not-found'>(() =>
     normalizePathRoute(window.location.pathname),
@@ -136,17 +157,17 @@ function App() {
   if (pathRoute === '/calculators/terrace-planter') {
     return (
       <>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => navigateTo(HUB_ROUTE)}
-          className="fixed left-4 top-4 z-[900] h-9"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
-          Back to hub
-        </Button>
+        <BackButton />
         <TerracePlanterCalculator />
+      </>
+    )
+  }
+
+  if (pathRoute === '/calculators/pergola') {
+    return (
+      <>
+        <BackButton />
+        <PergolaCalculator />
       </>
     )
   }
@@ -159,3 +180,6 @@ function App() {
 }
 
 export default App
+
+
+

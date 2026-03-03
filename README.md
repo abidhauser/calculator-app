@@ -1,73 +1,50 @@
-# React + TypeScript + Vite
+﻿# Calculator App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Run
+- Install: `npm install`
+- Dev server: `npm run dev`
+- Build: `npm run build`
+- Pergola parity test: `npm run test:pergola`
 
-Currently, two official plugins are available:
+## Pergola Module
+- UI: `src/calculators/PergolaCalculator.tsx`
+- Engine: `src/lib/pergola/pergolaEngine.ts`
+- Workbook data tables: `src/data/pergola/*.json`
+- Router integration: `src/App.tsx`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Input Schema
+`PergolaInput` in [`src/lib/pergola/pergolaEngine.ts`](src/lib/pergola/pergolaEngine.ts) includes:
+- `dimensions.lengthFt/depthFt/heightFt`
+- `type`, `electrical`
+- `roof`: material, orientation, size/custom size, alignment, coverage, gap
+- `privacy`: material, orientation, size/custom size, alignment, panel counts, clearances, coverage, gap
 
-## React Compiler
+## Output Schema
+`PergolaOutput` returns:
+- Suggested type, beam size
+- Roof/privacy available sizes and `INVALID`/valid markers
+- Roof and privacy purlin requirements
+- Piece breakdown counts
+- Thickness values
+- Pricing rows + totals (`totalCost`, `sell60`, `sell50`)
+- Validation errors
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Extracted Workbook Tables
+Loaded from:
+- `Pricing.json` (tubing)
+- `Connectors.json`
+- `EndCaps.json`
+- `Angle.json`
+- `Flatbar.json`
+- `Settings.json`
+- `parity-cases.json` (10 Excel-generated expected cases)
 
-## Expanding the ESLint configuration
+## Add or Update Price Rows / Parts
+1. Edit the corresponding JSON in `src/data/pergola`.
+2. Keep row structure consistent with workbook sheet columns.
+3. Re-run `npm run test:pergola`.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Parity Workflow
+- `src/data/pergola/parity-cases.json` stores 10 workbook-generated expected outputs.
+- `scripts/pergola-parity-check.mjs` executes engine outputs against those expected values.
+- If workbook values change, regenerate fixture values from Excel and update `parity-cases.json` before re-running parity.

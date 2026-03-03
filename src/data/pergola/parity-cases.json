@@ -1,0 +1,1712 @@
+﻿[
+    {
+        "id":  "case-01",
+        "input":  {
+                      "roofMaterial":  "Aluminum",
+                      "depthFt":  10,
+                      "privacyPanelsDepth":  2,
+                      "privacyMaterial":  "Aluminum",
+                      "roofCustom":  "",
+                      "privacyOrientation":  "Vertical",
+                      "privacyGap":  3,
+                      "lengthFt":  12,
+                      "type":  "Pergola",
+                      "privacyGround":  4,
+                      "privacySize":  "2x4",
+                      "roofGap":  4,
+                      "roofOrientation":  "Horizontal",
+                      "electrical":  "No",
+                      "privacyPanelsLength":  2,
+                      "roofSize":  "2x4",
+                      "heightFt":  9,
+                      "privacyCustom":  "",
+                      "privacyAlignment":  "Parallel to top",
+                      "roofAlignment":  "Parallel to length",
+                      "privacyCoverage":  70,
+                      "privacyTop":  4,
+                      "roofCoverage":  80
+                  },
+        "expected":  {
+                         "suggestedType":  "Pergola",
+                         "beamSize":  "4x4",
+                         "roofSizeValidity":  "\u003c------------",
+                         "privacySizeValidity":  "\u003c------------",
+                         "roofPurlinsRequired":  14,
+                         "sidePurlinsLengthRequired":  21,
+                         "sidePurlinsDepthRequired":  5,
+                         "pieceCounts":  {
+                                             "verticalColumns":  null,
+                                             "beamsLength":  2,
+                                             "beamsDepth":  2,
+                                             "roofPurlins":  0,
+                                             "sidePurlinsLength":  0,
+                                             "sidePurlinsDepth":  5,
+                                             "standardBlocks":  null,
+                                             "feet":  null,
+                                             "endCaps":  null,
+                                             "canopies":  null
+                                         },
+                         "thickness":  {
+                                           "columnBeam":  null,
+                                           "roof":  0.12,
+                                           "privacy":  0.12
+                                       },
+                         "pricingRows":  [
+                                             {
+                                                 "row":  56,
+                                                 "name":  "Connector Blocks",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  57,
+                                                 "name":  "FOR 4\" x 4\" X 1/4",
+                                                 "quantity":  null,
+                                                 "unitCost":  65,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  62,
+                                                 "name":  "End Caps",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  63,
+                                                 "name":  "4\" x 4\"",
+                                                 "quantity":  null,
+                                                 "unitCost":  35,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  68,
+                                                 "name":  "Angle Iron",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  74,
+                                                 "name":  "Flatbar",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  79,
+                                                 "name":  "Additional",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  80,
+                                                 "name":  "Canopies",
+                                                 "quantity":  0,
+                                                 "unitCost":  20,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  81,
+                                                 "name":  "Feet",
+                                                 "quantity":  0,
+                                                 "unitCost":  15,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  82,
+                                                 "name":  "Hardware",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  83,
+                                                 "name":  "Paint (\u003c9.5)",
+                                                 "quantity":  0,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  84,
+                                                 "name":  "Paint (9.5\u003cx\u003c18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  200,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  85,
+                                                 "name":  "Paint (\u003e18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  300,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  86,
+                                                 "name":  "Electrical",
+                                                 "quantity":  null,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  87,
+                                                 "name":  "Engineering Stamp",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  88,
+                                                 "name":  "Hours",
+                                                 "quantity":  null,
+                                                 "unitCost":  50,
+                                                 "total":  0
+                                             }
+                                         ],
+                         "totalCost":  0,
+                         "sell60":  0,
+                         "sell50":  0
+                     }
+    },
+    {
+        "id":  "case-02",
+        "input":  {
+                      "roofMaterial":  "Aluminum",
+                      "depthFt":  12,
+                      "privacyPanelsDepth":  1,
+                      "privacyMaterial":  "Alumiwood",
+                      "roofCustom":  "",
+                      "privacyOrientation":  "Horizontal",
+                      "privacyGap":  2,
+                      "lengthFt":  16,
+                      "type":  "Grand Pergola",
+                      "privacyGround":  3,
+                      "privacySize":  "2x5",
+                      "roofGap":  5,
+                      "roofOrientation":  "Horizontal",
+                      "electrical":  "Yes",
+                      "privacyPanelsLength":  1,
+                      "roofSize":  "2x6",
+                      "heightFt":  10,
+                      "privacyCustom":  "",
+                      "privacyAlignment":  "Parallel to height",
+                      "roofAlignment":  "Parallel to depth",
+                      "privacyCoverage":  75,
+                      "privacyTop":  3,
+                      "roofCoverage":  90
+                  },
+        "expected":  {
+                         "suggestedType":  "Grand Pergola",
+                         "beamSize":  "6x6",
+                         "roofSizeValidity":  "\u003c------------",
+                         "privacySizeValidity":  "\u003c------------",
+                         "roofPurlinsRequired":  18,
+                         "sidePurlinsLengthRequired":  26,
+                         "sidePurlinsDepthRequired":  5,
+                         "pieceCounts":  {
+                                             "verticalColumns":  null,
+                                             "beamsLength":  3,
+                                             "beamsDepth":  3,
+                                             "roofPurlins":  20,
+                                             "sidePurlinsLength":  28,
+                                             "sidePurlinsDepth":  5,
+                                             "standardBlocks":  null,
+                                             "feet":  null,
+                                             "endCaps":  null,
+                                             "canopies":  null
+                                         },
+                         "thickness":  {
+                                           "columnBeam":  null,
+                                           "roof":  0.125,
+                                           "privacy":  0.125
+                                       },
+                         "pricingRows":  [
+                                             {
+                                                 "row":  56,
+                                                 "name":  "Connector Blocks",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  57,
+                                                 "name":  "FOR 6 X 6 X 1/4",
+                                                 "quantity":  null,
+                                                 "unitCost":  75,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  62,
+                                                 "name":  "End Caps",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  63,
+                                                 "name":  "6\" x 6\"",
+                                                 "quantity":  null,
+                                                 "unitCost":  40.25,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  68,
+                                                 "name":  "Angle Iron",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  74,
+                                                 "name":  "Flatbar",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  79,
+                                                 "name":  "Additional",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  80,
+                                                 "name":  "Canopies",
+                                                 "quantity":  0,
+                                                 "unitCost":  20,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  81,
+                                                 "name":  "Feet",
+                                                 "quantity":  0,
+                                                 "unitCost":  15,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  82,
+                                                 "name":  "Hardware",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  83,
+                                                 "name":  "Paint (\u003c9.5)",
+                                                 "quantity":  0,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  84,
+                                                 "name":  "Paint (9.5\u003cx\u003c18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  200,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  85,
+                                                 "name":  "Paint (\u003e18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  300,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  86,
+                                                 "name":  "Electrical",
+                                                 "quantity":  null,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  87,
+                                                 "name":  "Engineering Stamp",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  88,
+                                                 "name":  "Hours",
+                                                 "quantity":  null,
+                                                 "unitCost":  50,
+                                                 "total":  0
+                                             }
+                                         ],
+                         "totalCost":  0,
+                         "sell60":  0,
+                         "sell50":  0
+                     }
+    },
+    {
+        "id":  "case-03",
+        "input":  {
+                      "roofMaterial":  "Cedar",
+                      "depthFt":  14,
+                      "privacyPanelsDepth":  0,
+                      "privacyMaterial":  "Cedar",
+                      "roofCustom":  "",
+                      "privacyOrientation":  "Vertical",
+                      "privacyGap":  4,
+                      "lengthFt":  14,
+                      "type":  "Grand Pergola",
+                      "privacyGround":  6,
+                      "privacySize":  "2x4",
+                      "roofGap":  6,
+                      "roofOrientation":  "Vertical",
+                      "electrical":  "No",
+                      "privacyPanelsLength":  2,
+                      "roofSize":  "2x6",
+                      "heightFt":  14,
+                      "privacyCustom":  "",
+                      "privacyAlignment":  "Parallel to top",
+                      "roofAlignment":  "Parallel to length",
+                      "privacyCoverage":  65,
+                      "privacyTop":  2,
+                      "roofCoverage":  60
+                  },
+        "expected":  {
+                         "suggestedType":  "Grand Pergola",
+                         "beamSize":  "6x6",
+                         "roofSizeValidity":  "\u003c------------",
+                         "privacySizeValidity":  "\u003c------------",
+                         "roofPurlinsRequired":  27,
+                         "sidePurlinsLengthRequired":  27,
+                         "sidePurlinsDepthRequired":  5,
+                         "pieceCounts":  {
+                                             "verticalColumns":  null,
+                                             "beamsLength":  2,
+                                             "beamsDepth":  2,
+                                             "roofPurlins":  0,
+                                             "sidePurlinsLength":  0,
+                                             "sidePurlinsDepth":  5,
+                                             "standardBlocks":  null,
+                                             "feet":  null,
+                                             "endCaps":  null,
+                                             "canopies":  null
+                                         },
+                         "thickness":  {
+                                           "columnBeam":  null,
+                                           "roof":  "Select tubing manually from the extra dropdown",
+                                           "privacy":  0.12
+                                       },
+                         "pricingRows":  [
+                                             {
+                                                 "row":  56,
+                                                 "name":  "Connector Blocks",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  57,
+                                                 "name":  "FOR 6 X 6 X 1/4",
+                                                 "quantity":  null,
+                                                 "unitCost":  75,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  62,
+                                                 "name":  "End Caps",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  63,
+                                                 "name":  "6\" x 6\"",
+                                                 "quantity":  null,
+                                                 "unitCost":  40.25,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  68,
+                                                 "name":  "Angle Iron",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  74,
+                                                 "name":  "Flatbar",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  79,
+                                                 "name":  "Additional",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  80,
+                                                 "name":  "Canopies",
+                                                 "quantity":  0,
+                                                 "unitCost":  20,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  81,
+                                                 "name":  "Feet",
+                                                 "quantity":  0,
+                                                 "unitCost":  15,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  82,
+                                                 "name":  "Hardware",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  83,
+                                                 "name":  "Paint (\u003c9.5)",
+                                                 "quantity":  0,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  84,
+                                                 "name":  "Paint (9.5\u003cx\u003c18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  200,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  85,
+                                                 "name":  "Paint (\u003e18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  300,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  86,
+                                                 "name":  "Electrical",
+                                                 "quantity":  null,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  87,
+                                                 "name":  "Engineering Stamp",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  88,
+                                                 "name":  "Hours",
+                                                 "quantity":  null,
+                                                 "unitCost":  50,
+                                                 "total":  0
+                                             }
+                                         ],
+                         "totalCost":  0,
+                         "sell60":  0,
+                         "sell50":  0
+                     }
+    },
+    {
+        "id":  "case-04",
+        "input":  {
+                      "roofMaterial":  "Alumiwood",
+                      "depthFt":  11.25,
+                      "privacyPanelsDepth":  2,
+                      "privacyMaterial":  "Aluminum",
+                      "roofCustom":  "",
+                      "privacyOrientation":  "Horizontal",
+                      "privacyGap":  1.5,
+                      "lengthFt":  13.5,
+                      "type":  "Pergola",
+                      "privacyGround":  2,
+                      "privacySize":  "1x3",
+                      "roofGap":  2.5,
+                      "roofOrientation":  "Vertical",
+                      "electrical":  "No",
+                      "privacyPanelsLength":  0,
+                      "roofSize":  "1x3",
+                      "heightFt":  8.5,
+                      "privacyCustom":  "",
+                      "privacyAlignment":  "Parallel to height",
+                      "roofAlignment":  "Parallel to depth",
+                      "privacyCoverage":  80,
+                      "privacyTop":  2,
+                      "roofCoverage":  85
+                  },
+        "expected":  {
+                         "suggestedType":  "Pergola",
+                         "beamSize":  "4x4",
+                         "roofSizeValidity":  "\u003c------------",
+                         "privacySizeValidity":  "\u003c------------",
+                         "roofPurlinsRequired":  44,
+                         "sidePurlinsLengthRequired":  0,
+                         "sidePurlinsDepthRequired":  5,
+                         "pieceCounts":  {
+                                             "verticalColumns":  null,
+                                             "beamsLength":  2,
+                                             "beamsDepth":  4,
+                                             "roofPurlins":  46,
+                                             "sidePurlinsLength":  2,
+                                             "sidePurlinsDepth":  5,
+                                             "standardBlocks":  null,
+                                             "feet":  null,
+                                             "endCaps":  null,
+                                             "canopies":  null
+                                         },
+                         "thickness":  {
+                                           "columnBeam":  null,
+                                           "roof":  0.125,
+                                           "privacy":  0.125
+                                       },
+                         "pricingRows":  [
+                                             {
+                                                 "row":  56,
+                                                 "name":  "Connector Blocks",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  57,
+                                                 "name":  "FOR 4\" x 4\" X 1/4",
+                                                 "quantity":  null,
+                                                 "unitCost":  65,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  62,
+                                                 "name":  "End Caps",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  63,
+                                                 "name":  "4\" x 4\"",
+                                                 "quantity":  null,
+                                                 "unitCost":  35,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  68,
+                                                 "name":  "Angle Iron",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  74,
+                                                 "name":  "Flatbar",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  79,
+                                                 "name":  "Additional",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  80,
+                                                 "name":  "Canopies",
+                                                 "quantity":  0,
+                                                 "unitCost":  20,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  81,
+                                                 "name":  "Feet",
+                                                 "quantity":  0,
+                                                 "unitCost":  15,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  82,
+                                                 "name":  "Hardware",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  83,
+                                                 "name":  "Paint (\u003c9.5)",
+                                                 "quantity":  0,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  84,
+                                                 "name":  "Paint (9.5\u003cx\u003c18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  200,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  85,
+                                                 "name":  "Paint (\u003e18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  300,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  86,
+                                                 "name":  "Electrical",
+                                                 "quantity":  null,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  87,
+                                                 "name":  "Engineering Stamp",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  88,
+                                                 "name":  "Hours",
+                                                 "quantity":  null,
+                                                 "unitCost":  50,
+                                                 "total":  0
+                                             }
+                                         ],
+                         "totalCost":  0,
+                         "sell60":  0,
+                         "sell50":  0
+                     }
+    },
+    {
+        "id":  "case-05",
+        "input":  {
+                      "roofMaterial":  "Aluminum",
+                      "depthFt":  9,
+                      "privacyPanelsDepth":  2,
+                      "privacyMaterial":  "Aluminum",
+                      "roofCustom":  "",
+                      "privacyOrientation":  "Vertical",
+                      "privacyGap":  2,
+                      "lengthFt":  18,
+                      "type":  "Grand Pergola",
+                      "privacyGround":  1,
+                      "privacySize":  "2x6",
+                      "roofGap":  4,
+                      "roofOrientation":  "Horizontal",
+                      "electrical":  "Yes",
+                      "privacyPanelsLength":  2,
+                      "roofSize":  "2x8",
+                      "heightFt":  9.5,
+                      "privacyCustom":  "",
+                      "privacyAlignment":  "Parallel to top",
+                      "roofAlignment":  "Parallel to length",
+                      "privacyCoverage":  90,
+                      "privacyTop":  1,
+                      "roofCoverage":  95
+                  },
+        "expected":  {
+                         "suggestedType":  "Grand Pergola",
+                         "beamSize":  "6x6",
+                         "roofSizeValidity":  "INVALID",
+                         "privacySizeValidity":  "\u003c------------",
+                         "roofPurlinsRequired":  9,
+                         "sidePurlinsLengthRequired":  27,
+                         "sidePurlinsDepthRequired":  5,
+                         "pieceCounts":  {
+                                             "verticalColumns":  null,
+                                             "beamsLength":  2,
+                                             "beamsDepth":  2,
+                                             "roofPurlins":  0,
+                                             "sidePurlinsLength":  0,
+                                             "sidePurlinsDepth":  5,
+                                             "standardBlocks":  null,
+                                             "feet":  null,
+                                             "endCaps":  null,
+                                             "canopies":  null
+                                         },
+                         "thickness":  {
+                                           "columnBeam":  null,
+                                           "roof":  0.125,
+                                           "privacy":  0.125
+                                       },
+                         "pricingRows":  [
+                                             {
+                                                 "row":  56,
+                                                 "name":  "Connector Blocks",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  57,
+                                                 "name":  "FOR 6 X 6 X 1/4",
+                                                 "quantity":  null,
+                                                 "unitCost":  75,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  62,
+                                                 "name":  "End Caps",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  63,
+                                                 "name":  "6\" x 6\"",
+                                                 "quantity":  null,
+                                                 "unitCost":  40.25,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  68,
+                                                 "name":  "Angle Iron",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  74,
+                                                 "name":  "Flatbar",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  79,
+                                                 "name":  "Additional",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  80,
+                                                 "name":  "Canopies",
+                                                 "quantity":  0,
+                                                 "unitCost":  20,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  81,
+                                                 "name":  "Feet",
+                                                 "quantity":  0,
+                                                 "unitCost":  15,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  82,
+                                                 "name":  "Hardware",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  83,
+                                                 "name":  "Paint (\u003c9.5)",
+                                                 "quantity":  0,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  84,
+                                                 "name":  "Paint (9.5\u003cx\u003c18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  200,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  85,
+                                                 "name":  "Paint (\u003e18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  300,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  86,
+                                                 "name":  "Electrical",
+                                                 "quantity":  null,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  87,
+                                                 "name":  "Engineering Stamp",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  88,
+                                                 "name":  "Hours",
+                                                 "quantity":  null,
+                                                 "unitCost":  50,
+                                                 "total":  0
+                                             }
+                                         ],
+                         "totalCost":  0,
+                         "sell60":  0,
+                         "sell50":  0
+                     }
+    },
+    {
+        "id":  "case-06",
+        "input":  {
+                      "roofMaterial":  "Cedar",
+                      "depthFt":  10,
+                      "privacyPanelsDepth":  1,
+                      "privacyMaterial":  "Cedar",
+                      "roofCustom":  "",
+                      "privacyOrientation":  "Horizontal",
+                      "privacyGap":  1,
+                      "lengthFt":  10,
+                      "type":  "Pergola",
+                      "privacyGround":  5,
+                      "privacySize":  "1x3",
+                      "roofGap":  0.75,
+                      "roofOrientation":  "Horizontal",
+                      "electrical":  "No",
+                      "privacyPanelsLength":  1,
+                      "roofSize":  "1x3",
+                      "heightFt":  8,
+                      "privacyCustom":  "",
+                      "privacyAlignment":  "Parallel to top",
+                      "roofAlignment":  "Parallel to depth",
+                      "privacyCoverage":  50,
+                      "privacyTop":  5,
+                      "roofCoverage":  100
+                  },
+        "expected":  {
+                         "suggestedType":  "Pergola",
+                         "beamSize":  "4x4",
+                         "roofSizeValidity":  "\u003c------------",
+                         "privacySizeValidity":  "\u003c------------",
+                         "roofPurlinsRequired":  17,
+                         "sidePurlinsLengthRequired":  22,
+                         "sidePurlinsDepthRequired":  5,
+                         "pieceCounts":  {
+                                             "verticalColumns":  null,
+                                             "beamsLength":  2,
+                                             "beamsDepth":  2,
+                                             "roofPurlins":  19,
+                                             "sidePurlinsLength":  0,
+                                             "sidePurlinsDepth":  5,
+                                             "standardBlocks":  null,
+                                             "feet":  null,
+                                             "endCaps":  null,
+                                             "canopies":  null
+                                         },
+                         "thickness":  {
+                                           "columnBeam":  null,
+                                           "roof":  "Select tubing manually from the extra dropdown",
+                                           "privacy":  0.125
+                                       },
+                         "pricingRows":  [
+                                             {
+                                                 "row":  56,
+                                                 "name":  "Connector Blocks",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  57,
+                                                 "name":  "FOR 4\" x 4\" X 1/4",
+                                                 "quantity":  null,
+                                                 "unitCost":  65,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  62,
+                                                 "name":  "End Caps",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  63,
+                                                 "name":  "4\" x 4\"",
+                                                 "quantity":  null,
+                                                 "unitCost":  35,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  68,
+                                                 "name":  "Angle Iron",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  74,
+                                                 "name":  "Flatbar",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  79,
+                                                 "name":  "Additional",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  80,
+                                                 "name":  "Canopies",
+                                                 "quantity":  0,
+                                                 "unitCost":  20,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  81,
+                                                 "name":  "Feet",
+                                                 "quantity":  0,
+                                                 "unitCost":  15,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  82,
+                                                 "name":  "Hardware",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  83,
+                                                 "name":  "Paint (\u003c9.5)",
+                                                 "quantity":  0,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  84,
+                                                 "name":  "Paint (9.5\u003cx\u003c18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  200,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  85,
+                                                 "name":  "Paint (\u003e18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  300,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  86,
+                                                 "name":  "Electrical",
+                                                 "quantity":  null,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  87,
+                                                 "name":  "Engineering Stamp",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  88,
+                                                 "name":  "Hours",
+                                                 "quantity":  null,
+                                                 "unitCost":  50,
+                                                 "total":  0
+                                             }
+                                         ],
+                         "totalCost":  0,
+                         "sell60":  0,
+                         "sell50":  0
+                     }
+    },
+    {
+        "id":  "case-07",
+        "input":  {
+                      "roofMaterial":  "Alumiwood",
+                      "depthFt":  20,
+                      "privacyPanelsDepth":  2,
+                      "privacyMaterial":  "Alumiwood",
+                      "roofCustom":  "",
+                      "privacyOrientation":  "Vertical",
+                      "privacyGap":  5,
+                      "lengthFt":  20,
+                      "type":  "Grand Pergola",
+                      "privacyGround":  0,
+                      "privacySize":  "2x5",
+                      "roofGap":  8,
+                      "roofOrientation":  "Vertical",
+                      "electrical":  "Yes",
+                      "privacyPanelsLength":  2,
+                      "roofSize":  "2x6",
+                      "heightFt":  12,
+                      "privacyCustom":  "",
+                      "privacyAlignment":  "Parallel to height",
+                      "roofAlignment":  "Parallel to depth",
+                      "privacyCoverage":  85,
+                      "privacyTop":  0,
+                      "roofCoverage":  70
+                  },
+        "expected":  {
+                         "suggestedType":  "Grand Pergola",
+                         "beamSize":  "6x6",
+                         "roofSizeValidity":  "\u003c------------",
+                         "privacySizeValidity":  "\u003c------------",
+                         "roofPurlinsRequired":  24,
+                         "sidePurlinsLengthRequired":  34,
+                         "sidePurlinsDepthRequired":  5,
+                         "pieceCounts":  {
+                                             "verticalColumns":  null,
+                                             "beamsLength":  4,
+                                             "beamsDepth":  4,
+                                             "roofPurlins":  26,
+                                             "sidePurlinsLength":  36,
+                                             "sidePurlinsDepth":  5,
+                                             "standardBlocks":  null,
+                                             "feet":  null,
+                                             "endCaps":  null,
+                                             "canopies":  null
+                                         },
+                         "thickness":  {
+                                           "columnBeam":  null,
+                                           "roof":  0.125,
+                                           "privacy":  0.125
+                                       },
+                         "pricingRows":  [
+                                             {
+                                                 "row":  56,
+                                                 "name":  "Connector Blocks",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  57,
+                                                 "name":  "FOR 6 X 6 X 1/4",
+                                                 "quantity":  null,
+                                                 "unitCost":  75,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  62,
+                                                 "name":  "End Caps",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  63,
+                                                 "name":  "6\" x 6\"",
+                                                 "quantity":  null,
+                                                 "unitCost":  40.25,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  68,
+                                                 "name":  "Angle Iron",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  74,
+                                                 "name":  "Flatbar",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  79,
+                                                 "name":  "Additional",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  80,
+                                                 "name":  "Canopies",
+                                                 "quantity":  0,
+                                                 "unitCost":  20,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  81,
+                                                 "name":  "Feet",
+                                                 "quantity":  0,
+                                                 "unitCost":  15,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  82,
+                                                 "name":  "Hardware",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  83,
+                                                 "name":  "Paint (\u003c9.5)",
+                                                 "quantity":  0,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  84,
+                                                 "name":  "Paint (9.5\u003cx\u003c18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  200,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  85,
+                                                 "name":  "Paint (\u003e18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  300,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  86,
+                                                 "name":  "Electrical",
+                                                 "quantity":  null,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  87,
+                                                 "name":  "Engineering Stamp",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  88,
+                                                 "name":  "Hours",
+                                                 "quantity":  null,
+                                                 "unitCost":  50,
+                                                 "total":  0
+                                             }
+                                         ],
+                         "totalCost":  0,
+                         "sell60":  0,
+                         "sell50":  0
+                     }
+    },
+    {
+        "id":  "case-08",
+        "input":  {
+                      "roofMaterial":  "Aluminum",
+                      "depthFt":  13.75,
+                      "privacyPanelsDepth":  1,
+                      "privacyMaterial":  "Aluminum",
+                      "roofCustom":  "",
+                      "privacyOrientation":  "Horizontal",
+                      "privacyGap":  2.25,
+                      "lengthFt":  14.25,
+                      "type":  "Grand Pergola",
+                      "privacyGround":  2.5,
+                      "privacySize":  "2x4",
+                      "roofGap":  3.25,
+                      "roofOrientation":  "Horizontal",
+                      "electrical":  "No",
+                      "privacyPanelsLength":  2,
+                      "roofSize":  "2x5",
+                      "heightFt":  9.25,
+                      "privacyCustom":  "",
+                      "privacyAlignment":  "Parallel to top",
+                      "roofAlignment":  "Parallel to length",
+                      "privacyCoverage":  72,
+                      "privacyTop":  2.5,
+                      "roofCoverage":  88
+                  },
+        "expected":  {
+                         "suggestedType":  "Grand Pergola",
+                         "beamSize":  "6x6",
+                         "roofSizeValidity":  "\u003c------------",
+                         "privacySizeValidity":  "\u003c------------",
+                         "roofPurlinsRequired":  20,
+                         "sidePurlinsLengthRequired":  16,
+                         "sidePurlinsDepthRequired":  5,
+                         "pieceCounts":  {
+                                             "verticalColumns":  null,
+                                             "beamsLength":  2,
+                                             "beamsDepth":  2,
+                                             "roofPurlins":  0,
+                                             "sidePurlinsLength":  0,
+                                             "sidePurlinsDepth":  5,
+                                             "standardBlocks":  null,
+                                             "feet":  null,
+                                             "endCaps":  null,
+                                             "canopies":  null
+                                         },
+                         "thickness":  {
+                                           "columnBeam":  null,
+                                           "roof":  0.125,
+                                           "privacy":  0.12
+                                       },
+                         "pricingRows":  [
+                                             {
+                                                 "row":  56,
+                                                 "name":  "Connector Blocks",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  57,
+                                                 "name":  "FOR 6 X 6 X 1/4",
+                                                 "quantity":  null,
+                                                 "unitCost":  75,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  62,
+                                                 "name":  "End Caps",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  63,
+                                                 "name":  "6\" x 6\"",
+                                                 "quantity":  null,
+                                                 "unitCost":  40.25,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  68,
+                                                 "name":  "Angle Iron",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  74,
+                                                 "name":  "Flatbar",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  79,
+                                                 "name":  "Additional",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  80,
+                                                 "name":  "Canopies",
+                                                 "quantity":  0,
+                                                 "unitCost":  20,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  81,
+                                                 "name":  "Feet",
+                                                 "quantity":  0,
+                                                 "unitCost":  15,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  82,
+                                                 "name":  "Hardware",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  83,
+                                                 "name":  "Paint (\u003c9.5)",
+                                                 "quantity":  0,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  84,
+                                                 "name":  "Paint (9.5\u003cx\u003c18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  200,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  85,
+                                                 "name":  "Paint (\u003e18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  300,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  86,
+                                                 "name":  "Electrical",
+                                                 "quantity":  null,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  87,
+                                                 "name":  "Engineering Stamp",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  88,
+                                                 "name":  "Hours",
+                                                 "quantity":  null,
+                                                 "unitCost":  50,
+                                                 "total":  0
+                                             }
+                                         ],
+                         "totalCost":  0,
+                         "sell60":  0,
+                         "sell50":  0
+                     }
+    },
+    {
+        "id":  "case-09",
+        "input":  {
+                      "roofMaterial":  "Cedar",
+                      "depthFt":  15,
+                      "privacyPanelsDepth":  2,
+                      "privacyMaterial":  "Cedar",
+                      "roofCustom":  "",
+                      "privacyOrientation":  "Vertical",
+                      "privacyGap":  2.75,
+                      "lengthFt":  11,
+                      "type":  "Grand Pergola",
+                      "privacyGround":  3,
+                      "privacySize":  "2x5",
+                      "roofGap":  3,
+                      "roofOrientation":  "Vertical",
+                      "electrical":  "No",
+                      "privacyPanelsLength":  1,
+                      "roofSize":  "2x4",
+                      "heightFt":  9,
+                      "privacyCustom":  "",
+                      "privacyAlignment":  "Parallel to top",
+                      "roofAlignment":  "Parallel to depth",
+                      "privacyCoverage":  68,
+                      "privacyTop":  2,
+                      "roofCoverage":  78
+                  },
+        "expected":  {
+                         "suggestedType":  "Grand Pergola",
+                         "beamSize":  "6x6",
+                         "roofSizeValidity":  "\u003c------------",
+                         "privacySizeValidity":  "\u003c------------",
+                         "roofPurlinsRequired":  32,
+                         "sidePurlinsLengthRequired":  22,
+                         "sidePurlinsDepthRequired":  5,
+                         "pieceCounts":  {
+                                             "verticalColumns":  null,
+                                             "beamsLength":  2,
+                                             "beamsDepth":  2,
+                                             "roofPurlins":  34,
+                                             "sidePurlinsLength":  0,
+                                             "sidePurlinsDepth":  5,
+                                             "standardBlocks":  null,
+                                             "feet":  null,
+                                             "endCaps":  null,
+                                             "canopies":  null
+                                         },
+                         "thickness":  {
+                                           "columnBeam":  null,
+                                           "roof":  "Select tubing manually from the extra dropdown",
+                                           "privacy":  0.125
+                                       },
+                         "pricingRows":  [
+                                             {
+                                                 "row":  56,
+                                                 "name":  "Connector Blocks",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  57,
+                                                 "name":  "FOR 6 X 6 X 1/4",
+                                                 "quantity":  null,
+                                                 "unitCost":  75,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  62,
+                                                 "name":  "End Caps",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  63,
+                                                 "name":  "6\" x 6\"",
+                                                 "quantity":  null,
+                                                 "unitCost":  40.25,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  68,
+                                                 "name":  "Angle Iron",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  74,
+                                                 "name":  "Flatbar",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  79,
+                                                 "name":  "Additional",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  80,
+                                                 "name":  "Canopies",
+                                                 "quantity":  0,
+                                                 "unitCost":  20,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  81,
+                                                 "name":  "Feet",
+                                                 "quantity":  0,
+                                                 "unitCost":  15,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  82,
+                                                 "name":  "Hardware",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  83,
+                                                 "name":  "Paint (\u003c9.5)",
+                                                 "quantity":  0,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  84,
+                                                 "name":  "Paint (9.5\u003cx\u003c18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  200,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  85,
+                                                 "name":  "Paint (\u003e18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  300,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  86,
+                                                 "name":  "Electrical",
+                                                 "quantity":  null,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  87,
+                                                 "name":  "Engineering Stamp",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  88,
+                                                 "name":  "Hours",
+                                                 "quantity":  null,
+                                                 "unitCost":  50,
+                                                 "total":  0
+                                             }
+                                         ],
+                         "totalCost":  0,
+                         "sell60":  0,
+                         "sell50":  0
+                     }
+    },
+    {
+        "id":  "case-10",
+        "input":  {
+                      "roofMaterial":  "Aluminum",
+                      "depthFt":  9,
+                      "privacyPanelsDepth":  0,
+                      "privacyMaterial":  "Aluminum",
+                      "roofCustom":  "",
+                      "privacyOrientation":  "Horizontal",
+                      "privacyGap":  2,
+                      "lengthFt":  9,
+                      "type":  "Pergola",
+                      "privacyGround":  4,
+                      "privacySize":  "1x3",
+                      "roofGap":  2,
+                      "roofOrientation":  "Horizontal",
+                      "electrical":  "Yes",
+                      "privacyPanelsLength":  0,
+                      "roofSize":  "2x4",
+                      "heightFt":  9,
+                      "privacyCustom":  "",
+                      "privacyAlignment":  "Parallel to height",
+                      "roofAlignment":  "Parallel to length",
+                      "privacyCoverage":  0,
+                      "privacyTop":  4,
+                      "roofCoverage":  82
+                  },
+        "expected":  {
+                         "suggestedType":  "Pergola",
+                         "beamSize":  "4x4",
+                         "roofSizeValidity":  "\u003c------------",
+                         "privacySizeValidity":  "\u003c------------",
+                         "roofPurlinsRequired":  17,
+                         "sidePurlinsLengthRequired":  0,
+                         "sidePurlinsDepthRequired":  5,
+                         "pieceCounts":  {
+                                             "verticalColumns":  null,
+                                             "beamsLength":  2,
+                                             "beamsDepth":  2,
+                                             "roofPurlins":  0,
+                                             "sidePurlinsLength":  2,
+                                             "sidePurlinsDepth":  5,
+                                             "standardBlocks":  null,
+                                             "feet":  null,
+                                             "endCaps":  null,
+                                             "canopies":  null
+                                         },
+                         "thickness":  {
+                                           "columnBeam":  null,
+                                           "roof":  0.12,
+                                           "privacy":  0.125
+                                       },
+                         "pricingRows":  [
+                                             {
+                                                 "row":  56,
+                                                 "name":  "Connector Blocks",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  57,
+                                                 "name":  "FOR 4\" x 4\" X 1/4",
+                                                 "quantity":  null,
+                                                 "unitCost":  65,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  62,
+                                                 "name":  "End Caps",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  63,
+                                                 "name":  "4\" x 4\"",
+                                                 "quantity":  null,
+                                                 "unitCost":  35,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  68,
+                                                 "name":  "Angle Iron",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  74,
+                                                 "name":  "Flatbar",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  79,
+                                                 "name":  "Additional",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  80,
+                                                 "name":  "Canopies",
+                                                 "quantity":  0,
+                                                 "unitCost":  20,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  81,
+                                                 "name":  "Feet",
+                                                 "quantity":  0,
+                                                 "unitCost":  15,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  82,
+                                                 "name":  "Hardware",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  83,
+                                                 "name":  "Paint (\u003c9.5)",
+                                                 "quantity":  0,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  84,
+                                                 "name":  "Paint (9.5\u003cx\u003c18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  200,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  85,
+                                                 "name":  "Paint (\u003e18)",
+                                                 "quantity":  0,
+                                                 "unitCost":  300,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  86,
+                                                 "name":  "Electrical",
+                                                 "quantity":  null,
+                                                 "unitCost":  100,
+                                                 "total":  0
+                                             },
+                                             {
+                                                 "row":  87,
+                                                 "name":  "Engineering Stamp",
+                                                 "quantity":  null,
+                                                 "unitCost":  null,
+                                                 "total":  null
+                                             },
+                                             {
+                                                 "row":  88,
+                                                 "name":  "Hours",
+                                                 "quantity":  null,
+                                                 "unitCost":  50,
+                                                 "total":  0
+                                             }
+                                         ],
+                         "totalCost":  0,
+                         "sell60":  0,
+                         "sell50":  0
+                     }
+    }
+]

@@ -1,0 +1,190 @@
+﻿[
+    {
+        "name":  "_xleta.IF",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xleta.N",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xleta.OR",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlfn._xlws.FILTER",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlfn.ANCHORARRAY",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlfn.BYROW",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlfn.LAMBDA",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlfn.LET",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlfn.VSTACK",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.addCustom",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.baseList",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.beam",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.beamThick",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.bigger",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.biggerSide",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.cDepth",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.cov",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.custom",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.cWidth",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.effective_span",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.filteredSizes",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.gap",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.isSixSix",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.material",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.n",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.pw",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.rawFiltered",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.rawList",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.roof",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.s",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.side1",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.side2",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.sideDepth",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.sideLength",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.sizes",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.smaller",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.smallerSide",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.spacing",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.span",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "_xlpm.usable",
+        "refersTo":  "=#NAME?"
+    },
+    {
+        "name":  "AngleIronList",
+        "refersTo":  "=Angle!$A$2:$A$7"
+    },
+    {
+        "name":  "BlocksList",
+        "refersTo":  "=Connectors!$A$2:$A$9"
+    },
+    {
+        "name":  "EndCapsList",
+        "refersTo":  "=EndCaps!$A$2:$A$7"
+    },
+    {
+        "name":  "FlatbarList",
+        "refersTo":  "=Flatbar!$A$2:$A$7"
+    },
+    {
+        "name":  "TubingList",
+        "refersTo":  "=Pricing!$A$2:$A$32"
+    },
+    {
+        "name":  "x4x4",
+        "refersTo":  "=Settings!$G$2:$G$3"
+    },
+    {
+        "name":  "x6x6",
+        "refersTo":  "=Settings!$H$2"
+    }
+]

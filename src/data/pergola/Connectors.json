@@ -1,0 +1,92 @@
+﻿[
+    {
+        "value":  [
+                      "Connector Blocks",
+                      null,
+                      "Tot Depth",
+                      "Cost Ea.",
+                      "Size"
+                  ],
+        "Count":  5
+    },
+    {
+        "value":  [
+                      "FOR 2 x 6 x 1/8",
+                      "OAZZ06217",
+                      null,
+                      72.12,
+                      null
+                  ],
+        "Count":  5
+    },
+    {
+        "value":  [
+                      "FOR 2 x 8 x 1/8",
+                      "OAZZ06246",
+                      null,
+                      87,
+                      null
+                  ],
+        "Count":  5
+    },
+    {
+        "value":  [
+                      "FOR 2 x 8 x 8 x 1/8",
+                      null,
+                      null,
+                      160,
+                      null
+                  ],
+        "Count":  5
+    },
+    {
+        "value":  [
+                      "FOR 4\" x 4\" X 1/4",
+                      "0AZZ06361",
+                      "2\"",
+                      65,
+                      "4x4"
+                  ],
+        "Count":  5
+    },
+    {
+        "value":  [
+                      "FOR 4 X 4 X 1/4 - Angled",
+                      "0AZZ06303",
+                      "3\"",
+                      130,
+                      null
+                  ],
+        "Count":  5
+    },
+    {
+        "value":  [
+                      "FOR 6 x 6 x 1/4 - Cantilevered",
+                      "0AZZ06387",
+                      "6\"",
+                      295,
+                      null
+                  ],
+        "Count":  5
+    },
+    {
+        "value":  [
+                      "FOR 6 x 6 x 1/4 Angled",
+                      "0AZZ06418",
+                      "4\"",
+                      126,
+                      null
+                  ],
+        "Count":  5
+    },
+    {
+        "value":  [
+                      "FOR 6 X 6 X 1/4",
+                      "0AZZ06203",
+                      "2\"",
+                      75,
+                      "6x6"
+                  ],
+        "Count":  5
+    }
+]

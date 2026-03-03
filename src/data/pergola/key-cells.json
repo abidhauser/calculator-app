@@ -1,0 +1,1541 @@
+﻿[
+    {
+        "address":  "C4",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D4",
+        "text":  "                       -   ",
+        "value2":  0,
+        "formula":  "0",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E4",
+        "text":  "                             -   ",
+        "value2":  0,
+        "formula":  "0",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C5",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D5",
+        "text":  "                       -   ",
+        "value2":  0,
+        "formula":  "0",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E5",
+        "text":  "                             -   ",
+        "value2":  0,
+        "formula":  "0",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C6",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D6",
+        "text":  "                       -   ",
+        "value2":  0,
+        "formula":  "0",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E6",
+        "text":  "                             -   ",
+        "value2":  0,
+        "formula":  "0",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C8",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "Pergola, Grand Pergola"
+    },
+    {
+        "address":  "C9",
+        "text":  "",
+        "value2":  "",
+        "formula":  "=IF(C8=\"Pergola\",\"4x4\",IF(C8=\"Grand Pergola\",\"6x6\",\"\"))",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C11",
+        "text":  "No",
+        "value2":  "No",
+        "formula":  "No",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "Yes, No"
+    },
+    {
+        "address":  "C14",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "Aluminum, Alumiwood, Cedar"
+    },
+    {
+        "address":  "C15",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "Vertical, Horizontal"
+    },
+    {
+        "address":  "C16",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=$F$16#"
+    },
+    {
+        "address":  "C17",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C18",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "Parallel to length, Parallel to depth"
+    },
+    {
+        "address":  "C23",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C24",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C25",
+        "text":  "",
+        "value2":  "",
+        "formula":  "=IF(OR(C4=\"\",C5=\"\",C9=\"\",C15=\"\",C16=\"\",C18=\"\",C23=\"\"),\"\",ROUNDUP(((IF(C18=\"Parallel to Length\",(C5*12-2*VALUE(LEFT(C9,FIND(\"x\",C9)-1))),(C4*12-2*VALUE(LEFT(C9,FIND(\"x\",C9)-1)))))*(C23/100))/IF(C15=\"Horizontal\",MAX(VALUE(LEFT(C16,FIND(\"x\",C16)-1)),VALUE(MID(C16,FIND(\"x\",C16)+1,10))),MIN(VALUE(LEFT(C16,FIND(\"x\",C16)-1)),VALUE(MID(C16,FIND(\"x\",C16)+1,10)))),0))",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "I14",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "Aluminum, Alumiwood, Cedar"
+    },
+    {
+        "address":  "I15",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "Vertical, Horizontal"
+    },
+    {
+        "address":  "I16",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=$L$16#"
+    },
+    {
+        "address":  "I17",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "I18",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "Parallel to top, Parallel to height"
+    },
+    {
+        "address":  "I19",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "0,1,2"
+    },
+    {
+        "address":  "I20",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "0,1,2"
+    },
+    {
+        "address":  "I21",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "I22",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "I23",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "I24",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "I25",
+        "text":  "",
+        "value2":  "",
+        "formula":  "=IF(OR(Quoting!$C$4=\"\", Quoting!$C$6=\"\", Quoting!$C$9=\"\", Quoting!$I$15=\"\", Quoting!$I$16=\"\", Quoting!$I$18=\"\", Quoting!$I$19=\"\", Quoting!$I$23=\"\"), \"\",\nROUNDUP(\n   IF(Quoting!$I$19=0,0,\n      (\n         IF(Quoting!$I$18=\"Parallel to Top\",\n            IF(Quoting!$I$15=\"Horizontal\",\n               Quoting!$C$6*12 - MAX(VALUE(LEFT(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)-1)), VALUE(MID(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)+1,10))) - Quoting!$I$21 - Quoting!$I$22,\n               Quoting!$C$6*12 - MIN(VALUE(LEFT(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)-1)), VALUE(MID(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)+1,10))) - Quoting!$I$21 - Quoting!$I$22\n            ),\n            IF(Quoting!$I$18=\"Parallel to Height\",\n               IF(Quoting!$I$15=\"Horizontal\",\n                  Quoting!$C$4*12 - 2*MAX(VALUE(LEFT(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)-1)), VALUE(MID(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)+1,10))),\n                  Quoting!$C$4*12 - 2*MIN(VALUE(LEFT(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)-1)), VALUE(MID(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)+1,10)))\n               )\n            )\n         )\n         * (Quoting!$I$23/100)\n      )\n      / IF(Quoting!$I$15=\"Horizontal\",\n         MAX(VALUE(LEFT(Quoting!$I$16,FIND(\"x\",Quoting!$I$16)-1)), VALUE(MID(Quoting!$I$16,FIND(\"x\",Quoting!$I$16)+1,10))),\n         MIN(VALUE(LEFT(Quoting!$I$16,FIND(\"x\",Quoting!$I$16)-1)), VALUE(MID(Quoting!$I$16,FIND(\"x\",Quoting!$I$16)+1,10)))\n      )\n   ),0)\n)",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "I26",
+        "text":  "",
+        "value2":  "",
+        "formula":  "=IF(OR(Quoting!$C$5=\"\", Quoting!$C$6=\"\", Quoting!$C$9=\"\", Quoting!$I$15=\"\", Quoting!$I$16=\"\", Quoting!$I$18=\"\", Quoting!$I$20=\"\", Quoting!$I$23=\"\"), \"\",\nROUNDUP(\n   IF(Quoting!$I$20=0,0,\n      (\n         IF(Quoting!$I$18=\"Parallel to Top\",\n            IF(Quoting!$I$15=\"Horizontal\",\n               Quoting!$C$6*12 - MAX(VALUE(LEFT(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)-1)), VALUE(MID(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)+1,10))) - Quoting!$I$21 - Quoting!$I$22,\n               Quoting!$C$6*12 - MIN(VALUE(LEFT(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)-1)), VALUE(MID(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)+1,10))) - Quoting!$I$21 - Quoting!$I$22\n            ),\n            IF(Quoting!$I$18=\"Parallel to Height\",\n               IF(Quoting!$I$15=\"Horizontal\",\n                  Quoting!$C$5*12 - 2*MAX(VALUE(LEFT(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)-1)), VALUE(MID(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)+1,10))),\n                  Quoting!$C$5*12 - 2*MIN(VALUE(LEFT(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)-1)), VALUE(MID(Quoting!$C$9,FIND(\"x\",Quoting!$C$9)+1,10)))\n               )\n            )\n         )\n         * (Quoting!$I$23/100)\n      )\n      / IF(Quoting!$I$15=\"Horizontal\",\n         MAX(VALUE(LEFT(Quoting!$I$16,FIND(\"x\",Quoting!$I$16)-1)), VALUE(MID(Quoting!$I$16,FIND(\"x\",Quoting!$I$16)+1,10))),\n         MIN(VALUE(LEFT(Quoting!$I$16,FIND(\"x\",Quoting!$I$16)-1)), VALUE(MID(Quoting!$I$16,FIND(\"x\",Quoting!$I$16)+1,10)))\n      )\n   ),0)\n)",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C30",
+        "text":  "Vertical Columns",
+        "value2":  "Vertical Columns",
+        "formula":  "Vertical Columns",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D30",
+        "text":  "",
+        "value2":  "",
+        "formula":  "=$C$9",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C31",
+        "text":  "Beams on length",
+        "value2":  "Beams on length",
+        "formula":  "Beams on length",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D31",
+        "text":  "",
+        "value2":  "",
+        "formula":  "=$C$9",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C32",
+        "text":  "Beams on depth",
+        "value2":  "Beams on depth",
+        "formula":  "Beams on depth",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D32",
+        "text":  "",
+        "value2":  "",
+        "formula":  "=$C$9",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C33",
+        "text":  "Roof Purlins",
+        "value2":  "Roof Purlins",
+        "formula":  "Roof Purlins",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D33",
+        "text":  "0",
+        "value2":  0,
+        "formula":  "=$C$16",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C34",
+        "text":  "Side Purlins on length",
+        "value2":  "Side Purlins on length",
+        "formula":  "Side Purlins on length",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D34",
+        "text":  "0",
+        "value2":  0,
+        "formula":  "=$I$16",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C35",
+        "text":  "Side Purlins on depth",
+        "value2":  "Side Purlins on depth",
+        "formula":  "Side Purlins on depth",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D35",
+        "text":  "0",
+        "value2":  0,
+        "formula":  "=$I$16",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C36",
+        "text":  "Standard Blocks",
+        "value2":  "Standard Blocks",
+        "formula":  "Standard Blocks",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D36",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C37",
+        "text":  "Feet",
+        "value2":  "Feet",
+        "formula":  "Feet",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D37",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C38",
+        "text":  "End Caps",
+        "value2":  "End Caps",
+        "formula":  "End Caps",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D38",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C39",
+        "text":  "Canopies",
+        "value2":  "Canopies",
+        "formula":  "Canopies",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D39",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D43",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=INDIRECT(\"x\" \u0026 SUBSTITUTE($C$9,\"x\",\"x\"))"
+    },
+    {
+        "address":  "D44",
+        "text":  "0.125",
+        "value2":  0.125,
+        "formula":  "=IF(TRIM(C17)\u003c\u003e\"\",\"Select tubing manually from the extra dropdown\",IF($C$16=\"2x4\",0.12,0.125))",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D45",
+        "text":  "0.125",
+        "value2":  0.125,
+        "formula":  "=IF(TRIM(I17)\u003c\u003e\"\",\"Select tubing manually from the extra dropdown\",IF($I$16=\"2x4\",0.12,0.125))",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C47",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=TubingList"
+    },
+    {
+        "address":  "D47",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E47",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F47",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D47*E47",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C48",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=TubingList"
+    },
+    {
+        "address":  "D48",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E48",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F48",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D48*E48",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C49",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=TubingList"
+    },
+    {
+        "address":  "D49",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E49",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F49",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D49*E49",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C50",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=TubingList"
+    },
+    {
+        "address":  "D50",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E50",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F50",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D50*E50",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C51",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=TubingList"
+    },
+    {
+        "address":  "D51",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E51",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F51",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D51*E51",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C52",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=TubingList"
+    },
+    {
+        "address":  "D52",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E52",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F52",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D52*E52",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C53",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=TubingList"
+    },
+    {
+        "address":  "D53",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E53",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F53",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D53*E53",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C54",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=TubingList"
+    },
+    {
+        "address":  "D54",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E54",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F54",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D54*E54",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C57",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=BlocksList"
+    },
+    {
+        "address":  "D57",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E57",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F57",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D57*E57",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C58",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=BlocksList"
+    },
+    {
+        "address":  "D58",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E58",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F58",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D58*E58",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C59",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=BlocksList"
+    },
+    {
+        "address":  "D59",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E59",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F59",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D59*E59",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C60",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=BlocksList"
+    },
+    {
+        "address":  "D60",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E60",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F60",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D60*E60",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C63",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=EndCapsList"
+    },
+    {
+        "address":  "D63",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E63",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F63",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D63*E63",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C64",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=EndCapsList"
+    },
+    {
+        "address":  "D64",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E64",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F64",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D64*E64",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C65",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=EndCapsList"
+    },
+    {
+        "address":  "D65",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E65",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F65",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D65*E65",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C66",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=EndCapsList"
+    },
+    {
+        "address":  "D66",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E66",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F66",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D66*E66",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C69",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=AngleIronList"
+    },
+    {
+        "address":  "D69",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E69",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F69",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D69*E69",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C70",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=AngleIronList"
+    },
+    {
+        "address":  "D70",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E70",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F70",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D70*E70",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C71",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=AngleIronList"
+    },
+    {
+        "address":  "D71",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E71",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F71",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D71*E71",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C72",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=AngleIronList"
+    },
+    {
+        "address":  "D72",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E72",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F72",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D72*E72",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C75",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=FlatbarList"
+    },
+    {
+        "address":  "D75",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E75",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F75",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D75*E75",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "C76",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  3,
+        "validationFormula1":  "=FlatbarList"
+    },
+    {
+        "address":  "D76",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E76",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F76",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D76*E76",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D80",
+        "text":  "0",
+        "value2":  0,
+        "formula":  "=$B$39",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E80",
+        "text":  "                      20.00 ",
+        "value2":  20,
+        "formula":  "20",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F80",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D80*E80",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D81",
+        "text":  "0",
+        "value2":  0,
+        "formula":  "=$B$37",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E81",
+        "text":  "                      15.00 ",
+        "value2":  15,
+        "formula":  "15",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F81",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D81*E81",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D83",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E83",
+        "text":  "                   100.00 ",
+        "value2":  100,
+        "formula":  "100",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F83",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D83*E83",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D84",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E84",
+        "text":  "                   200.00 ",
+        "value2":  200,
+        "formula":  "200",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F84",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D84*E84",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D85",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E85",
+        "text":  "                   300.00 ",
+        "value2":  300,
+        "formula":  "300",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F85",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D85*E85",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D86",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E86",
+        "text":  "                   100.00 ",
+        "value2":  100,
+        "formula":  "100",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F86",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D86*E86",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D88",
+        "text":  "",
+        "value2":  null,
+        "formula":  "",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E88",
+        "text":  "                      50.00 ",
+        "value2":  50,
+        "formula":  "50",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "F88",
+        "text":  "                            -   ",
+        "value2":  0,
+        "formula":  "=D88*E88",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D90",
+        "text":  "                       -   ",
+        "value2":  0,
+        "formula":  "0",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D92",
+        "text":  "                       -   ",
+        "value2":  0,
+        "formula":  "=SUM(F47:F88) + $D$90",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D94",
+        "text":  "60%",
+        "value2":  0.6,
+        "formula":  "0.6",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E94",
+        "text":  "50%",
+        "value2":  0.5,
+        "formula":  "0.5",
+        "hasFormula":  false,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "D95",
+        "text":  "                       -   ",
+        "value2":  0,
+        "formula":  "=CEILING(D92/(1-D94),500)",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    },
+    {
+        "address":  "E95",
+        "text":  "                             -   ",
+        "value2":  0,
+        "formula":  "=CEILING(D92/(1-E94),500)",
+        "hasFormula":  true,
+        "validationType":  null,
+        "validationFormula1":  null
+    }
+]

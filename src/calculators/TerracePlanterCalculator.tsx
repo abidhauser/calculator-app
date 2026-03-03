@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import CutPlanView from '@/components/cut-plan-view'
@@ -27,7 +27,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import { Menubar, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar'
+import { cn } from '@/lib/utils'
 import type { CostBreakdownPreview, CostThreshold, PlanterInput } from '../types'
 import {
   DEFAULT_SHEET_INVENTORY,
@@ -122,9 +124,9 @@ const thicknessOptions = [
 ]
 
 const defaultPlanterInput: PlanterInput = {
-  length: 36,
-  width: 24,
-  height: 24,
+  length: Number.NaN,
+  width: Number.NaN,
+  height: Number.NaN,
   marginPct: 50,
   thickness: 0.125,
   lip: 2.125,
@@ -347,6 +349,7 @@ type MeasurementUnit = 'in' | 'mm'
 
 const INCH_TO_MM = 25.4
 const DIMENSION_INPUT_FIELDS: NumericPlanterField[] = ['length', 'width', 'height', 'lip', 'linerDepth']
+const EMPTY_ON_BLUR_FIELDS: NumericPlanterField[] = ['length', 'width', 'height']
 
 const isDimensionInputField = (field: NumericPlanterField) => DIMENSION_INPUT_FIELDS.includes(field)
 
@@ -721,7 +724,7 @@ function App() {
         }
 
         const breakdown = breakdownLookup[category]
-        const tierUsed = breakdown?.tierUsed ?? '—'
+        const tierUsed = breakdown?.tierUsed ?? '-'
         const notes = breakdown
           ? breakdown.tierUsed === 'Not Selected'
             ? `${category} is not selected yet.`
@@ -831,7 +834,9 @@ function App() {
   const handleInputBlur = (field: NumericPlanterField) => {
     setPlanterInput((prev) => {
       const currentValue = prev[field]
-      return Number.isFinite(currentValue) ? prev : { ...prev, [field]: 0 }
+      if (Number.isFinite(currentValue)) return prev
+      if (EMPTY_ON_BLUR_FIELDS.includes(field)) return prev
+      return { ...prev, [field]: 0 }
     })
   }
 
@@ -1056,7 +1061,7 @@ function App() {
     })
 
     const csv = serializeCsv(rows)
-    // Include UTF-8 BOM so Excel and other Windows tools decode symbols like × correctly.
+    // Include UTF-8 BOM so Excel and other Windows tools decode symbols like x correctly.
     const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
@@ -1368,10 +1373,10 @@ function App() {
   }
 
   const fabricationSizeLabel = isCalculated
-    ? `${formatDimension(fabricationDims.length)} × ${formatDimension(fabricationDims.width)} × ${formatDimension(
+    ? `${formatDimension(fabricationDims.length)} x ${formatDimension(fabricationDims.width)} x ${formatDimension(
         fabricationDims.height,
       )}`
-    : '—'
+    : '-'
   const isPlanterDetailsOpen = isPrintMode || resultsSectionState.planterDetails
   const isOverviewOpen = isPrintMode || resultsSectionState.overview
   const isCostBreakdownOpen = isPrintMode || resultsSectionState.costBreakdown
@@ -1463,26 +1468,41 @@ function App() {
               </div>
             </header>
 
-            <TabsList className="grid h-auto w-full grid-cols-3 overflow-hidden rounded-full border border-border/80 bg-muted p-1 text-sm font-medium text-muted-foreground">
-              <TabsTrigger
-                value="input"
-                className="rounded-full text-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm"
-              >
-                Input
-              </TabsTrigger>
-              <TabsTrigger
-                value="results"
-                className="rounded-full text-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm"
-              >
-                Results
-              </TabsTrigger>
-              <TabsTrigger
-                value="settings"
-                className="rounded-full text-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm"
-              >
-                Settings
-              </TabsTrigger>
-            </TabsList>
+            <Menubar className="grid h-auto w-full grid-cols-3 rounded-full p-1">
+              <MenubarMenu>
+                <MenubarTrigger
+                  onClick={() => setActiveTab('input')}
+                  className={cn(
+                    'w-full cursor-pointer justify-center rounded-full text-foreground',
+                    activeTab === 'input' && 'border border-border bg-background shadow-sm',
+                  )}
+                >
+                  Input
+                </MenubarTrigger>
+              </MenubarMenu>
+              <MenubarMenu>
+                <MenubarTrigger
+                  onClick={() => setActiveTab('results')}
+                  className={cn(
+                    'w-full cursor-pointer justify-center rounded-full text-foreground',
+                    activeTab === 'results' && 'border border-border bg-background shadow-sm',
+                  )}
+                >
+                  Results
+                </MenubarTrigger>
+              </MenubarMenu>
+              <MenubarMenu>
+                <MenubarTrigger
+                  onClick={() => setActiveTab('settings')}
+                  className={cn(
+                    'w-full cursor-pointer justify-center rounded-full text-foreground',
+                    activeTab === 'settings' && 'border border-border bg-background shadow-sm',
+                  )}
+                >
+                  Settings
+                </MenubarTrigger>
+              </MenubarMenu>
+            </Menubar>
           </div>
 
           <TabsContent value="input" className="space-y-6">
@@ -1626,7 +1646,7 @@ function App() {
                       />
                         <div>
                           <Label htmlFor="floor" className="text-sm font-semibold text-foreground">
-                            Floor panel
+                            Floor
                           </Label>
                         </div>
                     </div>
@@ -1696,8 +1716,8 @@ function App() {
                       </div>
                       {linerDimensions && (
                         <p className="text-sm text-muted-foreground">
-                          Derived liner dims: {formatDimension(linerDimensions.length)} ×{' '}
-                          {formatDimension(linerDimensions.width)} × {formatDimension(linerDimensions.height)} (length × width ×
+                          Derived liner dims: {formatDimension(linerDimensions.length)} x{' '}
+                          {formatDimension(linerDimensions.width)} x {formatDimension(linerDimensions.height)} (length x width x
                           height). Height is half of the planter height for now.
                         </p>
                       )}
@@ -1802,15 +1822,15 @@ function App() {
                     <div className="results-grid-3 grid gap-3 md:grid-cols-3">
                       <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Length</p>
-                        <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.length)}</p>
+                        <p className="text-sm font-semibold text-foreground">{Number.isFinite(planterInput.length) ? formatDimension(planterInput.length) : '-'}</p>
                       </div>
                       <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Width</p>
-                        <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.width)}</p>
+                        <p className="text-sm font-semibold text-foreground">{Number.isFinite(planterInput.width) ? formatDimension(planterInput.width) : '-'}</p>
                       </div>
                       <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Height</p>
-                        <p className="text-sm font-semibold text-foreground">{formatDimension(planterInput.height)}</p>
+                        <p className="text-sm font-semibold text-foreground">{Number.isFinite(planterInput.height) ? formatDimension(planterInput.height) : '-'}</p>
                       </div>
                     </div>
                     <div className="results-grid-3 grid gap-3 md:grid-cols-3">
@@ -2039,19 +2059,19 @@ function App() {
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User sale price</p>
                       <p className="text-lg font-semibold text-foreground">
-                        {hasUserSalePrice ? formatCurrencyValue(userSalePrice) : '—'}
+                        {hasUserSalePrice ? formatCurrencyValue(userSalePrice) : '-'}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User margin %</p>
                       <p className="text-lg font-semibold text-foreground">
-                        {hasUserSalePrice ? formatPercentValue(userSaleMarginPct) : '—'}
+                        {hasUserSalePrice ? formatPercentValue(userSaleMarginPct) : '-'}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">User vs suggested</p>
                       <p className="text-lg font-semibold text-foreground">
-                        {hasUserSalePrice ? formatCurrencyValue(userSalePriceDelta) : '—'}
+                        {hasUserSalePrice ? formatCurrencyValue(userSalePriceDelta) : '-'}
                       </p>
                     </div>
                   </div>
@@ -2544,5 +2564,12 @@ function App() {
 }
 
 export default App
+
+
+
+
+
+
+
 
 
