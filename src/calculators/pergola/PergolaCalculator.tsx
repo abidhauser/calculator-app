@@ -1356,7 +1356,7 @@ const PergolaCalculator = () => {
                                 <TableHead>Qty</TableHead>
                                 <TableHead className="w-[14%]">Unit Cost</TableHead>
                                 <TableHead className="w-[14%]">Total Cost</TableHead>
-                                <TableHead className="w-[14%] results-print-hide">Actions</TableHead>
+                                <TableHead className="w-[14%] results-print-hide" />
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -1842,7 +1842,7 @@ const EditableSourceTableCard = <T extends Record<string, EditableCellValue>>({
             {columns.map((column) => (
               <TableHead key={String(column.key)}>{column.label}</TableHead>
             ))}
-            <TableHead>Actions</TableHead>
+            <TableHead />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -1910,4 +1910,6 @@ const EditableSourceTableCard = <T extends Record<string, EditableCellValue>>({
 )
 
 export default PergolaCalculator
+
+
 

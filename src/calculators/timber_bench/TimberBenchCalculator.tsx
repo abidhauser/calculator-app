@@ -5,12 +5,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Menubar, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 
 type TimberType = 'Cedar' | 'Pressure Treated' | 'Ipe'
 type FinishType = 'Natural' | 'Stained' | 'Painted'
 type MeasurementUnit = 'in' | 'mm'
+type LaborItem = {
+  description: string
+  labourHours: string
+  costPerHour: string
+}
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', {
@@ -32,7 +38,9 @@ const TimberBenchCalculator = () => {
   const [finish, setFinish] = useState<FinishType>('Natural')
   const [backrestEnabled, setBackrestEnabled] = useState<'Yes' | 'No'>('No')
   const [armrestEnabled, setArmrestEnabled] = useState<'Yes' | 'No'>('No')
-  const [laborRatePerUnit, setLaborRatePerUnit] = useState('150')
+  const [laborItems, setLaborItems] = useState<LaborItem[]>([
+    { description: 'Bench fabrication', labourHours: '3', costPerHour: '50' },
+  ])
   const [wastePct, setWastePct] = useState('8')
 
   const displayDimension = (inches: number) =>
@@ -44,13 +52,35 @@ const TimberBenchCalculator = () => {
     setter(measurementUnit === 'in' ? parsed : parsed / 25.4)
   }
 
+  const updateLaborItem = (rowIndex: number, field: keyof LaborItem, value: string) => {
+    setLaborItems((previous) =>
+      previous.map((item, index) => (index === rowIndex ? { ...item, [field]: value } : item)),
+    )
+  }
+
+  const addLaborItemBelow = (rowIndex: number) => {
+    setLaborItems((previous) => {
+      const next = [...previous]
+      next.splice(rowIndex + 1, 0, { description: '', labourHours: '0', costPerHour: '0' })
+      return next
+    })
+  }
+
+  const removeLaborItem = (rowIndex: number) => {
+    setLaborItems((previous) => previous.filter((_, index) => index !== rowIndex))
+  }
+
   const summary = useMemo(() => {
     const length = lengthInches
     const depth = depthInches
     const height = heightInches
     const qty = Math.max(Number(quantity) || 0, 0)
     const margin = Math.min(Math.max((Number(marginPct) || 0) / 100, 0), 0.99)
-    const laborRate = Math.max(Number(laborRatePerUnit) || 0, 0)
+    const laborCostPerUnit = laborItems.reduce((sum, item) => {
+      const labourHours = Math.max(Number(item.labourHours) || 0, 0)
+      const costPerHour = Math.max(Number(item.costPerHour) || 0, 0)
+      return sum + labourHours * costPerHour
+    }, 0)
     const waste = Math.max((Number(wastePct) || 0) / 100, 0)
 
     const materialFactor = timberType === 'Ipe' ? 2.2 : timberType === 'Pressure Treated' ? 0.9 : 1.25
@@ -60,18 +90,18 @@ const TimberBenchCalculator = () => {
     const volumeFactor = (length * depth * height) / 10000
 
     const baseMaterial = volumeFactor * 55 * materialFactor * finishFactor * backrestFactor * armrestFactor
-    const unitCost = baseMaterial * (1 + waste) + laborRate
+    const unitCost = baseMaterial * (1 + waste) + laborCostPerUnit
     const totalCost = unitCost * qty
     const sellPrice = totalCost / (1 - margin)
 
-    return { unitCost, totalCost, sellPrice }
+    return { laborCostPerUnit, unitCost, totalCost, sellPrice }
   }, [
     armrestEnabled,
     backrestEnabled,
     depthInches,
     finish,
     heightInches,
-    laborRatePerUnit,
+    laborItems,
     lengthInches,
     marginPct,
     quantity,
@@ -235,6 +265,92 @@ const TimberBenchCalculator = () => {
                 </div>
               </CardContent>
             </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Items</CardTitle>
+                <CardDescription>Labor line items used in the unit-cost calculation.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Table className="border border-border">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[45%]">Description</TableHead>
+                      <TableHead>Labour hours</TableHead>
+                      <TableHead>Cost/hr</TableHead>
+                      <TableHead>Total cost</TableHead>
+                      <TableHead className="w-[110px]" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {laborItems.map((item, rowIndex) => {
+                      const labourHours = Math.max(Number(item.labourHours) || 0, 0)
+                      const costPerHour = Math.max(Number(item.costPerHour) || 0, 0)
+                      const totalCost = labourHours * costPerHour
+
+                      return (
+                        <TableRow key={`labor-item-${rowIndex}`}>
+                          <TableCell>
+                            <Input
+                              value={item.description}
+                              onChange={(event) => updateLaborItem(rowIndex, 'description', event.target.value)}
+                              placeholder="Description"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={item.labourHours}
+                              onChange={(event) => updateLaborItem(rowIndex, 'labourHours', event.target.value)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={item.costPerHour}
+                              onChange={(event) => updateLaborItem(rowIndex, 'costPerHour', event.target.value)}
+                            />
+                          </TableCell>
+                          <TableCell>{formatCurrency(totalCost)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="text-xl font-bold text-emerald-600 hover:text-emerald-700"
+                                onClick={() => addLaborItemBelow(rowIndex)}
+                              >
+                                +
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="text-xl font-bold text-red-600 hover:text-red-700"
+                                onClick={() => removeLaborItem(rowIndex)}
+                                disabled={laborItems.length === 1}
+                              >
+                                -
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                    <TableRow>
+                      <TableCell className="font-semibold">Total</TableCell>
+                      <TableCell />
+                      <TableCell />
+                      <TableCell className="font-semibold">{formatCurrency(summary.laborCostPerUnit)}</TableCell>
+                      <TableCell />
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
           </TabsContent>
 
           <TabsContent value="results" className="space-y-6">
@@ -268,15 +384,6 @@ const TimberBenchCalculator = () => {
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Labor rate per bench (USD)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={laborRatePerUnit}
-                    onChange={(event) => setLaborRatePerUnit(event.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label>Waste factor (%)</Label>
                   <Input
                     type="number"
@@ -300,4 +407,9 @@ const TimberBenchCalculator = () => {
 }
 
 export default TimberBenchCalculator
+
+
+
+
+
 
