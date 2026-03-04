@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Button } from '@/components/ui/button'
-import CutPlanView from '@/components/cut-plan-view'
+import CutPlanView from '@/calculators/terrace_planter/components/cut-plan-view'
 import {
   Card,
   CardContent,
@@ -31,14 +31,14 @@ import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { Menubar, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar'
 import { cn } from '@/lib/utils'
 import { parseCsv, serializeCsv } from '@/lib/csv'
-import type { CostBreakdownPreview, CostThreshold, PlanterInput } from '../types'
+import type { CostBreakdownPreview, CostThreshold, PlanterInput } from '@/types'
 import {
   DEFAULT_SHEET_INVENTORY,
   buildFabricationDimensions,
   runPlanterSolver,
   type SheetInventoryRow,
   type SolverResult,
-} from '../lib/planterSolver'
+} from '@/lib/terrace_planter/planterSolver'
 
 type Category =
   | 'Weld'
@@ -2497,4 +2497,6 @@ function App() {
 }
 
 export default App
+
+
 

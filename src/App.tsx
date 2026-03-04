@@ -8,8 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import TerracePlanterCalculator from '@/calculators/TerracePlanterCalculator'
-import PergolaCalculator from '@/calculators/PergolaCalculator'
+import TerracePlanterCalculator from '@/calculators/terrace_planter/TerracePlanterCalculator'
+import PergolaCalculator from '@/calculators/pergola/PergolaCalculator'
 import { stripAppBasePath, withAppBasePath } from '@/lib/routing'
 
 const HUB_ROUTE = '/calculators' as const
@@ -168,4 +168,5 @@ function App() {
 }
 
 export default App
+
 
