@@ -10,10 +10,11 @@ import {
 } from '@/components/ui/card'
 import TerracePlanterCalculator from '@/calculators/terrace_planter/TerracePlanterCalculator'
 import PergolaCalculator from '@/calculators/pergola/PergolaCalculator'
+import TimberBenchCalculator from '@/calculators/timber_bench/TimberBenchCalculator'
 import { stripAppBasePath, withAppBasePath } from '@/lib/routing'
 
 const HUB_ROUTE = '/calculators' as const
-type Route = typeof HUB_ROUTE | '/calculators/terrace-planter' | '/calculators/pergola'
+type Route = typeof HUB_ROUTE | '/calculators/terrace-planter' | '/calculators/pergola' | '/calculators/timber-bench'
 
 type CalculatorMeta = {
   slug: Route
@@ -35,6 +36,12 @@ const CALCULATORS: CalculatorMeta[] = [
     description: 'Configure pergola dimensions, purlin layouts, piece counts, and pricing in one tool.',
     status: 'available',
   },
+  {
+    slug: '/calculators/timber-bench',
+    title: 'Timber Bench',
+    description: 'Configure timber bench dimensions, options, and initial pricing controls.',
+    status: 'available',
+  },
 ]
 
 const normalizePathRoute = (pathname: string): Route | 'not-found' => {
@@ -45,6 +52,7 @@ const normalizePathRoute = (pathname: string): Route | 'not-found' => {
   if (route === '/' || route === HUB_ROUTE) return HUB_ROUTE
   if (route === '/calculators/terrace-planter') return '/calculators/terrace-planter'
   if (route === '/calculators/pergola') return '/calculators/pergola'
+  if (route === '/calculators/timber-bench') return '/calculators/timber-bench'
 
   return 'not-found'
 }
@@ -160,6 +168,15 @@ function App() {
     )
   }
 
+  if (pathRoute === '/calculators/timber-bench') {
+    return (
+      <>
+        <BackButton />
+        <TimberBenchCalculator />
+      </>
+    )
+  }
+
   if (pathRoute === HUB_ROUTE) {
     return <CalculatorHub />
   }
@@ -168,5 +185,3 @@ function App() {
 }
 
 export default App
-
-
