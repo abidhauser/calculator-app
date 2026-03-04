@@ -1,44 +1,45 @@
 {
-  "name": "calculator_app",
-  "private": true,
-  "version": "3.0.0",
-  "type": "module",
-  "homepage": "https://abidhauser.github.io/calculator-app",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/create-gh-pages-fallback.mjs",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "test:pergola": "node scripts/pergola-parity-check.mjs",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.2.1",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.575.0",
-    "radix-ui": "^1.4.3",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4.2.1"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "gh-pages": "^6.3.0",
-    "globals": "^16.5.0",
-    "shadcn": "^3.8.5",
-    "tw-animate-css": "^1.4.0",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.48.0",
-    "vite": "^7.3.1"
-  }
+    "name":  "calculator_app",
+    "private":  true,
+    "version":  "3.0.0",
+    "type":  "module",
+    "homepage":  "https://abidhauser.github.io/calculator-app",
+    "scripts":  {
+                    "preview":  "vite preview",
+                    "build":  "tsc -b \u0026\u0026 vite build \u0026\u0026 node scripts/create-gh-pages-fallback.mjs",
+                    "lint":  "eslint .",
+                    "test:pergola":  "node scripts/pergola-parity-check.mjs",
+                    "predeploy":  "npm run build",
+                    "test:quote-sync":  "node scripts/quote-sync-check.mjs",
+                    "deploy":  "gh-pages -d dist",
+                    "dev":  "vite"
+                },
+    "dependencies":  {
+                         "@tailwindcss/vite":  "^4.2.1",
+                         "class-variance-authority":  "^0.7.1",
+                         "clsx":  "^2.1.1",
+                         "lucide-react":  "^0.575.0",
+                         "radix-ui":  "^1.4.3",
+                         "react":  "^19.2.0",
+                         "react-dom":  "^19.2.0",
+                         "tailwind-merge":  "^3.5.0",
+                         "tailwindcss":  "^4.2.1"
+                     },
+    "devDependencies":  {
+                            "@eslint/js":  "^9.39.1",
+                            "@types/node":  "^24.10.1",
+                            "@types/react":  "^19.2.7",
+                            "@types/react-dom":  "^19.2.3",
+                            "@vitejs/plugin-react":  "^5.1.1",
+                            "eslint":  "^9.39.1",
+                            "eslint-plugin-react-hooks":  "^7.0.1",
+                            "eslint-plugin-react-refresh":  "^0.4.24",
+                            "gh-pages":  "^6.3.0",
+                            "globals":  "^16.5.0",
+                            "shadcn":  "^3.8.5",
+                            "tw-animate-css":  "^1.4.0",
+                            "typescript":  "~5.9.3",
+                            "typescript-eslint":  "^8.48.0",
+                            "vite":  "^7.3.1"
+                        }
 }

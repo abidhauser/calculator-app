@@ -74,6 +74,37 @@ const makeDefaultInput = (): PergolaInput => ({
 })
 
 
+
+const getPrivacyPanelDefaults = () => ({
+  material: 'Aluminum' as const,
+  orientation: 'Horizontal' as const,
+  size: '2x4',
+  customSize: '',
+  alignment: 'Parallel to top' as const,
+  panelCountLength: 0,
+  panelCountDepth: 0,
+  groundClearanceIn: 0,
+  topClearanceIn: 0,
+  coveragePct: 0,
+  gapIn: 0,
+})
+
+const hasPrivacyPanelDefaults = (privacy: PergolaInput['privacy']) => {
+  const defaults = getPrivacyPanelDefaults()
+  return (
+    privacy.material === defaults.material &&
+    privacy.orientation === defaults.orientation &&
+    privacy.size === defaults.size &&
+    privacy.customSize === defaults.customSize &&
+    privacy.alignment === defaults.alignment &&
+    privacy.panelCountLength === defaults.panelCountLength &&
+    privacy.panelCountDepth === defaults.panelCountDepth &&
+    privacy.groundClearanceIn === defaults.groundClearanceIn &&
+    privacy.topClearanceIn === defaults.topClearanceIn &&
+    privacy.coveragePct === defaults.coveragePct &&
+    privacy.gapIn === defaults.gapIn
+  )
+}
 const PIECE_ROWS = [
   { key: 'verticalColumns', label: 'Vertical Columns' },
   { key: 'beamsLength', label: 'Beams on length' },
@@ -250,14 +281,12 @@ const PergolaCalculator = () => {
 
   const effectiveInput = useMemo<PergolaInput>(() => {
     if (privacyPanelsEnabled) return input
+    const privacyDefaults = getPrivacyPanelDefaults()
     return {
       ...input,
       privacy: {
         ...input.privacy,
-        size: '',
-        panelCountLength: 0,
-        panelCountDepth: 0,
-        coveragePct: 0,
+        ...privacyDefaults,
       },
     }
   }, [input, privacyPanelsEnabled])
@@ -381,6 +410,24 @@ const PergolaCalculator = () => {
     }
   }, [tubingRowsState, connectorRowsState, endCapRowsState, angleRowsState, flatbarRowsState])
 
+
+  useEffect(() => {
+    if (privacyPanelsEnabled) return
+
+    if (!hasPrivacyPanelDefaults(input.privacy)) {
+      setInput((prev) => ({
+        ...prev,
+        privacy: getPrivacyPanelDefaults(),
+      }))
+    }
+
+    setPieceQtyEdits((prev) => {
+      const next = { ...prev }
+      delete next.sidePurlinsLength
+      delete next.sidePurlinsDepth
+      return next
+    })
+  }, [privacyPanelsEnabled, input.privacy])
   const effectivePieceCounts = useMemo<PieceCounts>(() => {
     const base = result.pieceCounts
     const next = { ...base } as Record<PieceCountKey, number | null>
@@ -998,7 +1045,21 @@ const PergolaCalculator = () => {
                           <Checkbox
                             id="privacyPanels"
                             checked={privacyPanelsEnabled}
-                            onCheckedChange={(value: boolean | 'indeterminate') => setPrivacyPanelsEnabled(Boolean(value))}
+                            onCheckedChange={(value: boolean | 'indeterminate') => {
+                              const enabled = Boolean(value)
+                              setPrivacyPanelsEnabled(enabled)
+
+                              if (!enabled) {
+                                const privacyDefaults = getPrivacyPanelDefaults()
+                                setInput((prev) => ({
+                                  ...prev,
+                                  privacy: {
+                                    ...prev.privacy,
+                                    ...privacyDefaults,
+                                  },
+                                }))
+                              }
+                            }}
                           />
                           <Label htmlFor="privacyPanels" className="text-sm text-foreground">
                             Privacy panels
@@ -1028,29 +1089,28 @@ const PergolaCalculator = () => {
                     </CardContent>
                   </Card>
 
-                  {privacyPanelsEnabled && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Privacy Panel Purlins</CardTitle>
-                      </CardHeader>
-                      <CardContent className="grid gap-3 md:grid-cols-2">
-                        <Field label="Material" value={input.privacy.material} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, material: v as PergolaInput['privacy']['material'] } }))} options={['Aluminum', 'Alumiwood', 'Cedar']} />
-                        <Field label="Orientation" value={input.privacy.orientation} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, orientation: v as PergolaInput['privacy']['orientation'] } }))} options={['Horizontal', 'Vertical']} />
-                        <Field label="Size" value={input.privacy.size} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, size: v } }))} options={result.availablePrivacySizes} />
-                        <div className="space-y-2">
-                          <Label>Custom Size (AxB)</Label>
-                          <Input value={input.privacy.customSize} onChange={(e) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, customSize: e.target.value } }))} placeholder="optional" />
-                        </div>
-                        <Field label="Alignment" value={input.privacy.alignment} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, alignment: v as PergolaInput['privacy']['alignment'] } }))} options={['Parallel to top', 'Parallel to height']} />
-                        <NumberField label="# Panels on length" value={input.privacy.panelCountLength} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, panelCountLength: v } }))} />
-                        <NumberField label="# Panels on depth" value={input.privacy.panelCountDepth} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, panelCountDepth: v } }))} />
-                        <NumberField label="Ground clearance (in)" value={input.privacy.groundClearanceIn} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, groundClearanceIn: v } }))} />
-                        <NumberField label="Top clearance (in)" value={input.privacy.topClearanceIn} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, topClearanceIn: v } }))} />
-                        <NumberField label="Coverage (%)" value={input.privacy.coveragePct} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, coveragePct: v } }))} />
-                        <NumberField label="Gap (in)" value={input.privacy.gapIn} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, gapIn: v } }))} />
-                      </CardContent>
+                  <Card className={privacyPanelsEnabled ? "" : "opacity-70"}>
+                    <CardHeader>
+                      <CardTitle className="text-base">Privacy Panel Purlins</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid gap-3 md:grid-cols-2">
+                      <Field label="Material" value={input.privacy.material} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, material: v as PergolaInput["privacy"]["material"] } }))} options={['Aluminum', 'Alumiwood', 'Cedar']} disabled={!privacyPanelsEnabled} />
+                      <Field label="Orientation" value={input.privacy.orientation} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, orientation: v as PergolaInput["privacy"]["orientation"] } }))} options={['Horizontal', 'Vertical']} disabled={!privacyPanelsEnabled} />
+                      <Field label="Size" value={input.privacy.size} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, size: v } }))} options={result.availablePrivacySizes} disabled={!privacyPanelsEnabled} />
+                      <div className="space-y-2">
+                        <Label>Custom Size (AxB)</Label>
+                        <Input value={input.privacy.customSize} onChange={(e) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, customSize: e.target.value } }))} placeholder="optional" disabled={!privacyPanelsEnabled} />
+                      </div>
+                      <Field label="Alignment" value={input.privacy.alignment} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, alignment: v as PergolaInput["privacy"]["alignment"] } }))} options={['Parallel to top', 'Parallel to height']} disabled={!privacyPanelsEnabled} />
+                      <NumberField label="# Panels on length" value={input.privacy.panelCountLength} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, panelCountLength: v } }))} disabled={!privacyPanelsEnabled} />
+                      <NumberField label="# Panels on depth" value={input.privacy.panelCountDepth} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, panelCountDepth: v } }))} disabled={!privacyPanelsEnabled} />
+                      <NumberField label="Ground clearance (in)" value={input.privacy.groundClearanceIn} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, groundClearanceIn: v } }))} disabled={!privacyPanelsEnabled} />
+                      <NumberField label="Top clearance (in)" value={input.privacy.topClearanceIn} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, topClearanceIn: v } }))} disabled={!privacyPanelsEnabled} />
+                      <NumberField label="Coverage (%)" value={input.privacy.coveragePct} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, coveragePct: v } }))} disabled={!privacyPanelsEnabled} />
+                      <NumberField label="Gap (in)" value={input.privacy.gapIn} onChange={(v) => setInput((prev) => ({ ...prev, privacy: { ...prev.privacy, gapIn: v } }))} disabled={!privacyPanelsEnabled} />
+                    </CardContent>
                     </Card>
-                  )}
+                    
                 </div>
 
                 <Card>
@@ -1669,13 +1729,14 @@ type FieldProps = {
   value: string
   options: string[]
   onChange: (value: string) => void
+  disabled?: boolean
 }
 
-const Field = ({ label, value, options, onChange }: FieldProps) => (
+const Field = ({ label, value, options, onChange, disabled }: FieldProps) => (
   <div className="space-y-2">
     <Label>{label}</Label>
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+    <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger className="w-full" disabled={disabled}><SelectValue /></SelectTrigger>
       <SelectContent>
         {options.map((option) => (
           <SelectItem key={option} value={option}>{option}</SelectItem>
@@ -1689,14 +1750,16 @@ type NumberFieldProps = {
   label: string
   value: number
   onChange: (value: number) => void
+  disabled?: boolean
 }
 
-const NumberField = ({ label, value, onChange }: NumberFieldProps) => (
+const NumberField = ({ label, value, onChange, disabled }: NumberFieldProps) => (
   <div className="space-y-2">
     <Label>{label}</Label>
     <Input
       type="number"
       value={value}
+      disabled={disabled}
       onChange={(e) => {
         const parsed = Number(e.target.value)
         if (Number.isFinite(parsed)) onChange(parsed)
