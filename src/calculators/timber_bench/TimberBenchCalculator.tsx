@@ -18,6 +18,19 @@ type LaborItem = {
   costPerHour: string
 }
 
+const DESCRIPTION_OPTIONS = [
+  'Number or Slats (2.5 wide x 5.5 high)',
+  "Number or Bases Req'd",
+  'Glides',
+  'Final Assy (Drill wood/oil/assy)',
+  'Angle and Flatbar Material',
+  'Hardware',
+  '# of Backs required',
+  '# of Arms required',
+] as const
+
+const CUSTOM_DESCRIPTION_VALUE = '__custom__'
+
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -27,7 +40,7 @@ const formatCurrency = (value: number) =>
   }).format(value)
 
 const TimberBenchCalculator = () => {
-  const [activeTab, setActiveTab] = useState<'input' | 'results' | 'settings'>('input')
+  const [activeTab, setActiveTab] = useState<'input' | 'results'>('input')
   const [measurementUnit, setMeasurementUnit] = useState<MeasurementUnit>('in')
   const [lengthInches, setLengthInches] = useState(72)
   const [depthInches, setDepthInches] = useState(18)
@@ -42,6 +55,7 @@ const TimberBenchCalculator = () => {
     { description: 'Bench fabrication', labourHours: '3', costPerHour: '50' },
   ])
   const [wastePct, setWastePct] = useState('8')
+  const [bufferInput, setBufferInput] = useState('')
 
   const displayDimension = (inches: number) =>
     measurementUnit === 'in' ? String(inches) : (inches * 25.4).toFixed(2)
@@ -70,6 +84,11 @@ const TimberBenchCalculator = () => {
     setLaborItems((previous) => previous.filter((_, index) => index !== rowIndex))
   }
 
+  const getDescriptionSelectValue = (description: string) =>
+    DESCRIPTION_OPTIONS.includes(description as (typeof DESCRIPTION_OPTIONS)[number])
+      ? description
+      : CUSTOM_DESCRIPTION_VALUE
+
   const summary = useMemo(() => {
     const length = lengthInches
     const depth = depthInches
@@ -82,6 +101,7 @@ const TimberBenchCalculator = () => {
       return sum + labourHours * costPerHour
     }, 0)
     const waste = Math.max((Number(wastePct) || 0) / 100, 0)
+    const buffer = Math.max(Number(bufferInput) || 0, 0)
 
     const materialFactor = timberType === 'Ipe' ? 2.2 : timberType === 'Pressure Treated' ? 0.9 : 1.25
     const finishFactor = finish === 'Painted' ? 1.1 : finish === 'Stained' ? 1.06 : 1
@@ -92,12 +112,14 @@ const TimberBenchCalculator = () => {
     const baseMaterial = volumeFactor * 55 * materialFactor * finishFactor * backrestFactor * armrestFactor
     const unitCost = baseMaterial * (1 + waste) + laborCostPerUnit
     const totalCost = unitCost * qty
-    const sellPrice = totalCost / (1 - margin)
+    const finalCost = totalCost + buffer
+    const sellPrice = finalCost / (1 - margin)
 
-    return { laborCostPerUnit, unitCost, totalCost, sellPrice }
+    return { laborCostPerUnit, unitCost, totalCost, finalCost, sellPrice }
   }, [
     armrestEnabled,
     backrestEnabled,
+    bufferInput,
     depthInches,
     finish,
     heightInches,
@@ -112,7 +134,7 @@ const TimberBenchCalculator = () => {
   return (
     <div className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto w-full max-w-6xl space-y-6">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'input' | 'results' | 'settings')} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'input' | 'results')} className="space-y-6">
           <div className="space-y-3 bg-background py-3">
             <header className="space-y-2">
               <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Fabrication cost engine</p>
@@ -136,7 +158,7 @@ const TimberBenchCalculator = () => {
               </div>
             </header>
 
-            <Menubar className="grid h-auto w-full grid-cols-3 rounded-full p-1">
+            <Menubar className="grid h-auto w-full grid-cols-2 rounded-full p-1">
               <MenubarMenu>
                 <MenubarTrigger
                   onClick={() => setActiveTab('input')}
@@ -157,17 +179,6 @@ const TimberBenchCalculator = () => {
                   )}
                 >
                   Results
-                </MenubarTrigger>
-              </MenubarMenu>
-              <MenubarMenu>
-                <MenubarTrigger
-                  onClick={() => setActiveTab('settings')}
-                  className={cn(
-                    'w-full cursor-pointer justify-center rounded-full text-foreground',
-                    activeTab === 'settings' && 'border border-border bg-background shadow-sm',
-                  )}
-                >
-                  Settings
                 </MenubarTrigger>
               </MenubarMenu>
             </Menubar>
@@ -290,11 +301,37 @@ const TimberBenchCalculator = () => {
                       return (
                         <TableRow key={`labor-item-${rowIndex}`}>
                           <TableCell>
-                            <Input
-                              value={item.description}
-                              onChange={(event) => updateLaborItem(rowIndex, 'description', event.target.value)}
-                              placeholder="Description"
-                            />
+                            <div className="space-y-2">
+                              <Select
+                                value={getDescriptionSelectValue(item.description)}
+                                onValueChange={(value) =>
+                                  updateLaborItem(
+                                    rowIndex,
+                                    'description',
+                                    value === CUSTOM_DESCRIPTION_VALUE ? '' : value,
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Description" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {DESCRIPTION_OPTIONS.map((descriptionOption) => (
+                                    <SelectItem key={descriptionOption} value={descriptionOption}>
+                                      {descriptionOption}
+                                    </SelectItem>
+                                  ))}
+                                  <SelectItem value={CUSTOM_DESCRIPTION_VALUE}>Custom</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {getDescriptionSelectValue(item.description) === CUSTOM_DESCRIPTION_VALUE ? (
+                                <Input
+                                  value={item.description}
+                                  onChange={(event) => updateLaborItem(rowIndex, 'description', event.target.value)}
+                                  placeholder="Custom description"
+                                />
+                              ) : null}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <Input
@@ -357,7 +394,7 @@ const TimberBenchCalculator = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Cost summary</CardTitle>
-                <CardDescription>Preview from initial formulas pending Excel parity.</CardDescription>
+                <CardDescription>Estimated bench pricing with labor, buffer, and margin.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-lg border border-border/70 bg-muted/20 p-4">
@@ -369,6 +406,10 @@ const TimberBenchCalculator = () => {
                   <p className="text-lg font-semibold text-foreground">{formatCurrency(summary.totalCost)}</p>
                 </div>
                 <div className="rounded-lg border border-border/70 bg-muted/20 p-4">
+                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Final cost</p>
+                  <p className="text-lg font-semibold text-foreground">{formatCurrency(summary.finalCost)}</p>
+                </div>
+                <div className="rounded-lg border border-border/70 bg-muted/20 p-4">
                   <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Suggested sell</p>
                   <p className="text-lg font-semibold text-foreground">{formatCurrency(summary.sellPrice)}</p>
                 </div>
@@ -376,30 +417,7 @@ const TimberBenchCalculator = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pricing controls</CardTitle>
-                <CardDescription>Temporary values until Excel mapping is implemented.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Waste factor (%)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={wastePct}
-                    onChange={(event) => setWastePct(event.target.value)}
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Button type="button" variant="outline" onClick={() => setActiveTab('input')}>
-                    Return to inputs
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+
         </Tabs>
       </div>
     </div>
@@ -407,6 +425,7 @@ const TimberBenchCalculator = () => {
 }
 
 export default TimberBenchCalculator
+
 
 
 
