@@ -54,8 +54,8 @@ const TimberBenchCalculator = () => {
   const [laborItems, setLaborItems] = useState<LaborItem[]>([
     { description: 'Bench fabrication', labourHours: '3', costPerHour: '50' },
   ])
-  const [wastePct, setWastePct] = useState('8')
-  const [bufferInput, setBufferInput] = useState('')
+  const wastePct = '8'
+  const bufferInput = ''
 
   const displayDimension = (inches: number) =>
     measurementUnit === 'in' ? String(inches) : (inches * 25.4).toFixed(2)
@@ -425,6 +425,8 @@ const TimberBenchCalculator = () => {
 }
 
 export default TimberBenchCalculator
+
+
 
 
 
