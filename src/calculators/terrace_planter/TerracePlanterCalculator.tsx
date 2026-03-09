@@ -363,10 +363,13 @@ const determineTier = (volume: number, threshold: CostThreshold) => {
 const validatePlanterInput = (input: PlanterInput) => {
   if (!Number.isFinite(input.length)) return 'Length must be a valid number.'
   if (input.length <= 0) return 'Length must be greater than zero.'
+  if (input.length > MAX_PLANTER_DIMENSION_IN) return `Length must be ${MAX_PLANTER_DIMENSION_IN}" or less.`
   if (!Number.isFinite(input.width)) return 'Width must be a valid number.'
   if (input.width <= 0) return 'Width must be greater than zero.'
+  if (input.width > MAX_PLANTER_DIMENSION_IN) return `Width must be ${MAX_PLANTER_DIMENSION_IN}" or less.`
   if (!Number.isFinite(input.height)) return 'Height must be a valid number.'
   if (input.height <= 0) return 'Height must be greater than zero.'
+  if (input.height > MAX_PLANTER_DIMENSION_IN) return `Height must be ${MAX_PLANTER_DIMENSION_IN}" or less.`
   if (!Number.isFinite(input.lip)) return 'Lip must be a valid number.'
   if (input.lip < 0) return 'Lip must be zero or greater.'
   if (!Number.isFinite(input.marginPct)) return 'Margin % must be a valid number.'
@@ -390,6 +393,7 @@ type ThresholdField = 'lowThreshold' | 'lowPrice' | 'mediumThreshold' | 'mediumP
 type MeasurementUnit = 'in' | 'mm'
 
 const INCH_TO_MM = 25.4
+const MAX_PLANTER_DIMENSION_IN = 95
 const DIMENSION_INPUT_FIELDS: NumericPlanterField[] = ['length', 'width', 'height', 'lip', 'linerDepth']
 const EMPTY_ON_BLUR_FIELDS: NumericPlanterField[] = ['length', 'width', 'height']
 
@@ -466,6 +470,7 @@ function App() {
   const dimensionStep = measurementUnit === 'mm' ? '1' : '0.25'
   const lipStep = measurementUnit === 'mm' ? '1' : '0.125'
   const unitLabel = measurementUnit === 'mm' ? 'mm' : 'in'
+  const maxPlanterDimensionDisplay = inchesToDisplay(MAX_PLANTER_DIMENSION_IN, measurementUnit)
 
   const displayDimensionValue = (value: number) => displayNumberInput(inchesToDisplay(value, measurementUnit))
 
@@ -818,7 +823,11 @@ function App() {
     setPlanterInput((prev) => {
       if (!Number.isFinite(value)) return { ...prev, [field]: Number.NaN }
       if (!isDimensionInputField(field)) return { ...prev, [field]: value }
-      return { ...prev, [field]: Math.max(0, displayToInches(value, measurementUnit)) }
+      const normalizedValue = Math.max(0, displayToInches(value, measurementUnit))
+      if (field === 'length' || field === 'width' || field === 'height') {
+        return { ...prev, [field]: Math.min(MAX_PLANTER_DIMENSION_IN, normalizedValue) }
+      }
+      return { ...prev, [field]: normalizedValue }
     })
   }
 
@@ -1558,6 +1567,7 @@ function App() {
                         id="length"
                         type="number"
                         min="0"
+                        max={maxPlanterDimensionDisplay}
                         step={dimensionStep}
                         value={displayDimensionValue(planterInput.length)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -1572,6 +1582,7 @@ function App() {
                         id="width"
                         type="number"
                         min="0"
+                        max={maxPlanterDimensionDisplay}
                         step={dimensionStep}
                         value={displayDimensionValue(planterInput.width)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -1586,6 +1597,7 @@ function App() {
                         id="height"
                         type="number"
                         min="0"
+                        max={maxPlanterDimensionDisplay}
                         step={dimensionStep}
                         value={displayDimensionValue(planterInput.height)}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>

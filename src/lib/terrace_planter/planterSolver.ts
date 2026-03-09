@@ -192,6 +192,16 @@ export function runPlanterSolver({
   const panels = buildPanels(fabricationDims, planterInput, linerHeightPercent)
   const cheapestCostPerSqft = Math.min(...sheetRows.map((row) => row.costPerSqft))
   const { singleCandidates, bundleCandidates } = buildCandidates(panels, cheapestCostPerSqft)
+  const unplaceableCandidates = [...bundleCandidates, ...singleCandidates].filter(
+    (candidate) => !candidateFitsAnySheet(candidate, sheetRows),
+  )
+
+  if (unplaceableCandidates.length > 0) {
+    const details = unplaceableCandidates
+      .map((candidate) => describeCandidateSize(candidate))
+      .join('; ')
+    throw new Error(`Current sheet inventory cannot fit: ${details}.`)
+  }
 
   const candidateQueue = [
     ...bundleCandidates.sort(compareCandidates),
@@ -284,16 +294,7 @@ function buildPanels(
 ): PanelBlueprint[] {
   const panels: PanelBlueprint[] = []
   if (input.floorEnabled) {
-    panels.push({
-      id: 'panel-floor',
-      name: 'Floor',
-      width: fabrication.width,
-      height: fabrication.length,
-      cutWidth: fabrication.width + LASER_OFFSET_TOTAL,
-      cutHeight: fabrication.length + LASER_OFFSET_TOTAL,
-      type: 'floor',
-      isLiner: false,
-    })
+    panels.push(...buildSplitFloorPanels(fabrication))
   }
   panels.push(
     {
@@ -403,6 +404,35 @@ function buildPanels(
   }
 
   return panels
+}
+
+function buildSplitFloorPanels(fabrication: FabricationDimensions): PanelBlueprint[] {
+  const splitAlongLength = fabrication.length >= fabrication.width
+  const primaryDimension = splitAlongLength ? fabrication.length : fabrication.width
+  const secondaryDimension = splitAlongLength ? fabrication.width : fabrication.length
+  const firstHalf = primaryDimension / 2
+  const secondHalf = primaryDimension - firstHalf
+
+  const buildFloorPanel = (id: string, name: string, splitDimension: number): PanelBlueprint => {
+    const width = splitAlongLength ? secondaryDimension : splitDimension
+    const height = splitAlongLength ? splitDimension : secondaryDimension
+
+    return {
+      id,
+      name,
+      width,
+      height,
+      cutWidth: width + LASER_OFFSET_TOTAL,
+      cutHeight: height + LASER_OFFSET_TOTAL,
+      type: 'floor',
+      isLiner: false,
+    }
+  }
+
+  return [
+    buildFloorPanel('panel-floor-a', 'Floor A', firstHalf),
+    buildFloorPanel('panel-floor-b', 'Floor B', secondHalf),
+  ]
 }
 
 function buildCandidates(
@@ -515,6 +545,37 @@ function buildOrderedSheetRows(inventory: SheetInventoryRow[]) {
     }
     return a.id.localeCompare(b.id)
   })
+}
+
+function candidateFitsAnySheet(candidate: Candidate, sheetRows: SheetInventoryRow[]) {
+  return sheetRows.some((row) => {
+    const tempSheet: SheetInstance = {
+      id: 'validation-sheet',
+      rowId: row.id,
+      name: row.name,
+      width: row.width,
+      height: row.height,
+      costPerSqft: row.costPerSqft,
+      placements: [],
+      usedAreaIn2: 0,
+    }
+    return Boolean(tryPlaceCandidate(tempSheet, candidate))
+  })
+}
+
+function describeCandidateSize(candidate: Candidate) {
+  if (candidate.panels.length === 1) {
+    const panel = candidate.panels[0]
+    return `${panel.name} (${panel.cutWidth}" x ${panel.cutHeight}")`
+  }
+
+  const [panelA, panelB] = candidate.panels
+  const lCutBundle = getLCutBundleLayout(candidate, panelA, panelB)
+  if (lCutBundle) {
+    return `${candidate.name} (${lCutBundle.totalLength}" x ${lCutBundle.height}")`
+  }
+
+  return `${candidate.name} (${candidate.longestSide}" max side)`
 }
 
 function placeCandidateOnSheets(
