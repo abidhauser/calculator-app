@@ -76,6 +76,33 @@ type ResultsCategory =
   | 'Liner'
   | 'Shelf'
 
+type CustomDetailRow = {
+  id: string
+  category: string
+  price: number | null
+  note: string
+}
+
+type CostDetailRow =
+  | {
+      id: ResultsCategory
+      kind: 'standard'
+      category: ResultsCategory
+      tierUsed: string
+      basePrice: number
+      overridePrice: number | null
+      notes: string
+    }
+  | {
+      id: string
+      kind: 'custom'
+      category: string
+      tierUsed: 'Custom'
+      basePrice: number
+      overridePrice: number | null
+      notes: string
+    }
+
 type ResultsSectionKey = 'planterDetails' | 'overview' | 'costBreakdown' | 'sheetBreakdown' | 'cutPlan'
 
 type ResultColorThresholds = {
@@ -241,6 +268,20 @@ const createSheetRow = (overrides?: Partial<SheetInventoryRow>): SheetInventoryR
   costPerSqft: overrides?.costPerSqft ?? 5,
   quantity: overrides?.quantity ?? 1,
   limitQuantity: overrides?.limitQuantity ?? false,
+})
+
+const generateCustomDetailId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `custom-cost-${crypto.randomUUID()}`
+  }
+  return `custom-cost-${Math.random().toString(36).slice(2, 8)}`
+}
+
+const createCustomDetailRow = (): CustomDetailRow => ({
+  id: generateCustomDetailId(),
+  category: '',
+  price: null,
+  note: '',
 })
 
 const LOCAL_STORAGE_KEY = 'planterCostThresholds-v1'
@@ -414,6 +455,7 @@ function App() {
       {} as Record<ResultsCategory, string>,
     ),
   )
+  const [customDetailRows, setCustomDetailRows] = useState<CustomDetailRow[]>([])
   const [settingsBanner, setSettingsBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const settingsImportInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -535,8 +577,11 @@ function App() {
     if (row.category === 'Shelf' && !planterInput.shelfEnabled) return total
     return total + getBreakdownPrice(row)
   }, 0)
-  const totalFabricationCost = totalMaterialCost + breakdownTotal
-  const totalNonMaterialCost = breakdownTotal
+  const customBreakdownTotal = customDetailRows.reduce((total, row) => {
+    return total + (Number.isFinite(row.price) ? Math.max(0, row.price ?? 0) : 0)
+  }, 0)
+  const totalFabricationCost = totalMaterialCost + breakdownTotal + customBreakdownTotal
+  const totalNonMaterialCost = breakdownTotal + customBreakdownTotal
 
   const targetMarginFraction = Math.min(Math.max(planterInput.marginPct / 100, 0), 0.99)
   const suggestedSalePrice =
@@ -555,9 +600,9 @@ function App() {
   const finalTotal = Math.max(0, suggestedSalePrice + bufferAmount - discountAmount)
   const actualMarginPct = finalTotal > 0 ? ((finalTotal - totalFabricationCost) / finalTotal) * 100 : 0
 
-  const detailRows = useMemo(
-    () =>
-      RESULTS_CATEGORY_ORDER.map((category) => {
+  const detailRows = useMemo<CostDetailRow[]>(
+    () => [
+      ...RESULTS_CATEGORY_ORDER.map((category) => {
         if (category === 'Material') {
           const cheapestSheet = sheetSummaries.reduce<SheetSummaryRow | null>((current, next) => {
             if (!current) return next
@@ -569,6 +614,8 @@ function App() {
           const sheetNames = sheetSummaries.map((entry) => entry.name).join(', ')
           const baseNote = `Material tier driven by ${cheapestSheet?.name ?? 'inventory'}`
           return {
+            id: category,
+            kind: 'standard' as const,
             category,
             tierUsed: cheapestSheet ? cheapestSheet.name : 'Awaiting calculation',
             basePrice: totalMaterialCost,
@@ -594,6 +641,8 @@ function App() {
               ? 'Liner labor tier preview applied from current dimensions.'
               : 'Liner feature disabled.'
           return {
+            id: category,
+            kind: 'standard' as const,
             category,
             tierUsed,
             basePrice,
@@ -617,6 +666,8 @@ function App() {
               ? 'Run calculation to assign tier.'
               : 'Shelf feature disabled.'
           return {
+            id: category,
+            kind: 'standard' as const,
             category,
             tierUsed,
             basePrice,
@@ -640,6 +691,8 @@ function App() {
               ? 'Run calculation to assign tier.'
               : 'Weight plate feature disabled.'
           return {
+            id: category,
+            kind: 'standard' as const,
             category,
             tierUsed,
             basePrice,
@@ -656,6 +709,8 @@ function App() {
             : `${breakdown.tierUsed} tier applied.`
           : 'Run calculation to assign tier.'
         return {
+          id: category,
+          kind: 'standard' as const,
           category,
           tierUsed,
           basePrice: breakdown?.basePrice ?? 0,
@@ -663,8 +718,19 @@ function App() {
           notes: solverResult ? notes : 'Run calculation to assign tier.',
         }
       }),
+      ...customDetailRows.map((row) => ({
+        id: row.id,
+        kind: 'custom' as const,
+        category: row.category,
+        tierUsed: 'Custom' as const,
+        basePrice: 0,
+        overridePrice: row.price,
+        notes: row.note,
+      })),
+    ],
     [
       breakdownLookup,
+      customDetailRows,
       linerBreakdown,
       linerLaborCost,
       linerLaborTier,
@@ -1268,7 +1334,8 @@ function App() {
         if (row.category === 'Shelf' && !planterInput.shelfEnabled) return total
         return total + getBreakdownPrice(row)
       }, 0)
-      const generatedTotalFabricationCost = generatedMaterialCost + generatedBreakdownTotal
+      const generatedTotalFabricationCost =
+        generatedMaterialCost + generatedBreakdownTotal + customBreakdownTotal
       setResultBanner({
         type: 'success',
         message: `Solver locked the lowest total fabrication cost (${formatCurrencyValue(
@@ -1291,6 +1358,44 @@ function App() {
         row.category === category
           ? { ...row, overridePrice: Number.isFinite(value) ? Math.max(0, value) : null }
           : row,
+      ),
+    )
+  }
+
+  const handleAddCustomDetailRow = () => {
+    setCustomDetailRows((prev) => [...prev, createCustomDetailRow()])
+  }
+
+  const handleRemoveCustomDetailRow = (id: string) => {
+    setCustomDetailRows((prev) => prev.filter((row) => row.id !== id))
+  }
+
+  const handleCustomDetailChange = (
+    id: string,
+    field: 'category' | 'price' | 'note',
+    value: string | number,
+  ) => {
+    setCustomDetailRows((prev) =>
+      prev.map((row) => {
+        if (row.id !== id) return row
+        if (field === 'category') {
+          return { ...row, category: String(value) }
+        }
+        if (field === 'note') {
+          return { ...row, note: String(value) }
+        }
+        return {
+          ...row,
+          price: typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : null,
+        }
+      }),
+    )
+  }
+
+  const handleCustomDetailPriceBlur = (id: string) => {
+    setCustomDetailRows((prev) =>
+      prev.map((row) =>
+        row.id === id && row.price !== null && !Number.isFinite(row.price) ? { ...row, price: null } : row,
       ),
     )
   }
@@ -1904,17 +2009,30 @@ function App() {
                     calculated volume.
                   </CardDescription>
                 </div>
-                <Button
-                  className="results-print-hide"
-                  variant="ghost"
-                  size="sm"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    toggleResultsSection('costBreakdown')
-                  }}
-                >
-                  {isCostBreakdownOpen ? 'Collapse' : 'Expand'}
-                </Button>
+                <div className="results-print-hide flex items-center gap-2">
+                  {isCostBreakdownOpen && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        handleAddCustomDetailRow()
+                      }}
+                    >
+                      Add custom category
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      toggleResultsSection('costBreakdown')
+                    }}
+                  >
+                    {isCostBreakdownOpen ? 'Collapse' : 'Expand'}
+                  </Button>
+                </div>
               </CardHeader>
               {isCostBreakdownOpen && <CardContent>
                 <Table className="border border-border">
@@ -1925,16 +2043,29 @@ function App() {
                         <TableHead>Base price</TableHead>
                         <TableHead className="w-[130px]">Override price</TableHead>
                         <TableHead className="w-[320px]">Notes</TableHead>
+                        <TableHead className="results-print-hide w-[110px]">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                   <TableBody>
                     {detailRows.map((row) => (
-                      <TableRow key={row.category}>
-                        <TableCell className="font-semibold text-foreground">{row.category}</TableCell>
+                      <TableRow key={row.id}>
+                        <TableCell className="font-semibold text-foreground">
+                          {row.kind === 'custom' ? (
+                            <Input
+                              value={row.category}
+                              placeholder="Custom category"
+                              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                handleCustomDetailChange(row.id, 'category', event.target.value)
+                              }
+                            />
+                          ) : (
+                            row.category
+                          )}
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{row.tierUsed}</TableCell>
                         <TableCell>{formatCurrencyValue(row.basePrice)}</TableCell>
                         <TableCell className="w-[130px]">
-                          {row.category === 'Material' ? (
+                          {row.kind === 'standard' && row.category === 'Material' ? (
                             <span className="text-sm text-muted-foreground">Not applicable</span>
                           ) : (
                             <Input
@@ -1943,31 +2074,57 @@ function App() {
                               step="0.5"
                               min="0"
                               disabled={
-                                !isCalculated ||
-                                (row.category === 'Weight Plate' && !planterInput.weightPlateEnabled) ||
-                                (row.category === 'Liner' && !planterInput.linerEnabled) ||
-                                (row.category === 'Shelf' && !planterInput.shelfEnabled)
+                                row.kind === 'standard' &&
+                                (!isCalculated ||
+                                  (row.category === 'Weight Plate' && !planterInput.weightPlateEnabled) ||
+                                  (row.category === 'Liner' && !planterInput.linerEnabled) ||
+                                  (row.category === 'Shelf' && !planterInput.shelfEnabled))
                               }
                               onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                                handlePriceOverride(
-                                  row.category as Category,
-                                  parseNumberInput(event.target.value),
-                                )
+                                row.kind === 'custom'
+                                  ? handleCustomDetailChange(row.id, 'price', parseNumberInput(event.target.value))
+                                  : handlePriceOverride(
+                                      row.category as Category,
+                                      parseNumberInput(event.target.value),
+                                    )
                               }
-                              onBlur={() => handlePriceOverrideBlur(row.category as Category)}
+                              onBlur={() =>
+                                row.kind === 'custom'
+                                  ? handleCustomDetailPriceBlur(row.id)
+                                  : handlePriceOverrideBlur(row.category as Category)
+                              }
                             />
                           )}
                         </TableCell>
                         <TableCell className="w-[320px]">
-                          <Input
-                            value={detailNotes[row.category as ResultsCategory]}
-                            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                              setDetailNotes((prev) => ({
-                                ...prev,
-                                [row.category as ResultsCategory]: event.target.value,
-                              }))
-                            }
-                          />
+                          {row.kind === 'custom' ? (
+                            <Input
+                              value={row.notes}
+                              placeholder="Optional note"
+                              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                handleCustomDetailChange(row.id, 'note', event.target.value)
+                              }
+                            />
+                          ) : (
+                            <Input
+                              value={detailNotes[row.category as ResultsCategory]}
+                              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                                setDetailNotes((prev) => ({
+                                  ...prev,
+                                  [row.category as ResultsCategory]: event.target.value,
+                                }))
+                              }
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="results-print-hide w-[110px]">
+                          {row.kind === 'custom' ? (
+                            <Button variant="ghost" size="sm" onClick={() => handleRemoveCustomDetailRow(row.id)}>
+                              Remove
+                            </Button>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">-</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

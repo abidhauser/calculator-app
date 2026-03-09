@@ -119,15 +119,6 @@ export const DEFAULT_SHEET_INVENTORY: SheetInventoryRow[] = [
     quantity: 6,
     limitQuantity: false,
   },
-  {
-    id: 'sheet-5x12-15',
-    name: '5 x 12 @ $15.00',
-    width: 60,
-    height: 144,
-    costPerSqft: 15,
-    quantity: 3,
-    limitQuantity: false,
-  },
 ]
 
 type PanelBlueprint = {
