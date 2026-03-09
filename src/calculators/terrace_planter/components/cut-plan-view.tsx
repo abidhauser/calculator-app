@@ -1,4 +1,4 @@
-import type { Placement, SheetInstanceUsage } from '@/lib/terrace_planter/planterSolver'
+ï»¿import type { Placement, SheetInstanceUsage } from '@/lib/terrace_planter/planterSolver'
 import {
   Card,
   CardContent,
@@ -58,14 +58,13 @@ const LEGEND_GROUPS = [
   { label: 'Liner', group: 'liner' },
 ]
 
-
 const INCH_TO_MM = 25.4
 const toDisplayDimension = (valueInInches: number, unit: 'in' | 'mm') =>
   unit === 'mm' ? valueInInches * INCH_TO_MM : valueInInches
 const formatPanelLengthWidthDimensions = (width: number, height: number, unit: 'in' | 'mm') =>
-  `${toDisplayDimension(width, unit).toFixed(1)} ${unit} × ${toDisplayDimension(height, unit).toFixed(1)} ${unit}`
+  `${toDisplayDimension(width, unit).toFixed(1)} ${unit} x ${toDisplayDimension(height, unit).toFixed(1)} ${unit}`
 const formatDisplaySheetDimensions = (width: number, height: number, unit: 'in' | 'mm') =>
-  `${toDisplayDimension(width, unit).toFixed(2)} ${unit} × ${toDisplayDimension(height, unit).toFixed(2)} ${unit}`
+  `${toDisplayDimension(width, unit).toFixed(2)} ${unit} x ${toDisplayDimension(height, unit).toFixed(2)} ${unit}`
 
 const formatPercent = (value: number) => `${value.toFixed(1)}%`
 
@@ -160,12 +159,12 @@ export default function CutPlanView({
         })
 
         return (
-      <div
-        key={sheet.id}
-        className={`cut-plan-sheet space-y-4 border border-border/60 bg-muted/40 p-4 shadow-sm ${
-          compact ? 'text-xs' : ''
-        }`}
-      >
+          <div
+            key={sheet.id}
+            className={`cut-plan-sheet space-y-4 border border-border/60 bg-muted/40 p-4 shadow-sm ${
+              compact ? 'text-xs' : ''
+            }`}
+          >
             <div className={`flex gap-4 ${compact ? 'flex-row items-start' : 'flex-col lg:flex-row'}`}>
               <div className="flex flex-1 flex-col gap-3">
                 <div className="space-y-3">
@@ -175,7 +174,7 @@ export default function CutPlanView({
                     <p className="text-xs text-muted-foreground">Instance {sheet.id}</p>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {sortedPlacements.length} panels · {formatDisplaySheetDimensions(sheet.width, sheet.height, measurementUnit)}
+                    {sortedPlacements.length} panels - {formatDisplaySheetDimensions(sheet.width, sheet.height, measurementUnit)}
                   </p>
                   <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
                     <div>
@@ -247,9 +246,9 @@ export default function CutPlanView({
                     const panelFontSize = Math.max(7, Math.min(compact ? 10 : 11, minPanelSide * (compact ? 0.16 : 0.14)))
                     const showDimensions = minPanelSide >= (compact ? 28 : 34)
                     return (
-                  <div
-                    key={placement.id}
-                    className="absolute flex flex-col justify-between overflow-hidden border px-1.5 pb-1 pt-1.5 leading-none"
+                      <div
+                        key={placement.id}
+                        className="absolute flex flex-col justify-between overflow-hidden border px-1.5 pb-1 pt-1.5 leading-none"
                         style={{
                           left: `${placement.x * scale}px`,
                           top: `${placement.y * scale}px`,
@@ -327,6 +326,3 @@ export default function CutPlanView({
     </Card>
   )
 }
-
-
-
