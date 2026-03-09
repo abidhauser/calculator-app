@@ -62,6 +62,14 @@ export type SolverOptions = {
 }
 
 const LINER_HEIGHT_PERCENT = 0.5
+const LASER_OFFSET_PER_SIDE = 0.5
+const LASER_OFFSET_TOTAL = LASER_OFFSET_PER_SIDE * 2
+const REQUIRED_L_CUT_PANEL_IDS = new Set([
+  'panel-long-a',
+  'panel-short-a',
+  'panel-long-b',
+  'panel-short-b',
+])
 const getBreakdownPrice = (row: CostBreakdownPreview) => row.overridePrice ?? row.basePrice
 
 export const DEFAULT_SHEET_INVENTORY: SheetInventoryRow[] = [
@@ -126,6 +134,8 @@ type PanelBlueprint = {
   name: string
   width: number
   height: number
+  cutWidth: number
+  cutHeight: number
   type: 'floor' | 'long' | 'short' | 'liner' | 'shelf'
   isLiner: boolean
 }
@@ -279,6 +289,8 @@ function buildPanels(
       name: 'Floor',
       width: fabrication.width,
       height: fabrication.length,
+      cutWidth: fabrication.width + LASER_OFFSET_TOTAL,
+      cutHeight: fabrication.length + LASER_OFFSET_TOTAL,
       type: 'floor',
       isLiner: false,
     })
@@ -289,6 +301,8 @@ function buildPanels(
       name: 'Long A',
       width: fabrication.length,
       height: fabrication.height,
+      cutWidth: fabrication.length,
+      cutHeight: fabrication.height,
       type: 'long',
       isLiner: false,
     },
@@ -297,6 +311,8 @@ function buildPanels(
       name: 'Long B',
       width: fabrication.length,
       height: fabrication.height,
+      cutWidth: fabrication.length,
+      cutHeight: fabrication.height,
       type: 'long',
       isLiner: false,
     },
@@ -305,6 +321,8 @@ function buildPanels(
       name: 'Short A',
       width: fabrication.width,
       height: fabrication.height,
+      cutWidth: fabrication.width,
+      cutHeight: fabrication.height,
       type: 'short',
       isLiner: false,
     },
@@ -313,6 +331,8 @@ function buildPanels(
       name: 'Short B',
       width: fabrication.width,
       height: fabrication.height,
+      cutWidth: fabrication.width,
+      cutHeight: fabrication.height,
       type: 'short',
       isLiner: false,
     },
@@ -324,6 +344,8 @@ function buildPanels(
       name: 'Shelf',
       width: fabrication.width,
       height: fabrication.length,
+      cutWidth: fabrication.width + LASER_OFFSET_TOTAL,
+      cutHeight: fabrication.length + LASER_OFFSET_TOTAL,
       type: 'shelf',
       isLiner: false,
     })
@@ -341,6 +363,8 @@ function buildPanels(
           name: 'Liner Long A',
           width: linerLength,
           height: linerHeight,
+          cutWidth: linerLength,
+          cutHeight: linerHeight,
           type: 'long',
           isLiner: true,
         },
@@ -349,6 +373,8 @@ function buildPanels(
           name: 'Liner Long B',
           width: linerLength,
           height: linerHeight,
+          cutWidth: linerLength,
+          cutHeight: linerHeight,
           type: 'long',
           isLiner: true,
         },
@@ -357,6 +383,8 @@ function buildPanels(
           name: 'Liner Short A',
           width: linerWidth,
           height: linerHeight,
+          cutWidth: linerWidth,
+          cutHeight: linerHeight,
           type: 'short',
           isLiner: true,
         },
@@ -365,6 +393,8 @@ function buildPanels(
           name: 'Liner Short B',
           width: linerWidth,
           height: linerHeight,
+          cutWidth: linerWidth,
+          cutHeight: linerHeight,
           type: 'short',
           isLiner: true,
         },
@@ -380,35 +410,23 @@ function buildCandidates(
   baseCostPerSqft: number,
 ): { singleCandidates: Candidate[]; bundleCandidates: Candidate[] } {
   const panelMap = new Map(panels.map((panel) => [panel.id, panel]))
-  const singles: Candidate[] = panels.map((panel) => ({
-    id: `candidate-${panel.id}`,
-    name: panel.name,
-    panels: [panel],
-    totalArea: panel.width * panel.height,
-    longestSide: Math.max(panel.width, panel.height),
-    costImpact: (panel.width * panel.height) / 144 * baseCostPerSqft,
-    bundleSavings: 0,
-    isBundle: false,
-  }))
+  const singles: Candidate[] = panels
+    .filter((panel) => !REQUIRED_L_CUT_PANEL_IDS.has(panel.id))
+    .map((panel) => ({
+      id: `candidate-${panel.id}`,
+      name: panel.name,
+      panels: [panel],
+      totalArea: panel.cutWidth * panel.cutHeight,
+      longestSide: Math.max(panel.cutWidth, panel.cutHeight),
+      costImpact: (panel.cutWidth * panel.cutHeight) / 144 * baseCostPerSqft,
+      bundleSavings: 0,
+      isBundle: false,
+    }))
 
   const bundles: Candidate[] = []
   const adjacency: Array<{ anchor: string; partner: string; label: string }> = [
-    { anchor: 'panel-floor', partner: 'panel-long-a', label: 'Floor + Long A' },
-    { anchor: 'panel-floor', partner: 'panel-long-b', label: 'Floor + Long B' },
-    { anchor: 'panel-floor', partner: 'panel-short-a', label: 'Floor + Short A' },
-    { anchor: 'panel-floor', partner: 'panel-short-b', label: 'Floor + Short B' },
     { anchor: 'panel-long-a', partner: 'panel-short-a', label: 'L-cut (Long A + Short A)' },
     { anchor: 'panel-long-b', partner: 'panel-short-b', label: 'L-cut (Long B + Short B)' },
-    {
-      anchor: 'panel-liner-long-a',
-      partner: 'panel-liner-short-a',
-      label: 'L-cut (Liner Long A + Liner Short A)',
-    },
-    {
-      anchor: 'panel-liner-long-b',
-      partner: 'panel-liner-short-b',
-      label: 'L-cut (Liner Long B + Liner Short B)',
-    },
   ]
 
   for (const { anchor, partner, label } of adjacency) {
@@ -418,7 +436,9 @@ function buildCandidates(
       continue
     }
 
-    const areaSum = anchorPanel.width * anchorPanel.height + partnerPanel.width * partnerPanel.height
+    const areaSum = isLCutBundlePair(anchor, partner)
+      ? getLCutOccupiedArea(anchorPanel, partnerPanel)
+      : anchorPanel.cutWidth * anchorPanel.cutHeight + partnerPanel.cutWidth * partnerPanel.cutHeight
     const bundleImpact = (areaSum / 144) * baseCostPerSqft
 
     bundles.push({
@@ -442,17 +462,14 @@ function getBundleLongestSide(
   anchorPanel: PanelBlueprint,
   partnerPanel: PanelBlueprint,
 ) {
-  const candidateId = `bundle-${anchorId}-${partnerId}`
-  if (
-    candidateId === 'bundle-panel-long-a-panel-short-a' ||
-    candidateId === 'bundle-panel-long-b-panel-short-b' ||
-    candidateId === 'bundle-panel-liner-long-a-panel-liner-short-a' ||
-    candidateId === 'bundle-panel-liner-long-b-panel-liner-short-b'
-  ) {
-    return Math.max(anchorPanel.width + partnerPanel.width, anchorPanel.height)
+  if (isLCutBundlePair(anchorId, partnerId)) {
+    return Math.max(
+      anchorPanel.width + partnerPanel.width + LASER_OFFSET_TOTAL,
+      anchorPanel.height + LASER_OFFSET_TOTAL,
+    )
   }
 
-  return Math.max(anchorPanel.width, anchorPanel.height, partnerPanel.width, partnerPanel.height)
+  return Math.max(anchorPanel.cutWidth, anchorPanel.cutHeight, partnerPanel.cutWidth, partnerPanel.cutHeight)
 }
 
 function compareCandidates(a: Candidate, b: Candidate) {
@@ -468,9 +485,21 @@ function compareCandidates(a: Candidate, b: Candidate) {
 function isLCutBundleCandidate(candidateId: string) {
   return (
     candidateId === 'bundle-panel-long-a-panel-short-a' ||
-    candidateId === 'bundle-panel-long-b-panel-short-b' ||
-    candidateId === 'bundle-panel-liner-long-a-panel-liner-short-a' ||
-    candidateId === 'bundle-panel-liner-long-b-panel-liner-short-b'
+    candidateId === 'bundle-panel-long-b-panel-short-b'
+  )
+}
+
+function isLCutBundlePair(anchorId: string, partnerId: string) {
+  return (
+    (anchorId === 'panel-long-a' && partnerId === 'panel-short-a') ||
+    (anchorId === 'panel-long-b' && partnerId === 'panel-short-b')
+  )
+}
+
+function getLCutOccupiedArea(longPanel: PanelBlueprint, shortPanel: PanelBlueprint) {
+  return (
+    (longPanel.width + shortPanel.width + LASER_OFFSET_TOTAL) *
+    (longPanel.height + LASER_OFFSET_TOTAL)
   )
 }
 
@@ -637,7 +666,7 @@ function getSheetCost(width: number, height: number, costPerSqft: number) {
 function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placement[] | null {
   if (candidate.panels.length === 1) {
     const panel = candidate.panels[0]
-    const placement = findPlacementOnSheet(sheet, panel.width, panel.height)
+    const placement = findPlacementOnSheet(sheet, panel.cutWidth, panel.cutHeight)
     if (!placement) {
       return null
     }
@@ -670,8 +699,8 @@ function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placemen
       const firstPlacement: Placement = {
         x: anchor.x,
         y: anchor.y,
-        width: orientation.rotated ? lCutBundle.height : lCutBundle.longLength,
-        height: orientation.rotated ? lCutBundle.longLength : lCutBundle.height,
+        width: orientation.rotated ? lCutBundle.height : lCutBundle.longLength + LASER_OFFSET_PER_SIDE,
+        height: orientation.rotated ? lCutBundle.longLength + LASER_OFFSET_PER_SIDE : lCutBundle.height,
         rotated: orientation.rotated,
         id: `${candidate.id}-${panelA.id}`,
         candidateId: candidate.id,
@@ -685,10 +714,10 @@ function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placemen
       }
 
       const secondPlacement: Placement = {
-        x: orientation.rotated ? anchor.x : anchor.x + lCutBundle.longLength,
-        y: orientation.rotated ? anchor.y + lCutBundle.longLength : anchor.y,
-        width: orientation.rotated ? lCutBundle.height : lCutBundle.shortWidth,
-        height: orientation.rotated ? lCutBundle.shortWidth : lCutBundle.height,
+        x: orientation.rotated ? anchor.x : anchor.x + lCutBundle.longLength + LASER_OFFSET_PER_SIDE,
+        y: orientation.rotated ? anchor.y + lCutBundle.longLength + LASER_OFFSET_PER_SIDE : anchor.y,
+        width: orientation.rotated ? lCutBundle.height : lCutBundle.shortWidth + LASER_OFFSET_PER_SIDE,
+        height: orientation.rotated ? lCutBundle.shortWidth + LASER_OFFSET_PER_SIDE : lCutBundle.height,
         rotated: orientation.rotated,
         id: `${candidate.id}-${panelB.id}`,
         candidateId: candidate.id,
@@ -710,7 +739,7 @@ function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placemen
   }
 
   const panelAOrientations = getOrientations(panelA.width, panelA.height)
-  const panelBOrientations = getOrientations(panelB.width, panelB.height)
+  const panelBOrientations = getOrientations(panelB.cutWidth, panelB.cutHeight)
 
   for (const orientationA of panelAOrientations) {
     const first = findPlacementOnSheet(sheet, orientationA.width, orientationA.height)
@@ -770,12 +799,7 @@ function tryPlaceCandidate(sheet: SheetInstance, candidate: Candidate): Placemen
 }
 
 function getLCutBundleLayout(candidate: Candidate, panelA: PanelBlueprint, panelB: PanelBlueprint) {
-  const lCutBundleIds = new Set([
-    'bundle-panel-long-a-panel-short-a',
-    'bundle-panel-long-b-panel-short-b',
-    'bundle-panel-liner-long-a-panel-liner-short-a',
-    'bundle-panel-liner-long-b-panel-liner-short-b',
-  ])
+  const lCutBundleIds = new Set(['bundle-panel-long-a-panel-short-a', 'bundle-panel-long-b-panel-short-b'])
 
   if (!lCutBundleIds.has(candidate.id)) {
     return null
@@ -790,8 +814,8 @@ function getLCutBundleLayout(candidate: Candidate, panelA: PanelBlueprint, panel
   }
 
   return {
-    totalLength: longPanel.width + shortPanel.width,
-    height: longPanel.height,
+    totalLength: longPanel.width + shortPanel.width + LASER_OFFSET_TOTAL,
+    height: longPanel.height + LASER_OFFSET_TOTAL,
     longLength: longPanel.width,
     shortWidth: shortPanel.width,
   }
