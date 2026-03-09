@@ -263,10 +263,11 @@ const generateSheetId = () => {
 const createSheetRow = (overrides?: Partial<SheetInventoryRow>): SheetInventoryRow => ({
   id: overrides?.id ?? generateSheetId(),
   name: overrides?.name ?? 'Custom sheet',
+  thickness: overrides?.thickness ?? defaultPlanterInput.thickness,
   width: overrides?.width ?? 48,
   height: overrides?.height ?? 96,
   costPerSqft: overrides?.costPerSqft ?? 5,
-  quantity: overrides?.quantity ?? 1,
+  quantity: overrides?.quantity ?? Number.NaN,
   limitQuantity: overrides?.limitQuantity ?? false,
 })
 
@@ -866,6 +867,12 @@ function App() {
     setSheetInventory((prev) => prev.map((row) => (row.id === rowId ? { ...row, name: value } : row)))
   }
 
+  const handleSheetThicknessChange = (rowId: string, value: number) => {
+    setSheetInventory((prev) =>
+      prev.map((row) => (row.id === rowId ? { ...row, thickness: value } : row)),
+    )
+  }
+
   const handleSheetDimensionChange = (rowId: string, field: 'width' | 'height', value: number) => {
     setSheetInventory((prev) =>
       prev.map((row) => {
@@ -933,9 +940,9 @@ function App() {
   const handleAddSheetRowBelow = (rowId: string) => {
     setSheetInventory((prev) => {
       const index = prev.findIndex((row) => row.id === rowId)
-      if (index < 0) return [...prev, createSheetRow()]
+      if (index < 0) return [...prev, createSheetRow({ thickness: planterInput.thickness })]
       const next = [...prev]
-      next.splice(index + 1, 0, createSheetRow())
+      next.splice(index + 1, 0, createSheetRow({ thickness: planterInput.thickness }))
       return next
     })
   }
@@ -943,7 +950,7 @@ function App() {
   const handleRemoveSheetRow = (rowId: string) => {
     setSheetInventory((prev) => {
       const next = prev.filter((row) => row.id !== rowId)
-      return next.length ? next : [createSheetRow()]
+      return next.length ? next : [createSheetRow({ thickness: planterInput.thickness })]
     })
   }
 
@@ -952,7 +959,7 @@ function App() {
   }
 
   const handleResetSheetInventory = () => {
-    setSheetInventory(DEFAULT_SHEET_INVENTORY.map((row) => ({ ...row })))
+    setSheetInventory(DEFAULT_SHEET_INVENTORY.map((row) => ({ ...row, thickness: planterInput.thickness })))
   }
 
   const setAllResultsSections = (isOpen: boolean) => {
@@ -1048,24 +1055,24 @@ function App() {
     rows.push([
       'sheetHeader',
       'name',
+      'thickness',
       `width (${unitLabel})`,
       `height (${unitLabel})`,
       'cost / sqft',
       'quantity',
       'enforce',
-      '',
     ])
 
     sheetInventory.forEach((row) => {
       rows.push([
         'sheet',
         row.name,
+        String(row.thickness),
         String(inchesToDisplay(row.width, measurementUnit)),
         String(inchesToDisplay(row.height, measurementUnit)),
         String(row.costPerSqft),
         String(row.quantity),
         String(row.limitQuantity),
-        '',
       ])
     })
 
@@ -1186,17 +1193,18 @@ function App() {
 
         if (section === 'sheet') {
           const name = row[1] ?? ''
-          const width = parseNumberCell(row[2] ?? '')
-          const height = parseNumberCell(row[3] ?? '')
-          const costPerSqft = parseNumberCell(row[4] ?? '')
-          const quantityRaw = parseNumberCell(row[5] ?? '')
-          const limitQuantity = parseBooleanCell(row[6] ?? '')
+          const thickness = parseNumberCell(row[2] ?? '')
+          const width = parseNumberCell(row[3] ?? '')
+          const height = parseNumberCell(row[4] ?? '')
+          const costPerSqft = parseNumberCell(row[5] ?? '')
+          const quantityRaw = parseNumberCell(row[6] ?? '')
+          const limitQuantity = parseBooleanCell(row[7] ?? '')
 
           if (!name) {
             setSettingsBanner({ type: 'error', message: 'Sheet rows must include a name.' })
             return
           }
-          if ([width, height, costPerSqft, quantityRaw].some((value) => value === null)) {
+          if ([thickness, width, height, costPerSqft, quantityRaw].some((value) => value === null)) {
             setSettingsBanner({ type: 'error', message: `Sheet "${name}" has invalid numeric values.` })
             return
           }
@@ -1211,6 +1219,7 @@ function App() {
           importedSheets.push(
             createSheetRow({
               name,
+              thickness: thickness as number,
               width: Math.max(0, displayToInches(width as number, importedSheetUnit)),
               height: Math.max(0, displayToInches(height as number, importedSheetUnit)),
               costPerSqft: costPerSqft as number,
@@ -1234,7 +1243,7 @@ function App() {
       if (Object.keys(resultColorDraft).length > 0) {
         setResultColorThresholds(normalizeResultColorThresholds(resultColorDraft))
       }
-      setSheetInventory(importedSheets.length ? importedSheets : [createSheetRow()])
+      setSheetInventory(importedSheets.length ? importedSheets : [createSheetRow({ thickness: planterInput.thickness })])
       setMeasurementUnit(importedSheetUnit)
       setSettingsBanner({ type: 'success', message: 'Settings imported from CSV and applied to the form.' })
     } catch {
@@ -1278,13 +1287,17 @@ function App() {
     }
 
     const dims = buildFabricationDimensions(planterInput)
-    const availableSheetEdges = sheetInventory
+    const matchingThicknessInventory = sheetInventory.filter(
+      (row) => Math.abs(row.thickness - planterInput.thickness) < 0.0001,
+    )
+
+    const availableSheetEdges = matchingThicknessInventory
       .filter((row) => !row.limitQuantity || row.quantity > 0)
       .flatMap((row) => [row.width, row.height])
       .filter((value) => Number.isFinite(value) && value > 0)
 
     if (availableSheetEdges.length === 0) {
-      const message = 'No usable sheet inventory is available. Add at least one sheet with a positive size.'
+      const message = `No usable sheet inventory is available for thickness ${formatDimension(planterInput.thickness, 3)}. Add at least one matching sheet with a positive size.`
       setCalculationError(message)
       setResultBanner({
         type: 'error',
@@ -1330,7 +1343,7 @@ function App() {
         fabricationDims: dims,
         breakdowns: breakdownResults,
         options: {
-          inventory: sheetInventory,
+          inventory: matchingThicknessInventory,
         },
       })
       setSolverResult(result)
@@ -2258,12 +2271,13 @@ function App() {
                   <Table className="border border-border">
                     <TableHeader>
                       <TableRow>
-                    <TableHead>Sheet type</TableHead>
-                    <TableHead>Quantity used</TableHead>
-                    <TableHead>Cost / sheet</TableHead>
-                    <TableHead>Total material cost</TableHead>
-                    <TableHead>Utilization %</TableHead>
-                    <TableHead>Unused material cost</TableHead>
+                        <TableHead>Sheet type</TableHead>
+                        <TableHead>Quantity used</TableHead>
+                        <TableHead>Cost / sqft</TableHead>
+                        <TableHead>Cost / sheet</TableHead>
+                        <TableHead>Total material cost</TableHead>
+                        <TableHead>Utilization %</TableHead>
+                        <TableHead>Unused material cost</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -2271,6 +2285,7 @@ function App() {
                         <TableRow key={sheet.rowId}>
                           <TableCell className="font-semibold text-foreground">{sheet.name}</TableCell>
                           <TableCell>{sheet.quantityUsed.toLocaleString()}</TableCell>
+                          <TableCell>{formatCurrencyValue(sheet.costPerSqft)}</TableCell>
                           <TableCell>{formatCurrencyValue(sheet.costPerSheet)}</TableCell>
                           <TableCell>{formatCurrencyValue(sheet.totalMaterialCost)}</TableCell>
                           <TableCell>{formatPercentValue(sheet.utilizationPct)}</TableCell>
@@ -2529,10 +2544,11 @@ function App() {
                   Solver uses the sheet rows below, applies quantity limits when enforced, and searches for the lowest-cost combination.
                 </p>
                 <div className="overflow-x-auto rounded-md border border-border">
-                  <Table className="min-w-[860px]">
+                  <Table className="min-w-[980px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="text-sm font-bold text-foreground">Sheet name</TableHead>
+                        <TableHead className="text-sm font-bold text-foreground">Thickness</TableHead>
                         <TableHead className="text-sm font-bold text-foreground">Width ({unitLabel})</TableHead>
                         <TableHead className="text-sm font-bold text-foreground">Height ({unitLabel})</TableHead>
                         <TableHead className="text-sm font-bold text-foreground">Cost / sqft</TableHead>
@@ -2554,6 +2570,23 @@ function App() {
                                 handleSheetNameChange(row.id, event.target.value)
                               }
                             />
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={String(row.thickness)}
+                              onValueChange={(value: string) => handleSheetThicknessChange(row.id, Number(value))}
+                            >
+                              <SelectTrigger id={`${row.id}-thickness`} className="w-full">
+                                <SelectValue placeholder="Select thickness" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {thicknessOptions.map((option) => (
+                                  <SelectItem key={option.value} value={String(option.value)}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell>
                             <Input

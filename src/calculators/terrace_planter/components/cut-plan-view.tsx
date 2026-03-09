@@ -176,7 +176,11 @@ export default function CutPlanView({
                   <p className="text-sm text-muted-foreground">
                     {sortedPlacements.length} panels - {formatDisplaySheetDimensions(sheet.width, sheet.height, measurementUnit)}
                   </p>
-                  <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+                  <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-4">
+                    <div>
+                      <p className="text-[0.72rem] uppercase tracking-[0.25em]">Cost / sqft</p>
+                      <p className="text-base font-semibold text-foreground">{formatCurrency(sheet.costPerSqft)}</p>
+                    </div>
                     <div>
                       <p className="text-[0.72rem] uppercase tracking-[0.25em]">Cost / sheet</p>
                       <p className="text-base font-semibold text-foreground">{formatCurrency(sheetCost)}</p>

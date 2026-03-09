@@ -9,6 +9,7 @@ export type FabricationDimensions = {
 export type SheetInventoryRow = {
   id: string
   name: string
+  thickness: number
   width: number
   height: number
   costPerSqft: number
@@ -74,57 +75,33 @@ const getBreakdownPrice = (row: CostBreakdownPreview) => row.overridePrice ?? ro
 
 export const DEFAULT_SHEET_INVENTORY: SheetInventoryRow[] = [
   {
-    id: 'sheet-4x8-2-73',
-    name: '4 x 8 @ $2.73',
+    id: 'sheet-4x8-4-976',
+    name: '4 x 8',
+    thickness: 0.125,
     width: 48,
     height: 96,
-    costPerSqft: 2.73,
-    quantity: 10,
+    costPerSqft: 4.976,
+    quantity: Number.NaN,
     limitQuantity: false,
   },
   {
-    id: 'sheet-4x8-3-45',
-    name: '4 x 8 @ $3.45',
-    width: 48,
-    height: 96,
-    costPerSqft: 3.45,
-    quantity: 10,
-    limitQuantity: false,
-  },
-  {
-    id: 'sheet-4x8-5-1',
-    name: '4 x 8 @ $5.10',
-    width: 48,
-    height: 96,
-    costPerSqft: 5.1,
-    quantity: 10,
-    limitQuantity: false,
-  },
-  {
-    id: 'sheet-4x8-9-25',
-    name: '4 x 8 @ $9.25',
-    width: 48,
-    height: 96,
-    costPerSqft: 9.25,
-    quantity: 6,
-    limitQuantity: false,
-  },
-  {
-    id: 'sheet-4x8-20-5',
-    name: '4 x 8 @ $20.50',
-    width: 48,
-    height: 96,
-    costPerSqft: 20.5,
-    quantity: 4,
-    limitQuantity: false,
-  },
-  {
-    id: 'sheet-5x10-3-25',
-    name: '5 x 10 @ $3.25',
+    id: 'sheet-5x10-5-06',
+    name: '5 x 10',
+    thickness: 0.125,
     width: 60,
     height: 120,
-    costPerSqft: 3.25,
-    quantity: 6,
+    costPerSqft: 5.06,
+    quantity: Number.NaN,
+    limitQuantity: false,
+  },
+  {
+    id: 'sheet-4x10-5-06',
+    name: '4 x 10',
+    thickness: 0.125,
+    width: 48,
+    height: 120,
+    costPerSqft: 5.06,
+    quantity: Number.NaN,
     limitQuantity: false,
   },
 ]
