@@ -1,4 +1,4 @@
-﻿const normalizeBase = (raw: string) => {
+const normalizeBase = (raw: string) => {
   const value = (raw || '/').trim()
   if (!value || value === '/') return ''
   return value.endsWith('/') ? value.slice(0, -1) : value

@@ -1,4 +1,4 @@
-﻿export type CsvParseResult = {
+export type CsvParseResult = {
   rows: string[][]
   error: string | null
 }

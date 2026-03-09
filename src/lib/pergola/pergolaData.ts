@@ -1,4 +1,4 @@
-﻿import pricingRaw from '../../data/pergola/Pricing.json' with { type: 'json' }
+import pricingRaw from '../../data/pergola/Pricing.json' with { type: 'json' }
 import connectorsRaw from '../../data/pergola/Connectors.json' with { type: 'json' }
 import endCapsRaw from '../../data/pergola/EndCaps.json' with { type: 'json' }
 import angleRaw from '../../data/pergola/Angle.json' with { type: 'json' }

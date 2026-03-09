@@ -1,4 +1,4 @@
-﻿import type { Placement, SheetInstanceUsage } from '@/lib/terrace_planter/planterSolver'
+import type { Placement, SheetInstanceUsage } from '@/lib/terrace_planter/planterSolver'
 import {
   Card,
   CardContent,

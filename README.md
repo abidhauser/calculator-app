@@ -1,4 +1,4 @@
-﻿# Calculator App
+# Calculator App
 
 ## Run
 - Install: `npm install`
