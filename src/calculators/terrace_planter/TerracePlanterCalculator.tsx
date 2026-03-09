@@ -240,7 +240,7 @@ const createSheetRow = (overrides?: Partial<SheetInventoryRow>): SheetInventoryR
   height: overrides?.height ?? 96,
   costPerSqft: overrides?.costPerSqft ?? 5,
   quantity: overrides?.quantity ?? 1,
-  limitQuantity: overrides?.limitQuantity ?? true,
+  limitQuantity: overrides?.limitQuantity ?? false,
 })
 
 const LOCAL_STORAGE_KEY = 'planterCostThresholds-v1'
