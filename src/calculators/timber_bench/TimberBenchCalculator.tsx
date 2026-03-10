@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 type TimberType = 'Cedar' | 'Pressure Treated' | 'Ipe'
 type FinishType = 'Natural' | 'Stained' | 'Painted'
 type MeasurementUnit = 'in' | 'mm'
+type MaterialConfiguration = 'Envirowood' | 'Aluminum' | 'Thermal Ash'
 type LaborItem = {
   description: string
   labourHours: string
@@ -30,6 +31,11 @@ const DESCRIPTION_OPTIONS = [
 ] as const
 
 const CUSTOM_DESCRIPTION_VALUE = '__custom__'
+const MATERIAL_CONFIGURATION_FACTORS: Record<MaterialConfiguration, number> = {
+  Envirowood: 1.15,
+  Aluminum: 1.35,
+  'Thermal Ash': 1.25,
+}
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', {
@@ -48,6 +54,7 @@ const TimberBenchCalculator = () => {
   const [quantity, setQuantity] = useState('1')
   const [marginPct, setMarginPct] = useState('40')
   const [timberType, setTimberType] = useState<TimberType>('Cedar')
+  const [materialConfiguration, setMaterialConfiguration] = useState<MaterialConfiguration>('Envirowood')
   const [finish, setFinish] = useState<FinishType>('Natural')
   const [backrestEnabled, setBackrestEnabled] = useState<'Yes' | 'No'>('No')
   const [armrestEnabled, setArmrestEnabled] = useState<'Yes' | 'No'>('No')
@@ -104,12 +111,14 @@ const TimberBenchCalculator = () => {
     const buffer = Math.max(Number(bufferInput) || 0, 0)
 
     const materialFactor = timberType === 'Ipe' ? 2.2 : timberType === 'Pressure Treated' ? 0.9 : 1.25
+    const materialConfigurationFactor = MATERIAL_CONFIGURATION_FACTORS[materialConfiguration]
     const finishFactor = finish === 'Painted' ? 1.1 : finish === 'Stained' ? 1.06 : 1
     const backrestFactor = backrestEnabled === 'Yes' ? 1.18 : 1
     const armrestFactor = armrestEnabled === 'Yes' ? 1.08 : 1
     const volumeFactor = (length * depth * height) / 10000
 
-    const baseMaterial = volumeFactor * 55 * materialFactor * finishFactor * backrestFactor * armrestFactor
+    const baseMaterial =
+      volumeFactor * 55 * materialFactor * materialConfigurationFactor * finishFactor * backrestFactor * armrestFactor
     const unitCost = baseMaterial * (1 + waste) + laborCostPerUnit
     const totalCost = unitCost * qty
     const finalCost = totalCost + buffer
@@ -125,6 +134,7 @@ const TimberBenchCalculator = () => {
     heightInches,
     laborItems,
     lengthInches,
+    materialConfiguration,
     marginPct,
     quantity,
     timberType,
@@ -221,7 +231,7 @@ const TimberBenchCalculator = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Configuration</CardTitle>
-                <CardDescription>Choose timber and feature options.</CardDescription>
+                <CardDescription>Choose material, timber, and feature options.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
@@ -232,6 +242,20 @@ const TimberBenchCalculator = () => {
                       <SelectItem value="Cedar">Cedar</SelectItem>
                       <SelectItem value="Pressure Treated">Pressure Treated</SelectItem>
                       <SelectItem value="Ipe">Ipe</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Material configuration</Label>
+                  <Select
+                    value={materialConfiguration}
+                    onValueChange={(value) => setMaterialConfiguration(value as MaterialConfiguration)}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Envirowood">Envirowood</SelectItem>
+                      <SelectItem value="Aluminum">Aluminum</SelectItem>
+                      <SelectItem value="Thermal Ash">Thermal Ash</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
