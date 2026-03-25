@@ -166,7 +166,7 @@ export function runPlanterSolver({
     throw new Error('No sheet inventory provided to the solver.')
   }
 
-  const panels = buildPanels(fabricationDims, planterInput, linerHeightPercent)
+  const panels = buildPanels(fabricationDims, planterInput, linerHeightPercent, sheetRows)
   const cheapestCostPerSqft = Math.min(...sheetRows.map((row) => row.costPerSqft))
   const { singleCandidates, bundleCandidates } = buildCandidates(panels, cheapestCostPerSqft)
   const unplaceableCandidates = [...bundleCandidates, ...singleCandidates].filter(
@@ -268,10 +268,11 @@ function buildPanels(
   fabrication: FabricationDimensions,
   input: PlanterInput,
   linerHeightPercent: number,
+  sheetRows: SheetInventoryRow[],
 ): PanelBlueprint[] {
   const panels: PanelBlueprint[] = []
   if (input.floorEnabled) {
-    panels.push(...buildSplitFloorPanels(fabrication))
+    panels.push(...buildFloorPanels(fabrication, sheetRows))
   }
   panels.push(
     {
@@ -381,6 +382,34 @@ function buildPanels(
   }
 
   return panels
+}
+
+function buildFloorPanels(
+  fabrication: FabricationDimensions,
+  sheetRows: SheetInventoryRow[],
+): PanelBlueprint[] {
+  const singleFloor: PanelBlueprint = {
+    id: 'panel-floor',
+    name: 'Floor',
+    width: fabrication.width,
+    height: fabrication.length,
+    cutWidth: fabrication.width + LASER_OFFSET_TOTAL,
+    cutHeight: fabrication.length + LASER_OFFSET_TOTAL,
+    type: 'floor',
+    isLiner: false,
+  }
+
+  const singleFloorFits = sheetRows.some((row) =>
+    getOrientations(singleFloor.cutWidth, singleFloor.cutHeight).some(
+      (orientation) => orientation.width <= row.width && orientation.height <= row.height,
+    ),
+  )
+
+  if (singleFloorFits) {
+    return [singleFloor]
+  }
+
+  return buildSplitFloorPanels(fabrication)
 }
 
 function buildSplitFloorPanels(fabrication: FabricationDimensions): PanelBlueprint[] {
