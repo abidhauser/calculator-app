@@ -394,7 +394,7 @@ type ThresholdField = 'lowThreshold' | 'lowPrice' | 'mediumThreshold' | 'mediumP
 type MeasurementUnit = 'in' | 'mm'
 
 const INCH_TO_MM = 25.4
-const MAX_PLANTER_DIMENSION_IN = 95
+const MAX_PLANTER_DIMENSION_IN = 120
 const DIMENSION_INPUT_FIELDS: NumericPlanterField[] = ['length', 'width', 'height', 'lip', 'linerDepth']
 const EMPTY_ON_BLUR_FIELDS: NumericPlanterField[] = ['length', 'width', 'height']
 
