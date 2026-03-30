@@ -168,10 +168,15 @@ export function runPlanterSolver({
 
   const panels = buildPanels(fabricationDims, planterInput, linerHeightPercent, sheetRows)
   const cheapestCostPerSqft = Math.min(...sheetRows.map((row) => row.costPerSqft))
-  const { singleCandidates, bundleCandidates } = buildCandidates(panels, cheapestCostPerSqft)
-  const unplaceableCandidates = [...bundleCandidates, ...singleCandidates].filter(
-    (candidate) => !candidateFitsAnySheet(candidate, sheetRows),
+  const { singleCandidates, bundleCandidates } = buildCandidates(
+    panels,
+    cheapestCostPerSqft,
+    planterInput.allowSplitting,
   )
+  const candidatesToValidate = planterInput.allowSplitting
+    ? singleCandidates
+    : [...bundleCandidates, ...singleCandidates]
+  const unplaceableCandidates = candidatesToValidate.filter((candidate) => !candidateFitsAnySheet(candidate, sheetRows))
 
   if (unplaceableCandidates.length > 0) {
     const details = unplaceableCandidates
@@ -444,10 +449,11 @@ function buildSplitFloorPanels(fabrication: FabricationDimensions): PanelBluepri
 function buildCandidates(
   panels: PanelBlueprint[],
   baseCostPerSqft: number,
+  allowSplitting: boolean,
 ): { singleCandidates: Candidate[]; bundleCandidates: Candidate[] } {
   const panelMap = new Map(panels.map((panel) => [panel.id, panel]))
   const singles: Candidate[] = panels
-    .filter((panel) => !REQUIRED_L_CUT_PANEL_IDS.has(panel.id))
+    .filter((panel) => allowSplitting || !REQUIRED_L_CUT_PANEL_IDS.has(panel.id))
     .map((panel) => ({
       id: `candidate-${panel.id}`,
       name: panel.name,

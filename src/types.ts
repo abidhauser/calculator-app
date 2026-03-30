@@ -11,6 +11,7 @@ export type PlanterInput = {
   weightPlateEnabled: boolean
   floorEnabled: boolean
   shelfEnabled: boolean
+  allowSplitting: boolean
 }
 
 export type CostThreshold = {

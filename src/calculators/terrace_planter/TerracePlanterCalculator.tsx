@@ -164,6 +164,7 @@ const defaultPlanterInput: PlanterInput = {
   weightPlateEnabled: false,
   floorEnabled: true,
   shelfEnabled: false,
+  allowSplitting: false,
 }
 
 const defaultThresholds: Record<Category, CostThreshold> = {
@@ -387,9 +388,14 @@ const validatePlanterInput = (input: PlanterInput) => {
 
 type NumericPlanterField = Exclude<
   keyof PlanterInput,
-  'linerEnabled' | 'weightPlateEnabled' | 'shelfEnabled'
+  'linerEnabled' | 'weightPlateEnabled' | 'shelfEnabled' | 'floorEnabled' | 'allowSplitting'
 >
-type BooleanPlanterField = 'linerEnabled' | 'weightPlateEnabled' | 'shelfEnabled' | 'floorEnabled'
+type BooleanPlanterField =
+  | 'linerEnabled'
+  | 'weightPlateEnabled'
+  | 'shelfEnabled'
+  | 'floorEnabled'
+  | 'allowSplitting'
 type ThresholdField = 'lowThreshold' | 'lowPrice' | 'mediumThreshold' | 'mediumPrice' | 'highPrice'
 type MeasurementUnit = 'in' | 'mm'
 
@@ -1737,6 +1743,18 @@ function App() {
                         Liner
                       </Label>
                     </div>
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        id="allowSplitting"
+                        checked={planterInput.allowSplitting}
+                        onCheckedChange={(value: boolean | 'indeterminate') =>
+                          handleCheckbox('allowSplitting', Boolean(value))
+                        }
+                      />
+                      <Label htmlFor="allowSplitting" className="text-sm font-semibold text-foreground">
+                        Allow Panel Splitting
+                      </Label>
+                    </div>
                   </div>
 
                   {planterInput.linerEnabled && (
@@ -1933,6 +1951,10 @@ function App() {
                       <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Floor</p>
                         <p className="text-sm font-semibold text-foreground">{planterInput.floorEnabled ? 'Enabled' : 'Disabled'}</p>
+                      </div>
+                      <div className="result-detail-metric rounded-xl p-2.5">
+                        <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Allow panel splitting</p>
+                        <p className="text-sm font-semibold text-foreground">{planterInput.allowSplitting ? 'Enabled' : 'Disabled'}</p>
                       </div>
                       <div className="result-detail-metric rounded-xl p-2.5">
                         <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Liner depth</p>
