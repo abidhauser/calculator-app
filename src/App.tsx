@@ -45,6 +45,8 @@ const CALCULATORS: CalculatorMeta[] = [
 ]
 
 const normalizePathRoute = (pathname: string): Route | 'not-found' => {
+  // Route matching happens after removing the deployment base path so local dev
+  // and GitHub Pages URLs resolve to the same logical routes.
   const scopedPathname = stripAppBasePath(pathname) || '/'
   const raw = (scopedPathname || '/').trim().toLowerCase()
   const route = raw !== '/' && raw.endsWith('/') ? raw.slice(0, -1) : raw
@@ -62,6 +64,7 @@ const navigateTo = (route: Route) => {
   if (window.location.pathname !== targetPath) {
     window.history.pushState({}, '', targetPath)
   }
+  // Force our simple client-side router to re-evaluate immediately.
   window.dispatchEvent(new PopStateEvent('popstate'))
 }
 

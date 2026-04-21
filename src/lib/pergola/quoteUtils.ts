@@ -8,4 +8,5 @@ export const safeToNumber = (value: unknown, fallback = 0): number => {
 
 export const toFeetFromInches = (inches: number): number => (Number.isFinite(inches) ? Number((inches / 12).toFixed(4)) : 0)
 
+// Keep reversible unit conversions stable for sync fields in the quote engine.
 export const toInchesFromFeet = (feet: number): number => (Number.isFinite(feet) ? Number((feet * 12).toFixed(4)) : 0)

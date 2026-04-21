@@ -22,15 +22,12 @@ const sha256 = async (value: string) => {
 const LoginGate = ({ children }: LoginGateProps) => {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    // Read once on mount to avoid effect-driven state synchronization.
+    if (typeof window === 'undefined') return false
+    return window.sessionStorage.getItem(AUTH_KEY) === 'true'
+  })
   const configuredPasswordHash = import.meta.env.VITE_APP_PASSWORD_HASH?.toLowerCase()
-
-  useEffect(() => {
-    const savedAuth = sessionStorage.getItem(AUTH_KEY)
-    if (savedAuth === 'true') {
-      setIsAuthenticated(true)
-    }
-  }, [])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

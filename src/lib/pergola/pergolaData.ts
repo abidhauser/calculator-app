@@ -59,6 +59,7 @@ type WorkbookRow = {
 }
 
 const unwrapRows = (rows: unknown): unknown[][] =>
+  // Workbook JSON exports each row as an object with a `value` tuple.
   Array.isArray(rows)
     ? (rows as WorkbookRow[]).map((row) => (Array.isArray(row?.value) ? row.value : []))
     : []
@@ -66,6 +67,7 @@ const unwrapRows = (rows: unknown): unknown[][] =>
 const toNumber = (value: unknown): number | null => {
   if (typeof value === 'number' && Number.isFinite(value)) return value
   if (typeof value === 'string') {
+    // Cells may include units or currency markers, so strip non-numeric chars.
     const parsed = Number(value.replace(/[^0-9.-]/g, ''))
     return Number.isFinite(parsed) ? parsed : null
   }

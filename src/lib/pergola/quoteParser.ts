@@ -10,6 +10,7 @@ export type ParsedDimension = {
 export const parseDimension = (raw: string): ParsedDimension => {
   const normalized = String(raw ?? '').trim().toLowerCase()
 
+  // Accept dimensions like "2x4" or "2 x 4" and reject everything else.
   const match = normalized.match(/^(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)$/)
   if (!match) {
     return {

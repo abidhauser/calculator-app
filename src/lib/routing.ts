@@ -1,4 +1,5 @@
 const normalizeBase = (raw: string) => {
+  // Normalize Vite BASE_URL into a stable prefix with no trailing slash.
   const value = (raw || '/').trim()
   if (!value || value === '/') return ''
   return value.endsWith('/') ? value.slice(0, -1) : value

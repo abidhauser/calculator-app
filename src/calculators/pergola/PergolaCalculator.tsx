@@ -89,22 +89,6 @@ const getPrivacyPanelDefaults = () => ({
   gapIn: 0,
 })
 
-const hasPrivacyPanelDefaults = (privacy: PergolaInput['privacy']) => {
-  const defaults = getPrivacyPanelDefaults()
-  return (
-    privacy.material === defaults.material &&
-    privacy.orientation === defaults.orientation &&
-    privacy.size === defaults.size &&
-    privacy.customSize === defaults.customSize &&
-    privacy.alignment === defaults.alignment &&
-    privacy.panelCountLength === defaults.panelCountLength &&
-    privacy.panelCountDepth === defaults.panelCountDepth &&
-    privacy.groundClearanceIn === defaults.groundClearanceIn &&
-    privacy.topClearanceIn === defaults.topClearanceIn &&
-    privacy.coveragePct === defaults.coveragePct &&
-    privacy.gapIn === defaults.gapIn
-  )
-}
 const PIECE_ROWS = [
   { key: 'verticalColumns', label: 'Vertical Columns' },
   { key: 'beamsLength', label: 'Beams on length' },
@@ -354,15 +338,16 @@ const PergolaCalculator = () => {
     [columnBeamThickness6x6Input],
   )
 
-  const availableColumnBeamThicknessOptions =
-    input.type === 'Grand Pergola'
-      ? (columnBeamThickness6x6Options.length ? columnBeamThickness6x6Options : ['0.25'])
-      : (columnBeamThickness4x4Options.length ? columnBeamThickness4x4Options : ['0.125', '0.25'])
-
-  useEffect(() => {
-    if (availableColumnBeamThicknessOptions.includes(columnBeamThickness)) return
-    setColumnBeamThickness(availableColumnBeamThicknessOptions[0] ?? '')
-  }, [availableColumnBeamThicknessOptions, columnBeamThickness])
+  const availableColumnBeamThicknessOptions = useMemo(
+    () =>
+      input.type === 'Grand Pergola'
+        ? (columnBeamThickness6x6Options.length ? columnBeamThickness6x6Options : ['0.25'])
+        : (columnBeamThickness4x4Options.length ? columnBeamThickness4x4Options : ['0.125', '0.25']),
+    [columnBeamThickness4x4Options, columnBeamThickness6x6Options, input.type],
+  )
+  const selectedColumnBeamThickness = availableColumnBeamThicknessOptions.includes(columnBeamThickness)
+    ? columnBeamThickness
+    : (availableColumnBeamThicknessOptions[0] ?? '')
   const sectionTotals = useMemo<Record<PricingSectionKey, number>>(
     () =>
       PRICING_SECTIONS.reduce(
@@ -409,25 +394,6 @@ const PergolaCalculator = () => {
       additional: [...ADDITIONAL_SECTION_ITEMS],
     }
   }, [tubingRowsState, connectorRowsState, endCapRowsState, angleRowsState, flatbarRowsState])
-
-
-  useEffect(() => {
-    if (privacyPanelsEnabled) return
-
-    if (!hasPrivacyPanelDefaults(input.privacy)) {
-      setInput((prev) => ({
-        ...prev,
-        privacy: getPrivacyPanelDefaults(),
-      }))
-    }
-
-    setPieceQtyEdits((prev) => {
-      const next = { ...prev }
-      delete next.sidePurlinsLength
-      delete next.sidePurlinsDepth
-      return next
-    })
-  }, [privacyPanelsEnabled, input.privacy])
   const effectivePieceCounts = useMemo<PieceCounts>(() => {
     const base = result.pieceCounts
     const next = { ...base } as Record<PieceCountKey, number | null>
@@ -1030,7 +996,7 @@ const PergolaCalculator = () => {
                             id="electrical"
                             checked={input.electrical === 'Yes'}
                             onCheckedChange={(value: boolean | 'indeterminate') =>
-                              setInput((prev) => ({ ...prev, electrical: Boolean(value) ? 'Yes' : 'No' }))
+                              setInput((prev) => ({ ...prev, electrical: value === true ? 'Yes' : 'No' }))
                             }
                           />
                           <Label htmlFor="electrical" className="text-sm text-foreground">
@@ -1046,7 +1012,7 @@ const PergolaCalculator = () => {
                             id="privacyPanels"
                             checked={privacyPanelsEnabled}
                             onCheckedChange={(value: boolean | 'indeterminate') => {
-                              const enabled = Boolean(value)
+                              const enabled = value === true
                               setPrivacyPanelsEnabled(enabled)
 
                               if (!enabled) {
@@ -1058,6 +1024,15 @@ const PergolaCalculator = () => {
                                     ...privacyDefaults,
                                   },
                                 }))
+                                setPieceQtyEdits((prev) => {
+                                  const hasSideEdits =
+                                    prev.sidePurlinsLength !== undefined || prev.sidePurlinsDepth !== undefined
+                                  if (!hasSideEdits) return prev
+                                  const next = { ...prev }
+                                  delete next.sidePurlinsLength
+                                  delete next.sidePurlinsDepth
+                                  return next
+                                })
                               }
                             }}
                           />
@@ -1231,7 +1206,7 @@ const PergolaCalculator = () => {
                       <div className="grid gap-3 md:grid-cols-3">
                         <div className="space-y-2">
                           <Label>Column & Beam Thickness</Label>
-                          <Select value={columnBeamThickness} onValueChange={(value) => setColumnBeamThickness(value)}>
+                          <Select value={selectedColumnBeamThickness} onValueChange={(value) => setColumnBeamThickness(value)}>
                             <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>                            <SelectContent>
                               {availableColumnBeamThicknessOptions.map((thickness) => (
                                 <SelectItem key={thickness} value={thickness}>{thickness}</SelectItem>

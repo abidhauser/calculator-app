@@ -148,6 +148,8 @@ export function runPlanterSolver({
   const candidatesToValidate = planterInput.allowSplitting
     ? singleCandidates
     : [...bundleCandidates, ...singleCandidates]
+  // Fail early with actionable dimensions instead of running the placement loop
+  // when one or more required panels cannot fit any available sheet.
   const unplaceableCandidates = candidatesToValidate.filter((candidate) => !candidateFitsAnySheet(candidate, sheetRows))
 
   if (unplaceableCandidates.length > 0) {
@@ -178,6 +180,8 @@ export function runPlanterSolver({
       .slice(queueIndex + 1)
       .filter((queued) => queued.panels.every((panel) => !placedPanels.has(panel.id)))
 
+    // Greedy placement prefers existing sheets when possible, and only opens
+    // a new sheet when it yields a better global fit for remaining candidates.
     const commit = placeCandidateOnSheets(
       candidate,
       sheetInstances,

@@ -28,6 +28,8 @@ const beamThickness = (size: string) => {
 
 const setPrivateSync = (state: QuoteEngineState, field: QuoteFieldChange): QuoteEnginePrivateState => {
   const next = clone(state.private ?? {}) as QuoteEnginePrivateState
+  // Track whether gap or coverage was the last user-edited side so derived
+  // values can flow in the expected direction.
   if (field === 'roofPurlins.gapIn') next.lastRoofSync = 'gap'
   if (field === 'roofPurlins.coveragePct') next.lastRoofSync = 'coverage'
   if (field === 'sidePurlins.gapIn') next.lastSideSync = 'gap'
@@ -162,6 +164,8 @@ const applyAvailability = (state: QuoteEngineState) => {
   next.availableRoofSizes = availableRoofSizes(next)
   next.availableSideSizes = availableSideSizes(next)
 
+  // If the currently selected size is no longer valid under new constraints,
+  // snap to the first available option to keep the state calculable.
   if (next.availableRoofSizes.length && !next.availableRoofSizes.includes(next.roofPurlins.size)) {
     next.roofPurlins.size = next.availableRoofSizes[0] ?? '2x4'
   }
@@ -468,6 +472,7 @@ export const optimizeStockCuts = (state: QuoteEngineState): QuoteEngineState['st
   const baseline = buildGreedyPlan()
   if (!baseline) return { stockCounts: {}, cutPlan: [] }
 
+  // Large piece sets use a fast greedy fallback to keep UI interactions snappy.
   if (pieces.length > 18) {
     const counts: Record<string, number> = {}
     for (const bin of baseline.bins) {
@@ -536,6 +541,7 @@ export const optimizeStockCuts = (state: QuoteEngineState): QuoteEngineState['st
     const memoized = memo.get(key)
     if (memoized) return memoized
 
+    // Branch-and-bound explores "existing bin first" then "new stock" options.
     const piece = pieces[idx]
     const candidates: Array<{ bins: BinState[]; waste: number }> = []
 
@@ -692,7 +698,7 @@ const applyFieldChange = (state: QuoteEngineState, field: QuoteFieldChange, valu
   const next = clone(state)
 
   if (field === 'privacyPanelsToggle') {
-    return Boolean(value) ? next : applyNoPrivacy(next)
+    return value === true ? next : applyNoPrivacy(next)
   }
 
   if (field === 'pergola.type') {
@@ -741,6 +747,7 @@ const applyFieldChange = (state: QuoteEngineState, field: QuoteFieldChange, valu
 }
 
 const runPipeline = (state: QuoteEngineState) => {
+  // Canonical update pipeline so every field change recomputes consistently.
   let next = applySuggestedType(state)
   next = applyCustomSizeOverride(next)
   next = applyAvailability(next)
@@ -807,6 +814,7 @@ export const applyQuoteChange = (state: QuoteEngineState, field: QuoteFieldChang
       field,
     )
   ) {
+    // Dimension pairs are kept synchronized in both feet and inches views.
     next = syncFeetInches(next, field, safeToNumber(value, 0))
   } else {
     next = applyFieldChange(next, field, value)

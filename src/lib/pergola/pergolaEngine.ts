@@ -182,6 +182,7 @@ const toLegacyInput = (input: PergolaInput) => ({
 })
 
 const matchParityCase = (legacy: ReturnType<typeof toLegacyInput>) =>
+  // Parity fixtures override calculated fields when an exact known scenario matches.
   parityCases.find((entry) => {
     const candidate = {
       lengthFt: legacy.dimensions.lengthFt,
@@ -305,6 +306,8 @@ const calculatePergola = (input: PergolaInput): PergolaOutput => {
     return buildOutput(engineState, legacy)
   }
 
+  // Keep dynamic availability lists from live engine output while using
+  // fixture-calibrated expected totals for the matched case.
   return {
     ...parity.expected,
     availableRoofSizes: engineState.availableRoofSizes,

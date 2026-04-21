@@ -24,6 +24,7 @@ export const parseCsv = (source: string): CsvParseResult => {
     const char = source[index]
 
     if (inQuotes) {
+      // Inside quoted cells, commas/newlines are treated as literal content.
       if (char === '"') {
         const next = source[index + 1]
         if (next === '"') {

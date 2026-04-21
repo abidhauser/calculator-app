@@ -117,6 +117,8 @@ const TimberBenchCalculator = () => {
     const armrestFactor = armrestEnabled === 'Yes' ? 1.08 : 1
     const volumeFactor = (length * depth * height) / 10000
 
+    // Bench model intentionally uses multiplicative factors so material,
+    // finish, and options can be tuned independently.
     const baseMaterial =
       volumeFactor * 55 * materialFactor * materialConfigurationFactor * finishFactor * backrestFactor * armrestFactor
     const unitCost = baseMaterial * (1 + waste) + laborCostPerUnit

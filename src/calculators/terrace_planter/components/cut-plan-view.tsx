@@ -75,6 +75,7 @@ const computeSheetScale = (sheet: SheetInstanceUsage, maxDisplayDimension: numbe
 }
 
 const getPanelGroup = (placement: Placement) => {
+  // Prefer explicit panel metadata, then fall back to legacy id naming.
   if (placement.isLiner || placement.panelType === 'liner' || placement.panelId.includes('liner')) {
     return 'liner'
   }

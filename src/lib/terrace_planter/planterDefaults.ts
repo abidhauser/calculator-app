@@ -74,6 +74,7 @@ const defaultPlanterInputFallback: PlanterInput = {
 const planterInputRaw = settings.defaultPlanterInput ?? {}
 
 export const DEFAULT_PLANTER_INPUT: PlanterInput = {
+  // Treat malformed or missing JSON values as recoverable and fall back to code defaults.
   length: toNumber(planterInputRaw.length, defaultPlanterInputFallback.length),
   width: toNumber(planterInputRaw.width, defaultPlanterInputFallback.width),
   height: toNumber(planterInputRaw.height, defaultPlanterInputFallback.height),
@@ -243,6 +244,7 @@ const sheetInventoryFallback: SheetInventoryDefaultRow[] = [
 ]
 
 const toSheetQuantity = (value: unknown, fallback: number): number => {
+  // In settings JSON, null means "unlimited quantity" for sheet inventory rows.
   if (value === null) return Number.NaN
   return toNumber(value, fallback)
 }
@@ -265,5 +267,6 @@ const sheetInventoryRaw = settings.defaultSheetInventory
 
 export const DEFAULT_SHEET_INVENTORY_SETTINGS: SheetInventoryDefaultRow[] =
   Array.isArray(sheetInventoryRaw) && sheetInventoryRaw.length > 0
+    // Map each configured row with per-field fallback guards.
     ? sheetInventoryRaw.map((row, index) => normalizeSheetRow(row, sheetInventoryFallback[index] ?? sheetInventoryFallback[0]))
     : sheetInventoryFallback.map((row) => ({ ...row }))

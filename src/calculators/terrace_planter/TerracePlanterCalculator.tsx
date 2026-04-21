@@ -306,13 +306,49 @@ const parseNumberCell = (rawValue: string) => {
   return Number.isFinite(value) ? value : null
 }
 
+const loadStoredThresholds = (): Record<Category, CostThreshold> => {
+  if (typeof window === 'undefined') return cloneThresholds()
+
+  // Persisted settings are optional; silently fall back if parsing/shape fails.
+  const stored = window.localStorage.getItem(LOCAL_STORAGE_KEY)
+  if (!stored) return cloneThresholds()
+
+  try {
+    const parsed = JSON.parse(stored) as Partial<Record<Category, CostThreshold>>
+    const isValid = categoryList.every((category) => {
+      const candidate = parsed[category]
+      return (
+        typeof candidate?.lowThreshold === 'number' &&
+        typeof candidate?.mediumThreshold === 'number' &&
+        typeof candidate?.lowPrice === 'number' &&
+        typeof candidate?.mediumPrice === 'number' &&
+        typeof candidate?.highPrice === 'number'
+      )
+    })
+    return isValid ? cloneThresholds(parsed) : cloneThresholds()
+  } catch {
+    return cloneThresholds()
+  }
+}
+
+const loadStoredResultColorThresholds = (): ResultColorThresholds => {
+  if (typeof window === 'undefined') return DEFAULT_RESULT_COLOR_THRESHOLDS
+
+  const stored = window.localStorage.getItem(RESULT_COLOR_STORAGE_KEY)
+  if (!stored) return DEFAULT_RESULT_COLOR_THRESHOLDS
+
+  try {
+    const parsed = JSON.parse(stored) as Partial<ResultColorThresholds>
+    return normalizeResultColorThresholds(parsed)
+  } catch {
+    return DEFAULT_RESULT_COLOR_THRESHOLDS
+  }
+}
+
 function App() {
   const [planterInput, setPlanterInput] = useState<PlanterInput>(() => ({ ...defaultPlanterInput }))
   const [measurementUnit, setMeasurementUnit] = useState<MeasurementUnit>('in')
-  const [thresholds, setThresholds] = useState<Record<Category, CostThreshold>>(() => cloneThresholds())
-  const [thresholdErrors, setThresholdErrors] = useState<Record<Category, string | undefined>>(
-    {} as Record<Category, string | undefined>,
-  )
+  const [thresholds, setThresholds] = useState<Record<Category, CostThreshold>>(loadStoredThresholds)
   const [fabricationDims, setFabricationDims] = useState({ length: 0, width: 0, height: 0 })
   const [breakdowns, setBreakdowns] = useState<CostBreakdownPreview[]>([])
   const [calculationError, setCalculationError] = useState<string | null>(null)
@@ -331,7 +367,7 @@ function App() {
     DEFAULT_RESULTS_SECTION_STATE,
   )
   const [resultColorThresholds, setResultColorThresholds] = useState<ResultColorThresholds>(
-    DEFAULT_RESULT_COLOR_THRESHOLDS,
+    loadStoredResultColorThresholds,
   )
   const [detailNotes, setDetailNotes] = useState<Record<ResultsCategory, string>>(() =>
     RESULTS_CATEGORY_ORDER.reduce(
@@ -346,8 +382,30 @@ function App() {
   const [settingsBanner, setSettingsBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const settingsImportInputRef = useRef<HTMLInputElement | null>(null)
 
+  const thresholdErrors = useMemo(() => {
+    // Keep field-level validation derived from source thresholds to avoid
+    // effect-driven synchronization state.
+    const nextErrors: Record<Category, string | undefined> = {} as Record<Category, string | undefined>
+    categoryList.forEach((category) => {
+      const entry = thresholds[category]
+      if (
+        !Number.isFinite(entry.lowThreshold) ||
+        !Number.isFinite(entry.mediumThreshold) ||
+        !Number.isFinite(entry.lowPrice) ||
+        !Number.isFinite(entry.mediumPrice) ||
+        !Number.isFinite(entry.highPrice)
+      ) {
+        nextErrors[category] = 'All threshold and price values must be valid numbers.'
+      } else if (entry.lowThreshold >= entry.mediumThreshold) {
+        nextErrors[category] = 'Low threshold must be smaller than the medium threshold.'
+      } else {
+        nextErrors[category] = undefined
+      }
+    })
+    return nextErrors
+  }, [thresholds])
   const hasThresholdErrors = useMemo(
-    () => Object.values(thresholdErrors).some((message) => Boolean(message)),
+    () => Object.values(thresholdErrors).some((message) => message !== undefined && message !== ''),
     [thresholdErrors],
   )
   const dimensionStep = measurementUnit === 'mm' ? '1' : '0.25'
@@ -632,29 +690,6 @@ function App() {
   )
 
   useEffect(() => {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY)
-    if (!stored) return
-    try {
-      const parsed = JSON.parse(stored) as Partial<Record<Category, CostThreshold>>
-      const isValid = categoryList.every((category) => {
-        const candidate = parsed[category]
-        return (
-          typeof candidate?.lowThreshold === 'number' &&
-          typeof candidate?.mediumThreshold === 'number' &&
-          typeof candidate?.lowPrice === 'number' &&
-          typeof candidate?.mediumPrice === 'number' &&
-          typeof candidate?.highPrice === 'number'
-        )
-      })
-      if (isValid) {
-        setThresholds(cloneThresholds(parsed))
-      }
-    } catch {
-      // ignore malformed persistence
-    }
-  }, [])
-
-  useEffect(() => {
     if (!resultBanner || resultBanner.type !== 'success') return
     const timeoutId = window.setTimeout(() => {
       setResultBanner(null)
@@ -663,44 +698,12 @@ function App() {
   }, [resultBanner])
 
   useEffect(() => {
-    const stored = localStorage.getItem(RESULT_COLOR_STORAGE_KEY)
-    if (!stored) return
-    try {
-      const parsed = JSON.parse(stored) as Partial<ResultColorThresholds>
-      setResultColorThresholds(normalizeResultColorThresholds(parsed))
-    } catch {
-      // ignore malformed persistence
-    }
-  }, [])
-
-  useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(thresholds))
   }, [thresholds])
 
   useEffect(() => {
     localStorage.setItem(RESULT_COLOR_STORAGE_KEY, JSON.stringify(resultColorThresholds))
   }, [resultColorThresholds])
-
-  useEffect(() => {
-    const nextErrors: Record<Category, string | undefined> = {} as Record<Category, string | undefined>
-    categoryList.forEach((category) => {
-      const entry = thresholds[category]
-      if (
-        !Number.isFinite(entry.lowThreshold) ||
-        !Number.isFinite(entry.mediumThreshold) ||
-        !Number.isFinite(entry.lowPrice) ||
-        !Number.isFinite(entry.mediumPrice) ||
-        !Number.isFinite(entry.highPrice)
-      ) {
-        nextErrors[category] = 'All threshold and price values must be valid numbers.'
-      } else if (entry.lowThreshold >= entry.mediumThreshold) {
-        nextErrors[category] = 'Low threshold must be smaller than the medium threshold.'
-      } else {
-        nextErrors[category] = undefined
-      }
-    })
-    setThresholdErrors(nextErrors)
-  }, [thresholds])
 
   const handleInputChange = (field: NumericPlanterField, value: number) => {
     setPlanterInput((prev) => {
