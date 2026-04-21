@@ -1,4 +1,5 @@
 import type { CostBreakdownPreview, PlanterInput } from '@/types'
+import { DEFAULT_SHEET_INVENTORY_SETTINGS } from '@/lib/terrace_planter/planterDefaults'
 
 export type FabricationDimensions = {
   length: number
@@ -73,38 +74,9 @@ const REQUIRED_L_CUT_PANEL_IDS = new Set([
 ])
 const getBreakdownPrice = (row: CostBreakdownPreview) => row.overridePrice ?? row.basePrice
 
-export const DEFAULT_SHEET_INVENTORY: SheetInventoryRow[] = [
-  {
-    id: 'sheet-4x8-4-976',
-    name: '4 x 8',
-    thickness: 0.125,
-    width: 48,
-    height: 96,
-    costPerSqft: 4.976,
-    quantity: Number.NaN,
-    limitQuantity: false,
-  },
-  {
-    id: 'sheet-5x10-5-06',
-    name: '5 x 10',
-    thickness: 0.125,
-    width: 60,
-    height: 120,
-    costPerSqft: 5.06,
-    quantity: Number.NaN,
-    limitQuantity: false,
-  },
-  {
-    id: 'sheet-4x10-5-06',
-    name: '4 x 10',
-    thickness: 0.125,
-    width: 48,
-    height: 120,
-    costPerSqft: 5.06,
-    quantity: Number.NaN,
-    limitQuantity: false,
-  },
-]
+export const DEFAULT_SHEET_INVENTORY: SheetInventoryRow[] = DEFAULT_SHEET_INVENTORY_SETTINGS.map((row) => ({
+  ...row,
+}))
 
 type PanelBlueprint = {
   id: string

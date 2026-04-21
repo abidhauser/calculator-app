@@ -1,0 +1,124 @@
+{
+  "defaultPlanterInput": {
+    "length": null,
+    "width": null,
+    "height": null,
+    "marginPct": 50,
+    "thickness": 0.125,
+    "lip": 2.125,
+    "linerEnabled": false,
+    "linerDepth": 1,
+    "linerThickness": 0.125,
+    "weightPlateEnabled": false,
+    "floorEnabled": true,
+    "shelfEnabled": false,
+    "allowSplitting": false
+  },
+  "defaultThresholds": {
+    "Weld": {
+      "lowThreshold": 10000,
+      "lowPrice": 125,
+      "mediumThreshold": 28000,
+      "mediumPrice": 165,
+      "highPrice": 210
+    },
+    "Grind": {
+      "lowThreshold": 8000,
+      "lowPrice": 85,
+      "mediumThreshold": 22000,
+      "mediumPrice": 115,
+      "highPrice": 145
+    },
+    "Paint": {
+      "lowThreshold": 6000,
+      "lowPrice": 75,
+      "mediumThreshold": 20000,
+      "mediumPrice": 100,
+      "highPrice": 135
+    },
+    "Assembly": {
+      "lowThreshold": 5000,
+      "lowPrice": 140,
+      "mediumThreshold": 22000,
+      "mediumPrice": 180,
+      "highPrice": 215
+    },
+    "Saw": {
+      "lowThreshold": 7000,
+      "lowPrice": 60,
+      "mediumThreshold": 24000,
+      "mediumPrice": 85,
+      "highPrice": 110
+    },
+    "Laser Bend": {
+      "lowThreshold": 9000,
+      "lowPrice": 110,
+      "mediumThreshold": 26000,
+      "mediumPrice": 150,
+      "highPrice": 195
+    },
+    "Weight Plate": {
+      "lowThreshold": 3000,
+      "lowPrice": 40,
+      "mediumThreshold": 15000,
+      "mediumPrice": 60,
+      "highPrice": 95
+    },
+    "Liner": {
+      "lowThreshold": 5000,
+      "lowPrice": 95,
+      "mediumThreshold": 15000,
+      "mediumPrice": 140,
+      "highPrice": 180
+    },
+    "Shelf": {
+      "lowThreshold": 5000,
+      "lowPrice": 120,
+      "mediumThreshold": 15000,
+      "mediumPrice": 160,
+      "highPrice": 200
+    }
+  },
+  "defaultResultColorThresholds": {
+    "marginWarnMax": 20,
+    "marginGoodMin": 35,
+    "deltaNegativeMax": -25,
+    "deltaPositiveMin": 25,
+    "utilizationWarnMax": 60,
+    "utilizationGoodMin": 80,
+    "wasteGoodMax": 20,
+    "wasteWarnMax": 40
+  },
+  "defaultSheetInventory": [
+    {
+      "id": "sheet-4x8-4-976",
+      "name": "4 x 8",
+      "thickness": 0.125,
+      "width": 48,
+      "height": 96,
+      "costPerSqft": 4.976,
+      "quantity": null,
+      "limitQuantity": false
+    },
+    {
+      "id": "sheet-5x10-5-06",
+      "name": "5 x 10",
+      "thickness": 0.125,
+      "width": 60,
+      "height": 120,
+      "costPerSqft": 5.06,
+      "quantity": null,
+      "limitQuantity": false
+    },
+    {
+      "id": "sheet-4x10-5-06",
+      "name": "4 x 10",
+      "thickness": 0.125,
+      "width": 48,
+      "height": 120,
+      "costPerSqft": 5.06,
+      "quantity": null,
+      "limitQuantity": false
+    }
+  ]
+}

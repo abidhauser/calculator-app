@@ -39,17 +39,14 @@ import {
   type SheetInventoryRow,
   type SolverResult,
 } from '@/lib/terrace_planter/planterSolver'
-
-type Category =
-  | 'Weld'
-  | 'Grind'
-  | 'Paint'
-  | 'Assembly'
-  | 'Saw'
-  | 'Laser Bend'
-  | 'Weight Plate'
-  | 'Liner'
-  | 'Shelf'
+import {
+  CATEGORY_LIST,
+  DEFAULT_PLANTER_INPUT,
+  DEFAULT_RESULT_COLOR_THRESHOLDS,
+  DEFAULT_THRESHOLDS,
+  type Category,
+  type ResultColorThresholds,
+} from '@/lib/terrace_planter/planterDefaults'
 
 type SheetSummaryRow = {
   rowId: string
@@ -105,17 +102,6 @@ type CostDetailRow =
 
 type ResultsSectionKey = 'planterDetails' | 'overview' | 'costBreakdown' | 'sheetBreakdown' | 'cutPlan'
 
-type ResultColorThresholds = {
-  marginWarnMax: number
-  marginGoodMin: number
-  deltaNegativeMax: number
-  deltaPositiveMin: number
-  utilizationWarnMax: number
-  utilizationGoodMin: number
-  wasteGoodMax: number
-  wasteWarnMax: number
-}
-
 const RESULTS_CATEGORY_ORDER: ResultsCategory[] = [
   'Material',
   'Weld',
@@ -151,108 +137,9 @@ const thicknessOptions = [
   { label: '3/16" (0.1875")', value: 0.1875 },
 ]
 
-const defaultPlanterInput: PlanterInput = {
-  length: Number.NaN,
-  width: Number.NaN,
-  height: Number.NaN,
-  marginPct: 50,
-  thickness: 0.125,
-  lip: 2.125,
-  linerEnabled: false,
-  linerDepth: 1,
-  linerThickness: 0.125,
-  weightPlateEnabled: false,
-  floorEnabled: true,
-  shelfEnabled: false,
-  allowSplitting: false,
-}
-
-const defaultThresholds: Record<Category, CostThreshold> = {
-  Weld: {
-    category: 'Weld',
-    lowThreshold: 10000,
-    lowPrice: 125,
-    mediumThreshold: 28000,
-    mediumPrice: 165,
-    highPrice: 210,
-  },
-  Grind: {
-    category: 'Grind',
-    lowThreshold: 8000,
-    lowPrice: 85,
-    mediumThreshold: 22000,
-    mediumPrice: 115,
-    highPrice: 145,
-  },
-  Paint: {
-    category: 'Paint',
-    lowThreshold: 6000,
-    lowPrice: 75,
-    mediumThreshold: 20000,
-    mediumPrice: 100,
-    highPrice: 135,
-  },
-  Assembly: {
-    category: 'Assembly',
-    lowThreshold: 5000,
-    lowPrice: 140,
-    mediumThreshold: 22000,
-    mediumPrice: 180,
-    highPrice: 215,
-  },
-  Saw: {
-    category: 'Saw',
-    lowThreshold: 7000,
-    lowPrice: 60,
-    mediumThreshold: 24000,
-    mediumPrice: 85,
-    highPrice: 110,
-  },
-  'Laser Bend': {
-    category: 'Laser Bend',
-    lowThreshold: 9000,
-    lowPrice: 110,
-    mediumThreshold: 26000,
-    mediumPrice: 150,
-    highPrice: 195,
-  },
-  'Weight Plate': {
-    category: 'Weight Plate',
-    lowThreshold: 3000,
-    lowPrice: 40,
-    mediumThreshold: 15000,
-    mediumPrice: 60,
-    highPrice: 95,
-  },
-  Liner: {
-    category: 'Liner',
-    lowThreshold: 5000,
-    lowPrice: 95,
-    mediumThreshold: 15000,
-    mediumPrice: 140,
-    highPrice: 180,
-  },
-  Shelf: {
-    category: 'Shelf',
-    lowThreshold: 5000,
-    lowPrice: 120,
-    mediumThreshold: 15000,
-    mediumPrice: 160,
-    highPrice: 200,
-  },
-}
-
-const categoryList: Category[] = [
-  'Weld',
-  'Grind',
-  'Paint',
-  'Assembly',
-  'Saw',
-  'Laser Bend',
-  'Weight Plate',
-  'Liner',
-  'Shelf',
-]
+const defaultPlanterInput: PlanterInput = { ...DEFAULT_PLANTER_INPUT }
+const defaultThresholds: Record<Category, CostThreshold> = DEFAULT_THRESHOLDS
+const categoryList: Category[] = [...CATEGORY_LIST]
 
 const generateSheetId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -295,17 +182,6 @@ const DEFAULT_RESULTS_SECTION_STATE: Record<ResultsSectionKey, boolean> = {
   costBreakdown: false,
   sheetBreakdown: false,
   cutPlan: false,
-}
-
-const DEFAULT_RESULT_COLOR_THRESHOLDS: ResultColorThresholds = {
-  marginWarnMax: 20,
-  marginGoodMin: 35,
-  deltaNegativeMax: -25,
-  deltaPositiveMin: 25,
-  utilizationWarnMax: 60,
-  utilizationGoodMin: 80,
-  wasteGoodMax: 20,
-  wasteWarnMax: 40,
 }
 
 const RESULT_SECTION_ID_MAP: Record<string, ResultsSectionKey> = {
