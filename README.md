@@ -2,6 +2,10 @@
 
 React + Vite calculator hub for fabrication and pricing workflows. The app currently includes Terrace Planter, Pergola, and Timber Bench calculators behind a lightweight password gate.
 
+Detailed architecture and implementation documentation:
+
+- `docs/APP_DOCUMENTATION.md`
+
 ## Stack
 
 - React 19
